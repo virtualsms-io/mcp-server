@@ -1,0 +1,67 @@
+{
+  "name": "virtualsms-mcp",
+  "version": "1.0.0",
+  "description": "MCP server for VirtualSMS — receive SMS verification codes with AI agents. Virtual phone numbers for WhatsApp, Telegram, Google & 200+ services. SMS-Activate & DaisySMS alternative.",
+  "main": "dist/index.js",
+  "bin": {
+    "virtualsms-mcp": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "start": "node dist/index.js",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "mcp",
+    "mcp-server",
+    "model-context-protocol",
+    "sms",
+    "sms-verification",
+    "sms-activate",
+    "virtual-number",
+    "virtual-phone-number",
+    "phone-verification",
+    "receive-sms",
+    "ai-agent",
+    "claude",
+    "cursor",
+    "daisysms-alternative",
+    "temporary-phone-number",
+    "whatsapp-verification",
+    "telegram-verification",
+    "virtualsms"
+  ],
+  "author": "VirtualSMS",
+  "license": "MIT",
+  "homepage": "https://virtualsms.io",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/virtualsms-io/mcp-server"
+  },
+  "bugs": {
+    "url": "https://github.com/virtualsms-io/mcp-server/issues"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "type": "module",
+  "files": [
+    "dist/**/*",
+    "README.md",
+    "ROADMAP.md",
+    "ARCHITECTURE.md",
+    "LICENSE"
+  ],
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "@types/ws": "^8.18.1",
+    "axios": "^1.7.0",
+    "ws": "^8.18.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.5.0"
+  }
+}
