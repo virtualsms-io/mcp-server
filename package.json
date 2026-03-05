@@ -1,7 +1,7 @@
 {
   "name": "virtualsms-mcp",
-  "version": "1.0.1",
-  "description": "MCP server for VirtualSMS — receive SMS verification codes with AI agents. Virtual phone numbers for WhatsApp, Telegram, Google & 200+ services. SMS-Activate & DaisySMS alternative.",
+  "version": "1.0.2",
+  "description": "MCP server for VirtualSMS — receive SMS verification codes with AI agents. Virtual phone numbers and number rentals for WhatsApp, Telegram, Google & 200+ services. SMS-Activate & DaisySMS alternative.",
   "main": "dist/index.js",
   "bin": {
     "virtualsms-mcp": "dist/index.js"
@@ -30,7 +30,10 @@
     "temporary-phone-number",
     "whatsapp-verification",
     "telegram-verification",
-    "virtualsms"
+    "virtualsms",
+    "phone-number-rental",
+    "long-term-virtual-number",
+    "sms-rental"
   ],
   "author": "VirtualSMS",
   "license": "MIT",

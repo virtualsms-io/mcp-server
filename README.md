@@ -217,6 +217,13 @@ On timeout, returns `order_id` for recovery:
 
 ---
 
+
+## Number Rentals (Coming Soon)
+
+Need to keep the same phone number for days or weeks? VirtualSMS supports **number rentals** for recurring verifications — perfect for long-running automations, dev testing, and accounts that require re-verification with the same number.
+
+Rental tools (`rent_number`, `extend_rental`, `list_rentals`) are coming in v1.1. See the [Roadmap](./ROADMAP.md).
+
 ## How It Works
 
 ### WebSocket vs Polling
