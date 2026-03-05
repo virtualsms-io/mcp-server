@@ -37,7 +37,7 @@
   "homepage": "https://virtualsms.io",
   "repository": {
     "type": "git",
-    "url": "https://github.com/virtualsms-io/mcp-server"
+    "url": "git+https://github.com/virtualsms-io/mcp-server.git"
   },
   "bugs": {
     "url": "https://github.com/virtualsms-io/mcp-server/issues"
