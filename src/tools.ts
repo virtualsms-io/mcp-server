@@ -269,7 +269,45 @@ export async function handleCheckPrice(
   client: VirtualSMSClient,
   args: z.infer<typeof CheckPriceInput>
 ) {
-  const price = await client.checkPrice(args.service, args.country);
+  let price;
+  try {
+    price = await client.checkPrice(args.service, args.country);
+  } catch (err) {
+    const msg = (err as Error).message ?? '';
+    // 404 or explicit unavailability → return clear user-facing message
+    if (msg.includes('Not found') || msg.includes('404')) {
+      return {
+        content: [
+          {
+            type: 'text' as const,
+            text: JSON.stringify(
+              { available: false, message: 'Service/country combination not available' },
+              null,
+              2
+            ),
+          },
+        ],
+      };
+    }
+    throw err;
+  }
+
+  // Guard: if backend says not available, don't pass through a misleading result
+  if (!price.available) {
+    return {
+      content: [
+        {
+          type: 'text' as const,
+          text: JSON.stringify(
+            { available: false, message: 'Service/country combination not available' },
+            null,
+            2
+          ),
+        },
+      ],
+    };
+  }
+
   return {
     content: [
       {
@@ -604,14 +642,36 @@ export async function handleFindCheapest(
     );
 
     for (const result of priceChecks) {
+      // Skip any country where the price check failed (404, unavailable, network error, etc.)
       if (result.status === 'fulfilled' && result.value.stock) {
         results.push(result.value);
       }
+      // 'rejected' entries are silently skipped — invalid service/country combos
     }
   }
 
   results.sort((a, b) => a.price_usd - b.price_usd);
   const top = results.slice(0, limit);
+
+  if (top.length === 0) {
+    return {
+      content: [
+        {
+          type: 'text' as const,
+          text: JSON.stringify(
+            {
+              service: args.service,
+              cheapest_options: [],
+              total_available_countries: 0,
+              message: `No countries available for service "${args.service}". Use search_service to verify the service code, or list_services to see all available services.`,
+            },
+            null,
+            2
+          ),
+        },
+      ],
+    };
+  }
 
   return {
     content: [
@@ -668,22 +728,27 @@ export async function handleSearchService(
   });
 
   const matches = scored
-    .filter((s) => s.match_score > 0)
+    .filter((s) => s.match_score >= 0.5)
     .sort((a, b) => b.match_score - a.match_score)
-    .slice(0, 10);
+    .slice(0, 5);
 
   return {
     content: [
       {
         type: 'text' as const,
         text: JSON.stringify(
-          {
-            query: args.query,
-            matches,
-            tip: matches.length > 0
-              ? `Use the "code" field as the service parameter in other tools.`
-              : `No matches found. Try list_services to see all available services.`,
-          },
+          matches.length > 0
+            ? {
+                query: args.query,
+                matches,
+                tip: `Use the "code" field as the service parameter in other tools.`,
+              }
+            : {
+                query: args.query,
+                matches: [],
+                message: 'No matching services found',
+                tip: `Try list_services to browse all available services.`,
+              },
           null,
           2
         ),
