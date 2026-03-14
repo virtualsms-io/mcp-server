@@ -150,6 +150,12 @@ export class VirtualSMSClient {
     return res.data as Order;
   }
 
+  async swapNumber(orderId: string): Promise<Order> {
+    this.requireApiKey();
+    const res = await this.http.post(`/api/v1/customer/swap/${orderId}`);
+    return res.data as Order;
+  }
+
   async cancelOrder(orderId: string): Promise<CancelResult> {
     this.requireApiKey();
     const res = await this.http.post(`/api/v1/customer/cancel/${orderId}`);

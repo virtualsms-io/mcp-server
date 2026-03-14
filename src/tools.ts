@@ -22,6 +22,10 @@ export const CancelOrderInput = z.object({
   order_id: z.string().describe('Order ID to cancel'),
 });
 
+export const SwapNumberInput = z.object({
+  order_id: z.string().describe('Order ID to swap — must be in waiting/created status with no SMS received'),
+});
+
 export const WaitForCodeInput = z.object({
   service: z.string().describe('Service code (e.g. "telegram", "whatsapp", "google")'),
   country: z.string().describe('Country ISO code (e.g. "US", "GB", "RU")'),
@@ -222,6 +226,22 @@ export const TOOL_DEFINITIONS = [
     },
   },
   {
+    name: 'swap_number',
+    description:
+      'Swap a phone number on an existing order. Gets a new number for the same service and country without additional charge. ' +
+      'Use when the current number isn\'t receiving SMS.',
+    inputSchema: {
+      type: 'object' as const,
+      properties: {
+        order_id: {
+          type: 'string',
+          description: 'Order ID to swap — must be in waiting/created status with no SMS received',
+        },
+      },
+      required: ['order_id'],
+    },
+  },
+  {
     name: 'active_orders',
     description:
       '📋 List your active orders. Essential for crash recovery — if your session was interrupted, ' +
@@ -382,6 +402,21 @@ export async function handleCancelOrder(
   args: z.infer<typeof CancelOrderInput>
 ) {
   const result = await client.cancelOrder(args.order_id);
+  return {
+    content: [
+      {
+        type: 'text' as const,
+        text: JSON.stringify(result, null, 2),
+      },
+    ],
+  };
+}
+
+export async function handleSwapNumber(
+  client: VirtualSMSClient,
+  args: z.infer<typeof SwapNumberInput>
+) {
+  const result = await client.swapNumber(args.order_id);
   return {
     content: [
       {

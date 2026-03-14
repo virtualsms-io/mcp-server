@@ -22,6 +22,7 @@ import {
   BuyNumberInput,
   CheckSmsInput,
   CancelOrderInput,
+  SwapNumberInput,
   WaitForCodeInput,
   FindCheapestInput,
   SearchServiceInput,
@@ -33,6 +34,7 @@ import {
   handleBuyNumber,
   handleCheckSms,
   handleCancelOrder,
+  handleSwapNumber,
   handleWaitForCode,
   handleFindCheapest,
   handleSearchService,
@@ -98,6 +100,11 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       case 'cancel_order': {
         const parsed = CancelOrderInput.parse(args);
         return await handleCancelOrder(client, parsed);
+      }
+
+      case 'swap_number': {
+        const parsed = SwapNumberInput.parse(args);
+        return await handleSwapNumber(client, parsed);
       }
 
       case 'wait_for_code': {
