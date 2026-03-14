@@ -68,7 +68,7 @@ Edit `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) o
       "command": "npx",
       "args": ["virtualsms-mcp"],
       "env": {
-        "VIRTUALSMS_API_KEY": "vms_your_api_key_here"
+        "VIRTUALSMS_API_KEY": "vsms_your_api_key_here"
       }
     }
   }
@@ -86,7 +86,7 @@ Edit `~/.cursor/mcp.json`:
       "command": "npx",
       "args": ["virtualsms-mcp"],
       "env": {
-        "VIRTUALSMS_API_KEY": "vms_your_api_key_here"
+        "VIRTUALSMS_API_KEY": "vsms_your_api_key_here"
       }
     }
   }
