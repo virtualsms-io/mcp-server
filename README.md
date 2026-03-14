@@ -41,7 +41,7 @@ Use it to verify accounts on WhatsApp, Telegram, Google, Instagram, and 500+ oth
 - **Real-time delivery** — WebSocket push means your agent gets the code in seconds, not minutes.
 - **Competitive pricing** — Starting from $0.02 per number.
 - **Simple REST + WebSocket API** — Clean, documented, agent-friendly.
-- **11 MCP tools** — Everything from price discovery to one-step code retrieval.
+- **12 MCP tools** — Everything from price discovery to one-step code retrieval.
 
 ---
 
@@ -102,7 +102,7 @@ Edit `~/.cursor/mcp.json`:
 
 ---
 
-## Tools (11 total)
+## Tools (12 total)
 
 ### Discovery Tools (no auth required)
 
@@ -186,11 +186,19 @@ check_sms(order_id: "abc123")
 ```
 
 #### `cancel_order`
-Cancel an order and request a refund (only if no SMS received yet).
+Cancel an order and request a refund (only if no SMS received yet). 2-minute minimum wait after purchase.
 
 ```
 cancel_order(order_id: "abc123")
 → {success: true, refunded: true}
+```
+
+#### `swap_number`
+Swap a phone number on an existing order. Gets a new number for the same service and country without additional charge. Use when the current number isn't receiving SMS. 2-minute minimum wait after purchase.
+
+```
+swap_number(order_id: "abc123")
+→ {order_id: "def456", phone_number: "+628...", service: "telegram", country: "ID", status: "waiting"}
 ```
 
 #### `wait_for_code` ⭐ Recommended
@@ -273,6 +281,8 @@ buy_number(service: "google", country: "GB")
 # → order_id: "abc123", phone: "+447911123456"
 # Use the number to trigger the SMS, then:
 check_sms(order_id: "abc123")
+# Number not working? Swap for a new one (no extra charge):
+swap_number(order_id: "abc123")
 # or cancel if no longer needed:
 cancel_order(order_id: "abc123")
 ```
