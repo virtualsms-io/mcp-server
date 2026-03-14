@@ -25,6 +25,9 @@ export interface Balance {
 export interface Order {
   order_id: string;
   phone_number: string;
+  service?: string;
+  country?: string;
+  price?: number;
   expires_at?: string;
   status: string;
   sms_code?: string;
@@ -175,7 +178,19 @@ export class VirtualSMSClient {
       const res = await this.http.get('/api/v1/customer/orders', { params });
       const raw = res.data;
       // Handle both array and {orders: [...]} shapes
-      return Array.isArray(raw) ? raw : (raw?.orders ?? []);
+      const orders: Array<Record<string, unknown>> = Array.isArray(raw) ? raw : (raw?.orders ?? []);
+      // Map 'id' → 'order_id' for consistency with other endpoints
+      return orders.map((o) => ({
+        order_id: String(o.order_id ?? o.id ?? ''),
+        phone_number: String(o.phone_number ?? ''),
+        service: String(o.service_id ?? o.service ?? ''),
+        country: String(o.country_id ?? o.country ?? ''),
+        price: Number(o.price_charged ?? o.price ?? 0),
+        expires_at: o.expires_at ? String(o.expires_at) : undefined,
+        status: String(o.status ?? ''),
+        sms_code: o.sms_code ? String(o.sms_code) : undefined,
+        sms_text: o.sms_text ? String(o.sms_text) : undefined,
+      })) as Order[];
     } catch (err) {
       // Endpoint may not exist yet — return empty list gracefully
       const message = (err as Error).message;
