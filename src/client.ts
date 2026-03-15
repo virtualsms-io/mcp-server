@@ -44,12 +44,12 @@ export class VirtualSMSClient {
   private apiKey?: string;
   private baseUrl: string;
 
-  constructor(baseUrl: string, apiKey?: string) {
+  constructor(baseUrl: string, apiKey?: string, timeoutSeconds?: number) {
     this.apiKey = apiKey;
     this.baseUrl = baseUrl;
     this.http = axios.create({
       baseURL: baseUrl,
-      timeout: 30000,
+      timeout: (timeoutSeconds ?? 30) * 1000,
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
