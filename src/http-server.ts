@@ -62,7 +62,7 @@ interface ServerConfig {
 }
 
 function createMCPServer(config: ServerConfig) {
-  const client = new VirtualSMSClient(config.baseUrl, config.apiKey);
+  const client = new VirtualSMSClient(config.baseUrl, config.apiKey, config.timeout);
 
   const server = new Server(
     { name: 'virtualsms-mcp', version: '1.0.0' },

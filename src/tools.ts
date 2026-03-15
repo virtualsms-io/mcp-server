@@ -55,6 +55,7 @@ export const ActiveOrdersInput = z.object({
 export const TOOL_DEFINITIONS = [
   {
     name: 'list_services',
+    title: 'List Available Services',
     description:
       'Get all available SMS verification services (Telegram, WhatsApp, Google, etc.). ' +
       'Use this to discover valid service codes before buying a number.',
@@ -78,6 +79,7 @@ export const TOOL_DEFINITIONS = [
   },
   {
     name: 'list_countries',
+    title: 'List Available Countries',
     description:
       'Get all available countries for SMS verification. ' +
       'Use this to discover valid country codes before buying a number.',
@@ -101,6 +103,7 @@ export const TOOL_DEFINITIONS = [
   },
   {
     name: 'check_price',
+    title: 'Check Service Price',
     description:
       'Check the price and availability for a specific service + country combination. ' +
       'Always check price before buying to confirm availability.',
@@ -128,6 +131,7 @@ export const TOOL_DEFINITIONS = [
   },
   {
     name: 'get_balance',
+    title: 'Get Account Balance',
     description:
       'Check your VirtualSMS account balance in USD. ' +
       'Requires VIRTUALSMS_API_KEY to be set.',
@@ -151,6 +155,7 @@ export const TOOL_DEFINITIONS = [
   },
   {
     name: 'buy_number',
+    title: 'Buy Virtual Number',
     description:
       'Purchase a virtual phone number for SMS verification. ' +
       'Returns order_id and phone_number. ' +
@@ -179,6 +184,7 @@ export const TOOL_DEFINITIONS = [
   },
   {
     name: 'check_sms',
+    title: 'Check SMS Code',
     description:
       'Check if an SMS verification code has been received for an order. ' +
       'Poll this every 5-10 seconds after buying a number. ' +
@@ -203,6 +209,7 @@ export const TOOL_DEFINITIONS = [
   },
   {
     name: 'cancel_order',
+    title: 'Cancel Order',
     description:
       'Cancel an order and request a refund. ' +
       'Only works if no SMS has been received yet. ' +
@@ -227,6 +234,7 @@ export const TOOL_DEFINITIONS = [
   },
   {
     name: 'wait_for_code',
+    title: 'Buy Number and Wait for SMS Code',
     description:
       'RECOMMENDED: One-step tool that buys a number AND waits for the SMS code automatically. ' +
       'Uses real-time WebSocket delivery with automatic polling fallback. ' +
@@ -260,6 +268,7 @@ export const TOOL_DEFINITIONS = [
   },
   {
     name: 'find_cheapest',
+    title: 'Find Cheapest Countries',
     description:
       'Find the cheapest countries for a given service, sorted by price. ' +
       'Returns available countries with prices and stock levels so you can pick the best deal.',
@@ -288,6 +297,7 @@ export const TOOL_DEFINITIONS = [
   },
   {
     name: 'search_service',
+    title: 'Search Service by Name',
     description:
       'Find the right service code using natural language. ' +
       'Don\'t know the exact code? Just search "uber", "binance", "steam" etc. ' +
@@ -312,6 +322,7 @@ export const TOOL_DEFINITIONS = [
   },
   {
     name: 'swap_number',
+    title: 'Swap Phone Number',
     description:
       'Swap a phone number on an existing order. Gets a new number for the same service and country without additional charge. ' +
       'Use when the current number isn\'t receiving SMS.',
@@ -335,6 +346,7 @@ export const TOOL_DEFINITIONS = [
   },
   {
     name: 'list_active_orders',
+    title: 'List Active Orders',
     description:
       'List your active orders. Essential for crash recovery — if your session was interrupted, ' +
       'use this to find pending orders and their phone numbers, then use check_sms to retrieve codes.',
