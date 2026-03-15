@@ -147,6 +147,28 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   }
 });
 
+// ─── Smithery Sandbox (for registry scanning) ────────────────────────────────
+
+export function createSandboxServer() {
+  const sandboxServer = new Server(
+    {
+      name: 'virtualsms-mcp',
+      version: '1.0.0',
+    },
+    {
+      capabilities: {
+        tools: {},
+      },
+    }
+  );
+
+  sandboxServer.setRequestHandler(ListToolsRequestSchema, async () => {
+    return { tools: TOOL_DEFINITIONS };
+  });
+
+  return sandboxServer;
+}
+
 // ─── Start Server ─────────────────────────────────────────────────────────────
 
 async function main() {
