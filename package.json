@@ -1,6 +1,6 @@
 {
   "name": "virtualsms-mcp",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "MCP server for VirtualSMS — receive SMS verification codes with AI agents. Virtual phone numbers and number rentals for WhatsApp, Telegram, Google & 200+ services. SMS-Activate alternative.",
   "main": "dist/index.js",
   "bin": {
