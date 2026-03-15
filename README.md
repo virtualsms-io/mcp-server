@@ -45,9 +45,9 @@ Use it to verify accounts on WhatsApp, Telegram, Google, Instagram, and 500+ oth
 
 ---
 
-## Migrating from SMS-Activate or DaisySMS?
+## Migrating from SMS-Activate?
 
-If you're moving away from **SMS-Activate** or **DaisySMS** (closing March 2025), VirtualSMS is a straightforward alternative with comparable service coverage, competitive pricing, and a modern API built for programmatic use.
+If you're moving away from **SMS-Activate**, VirtualSMS is a straightforward alternative with comparable service coverage, competitive pricing, and a modern API built for programmatic use.
 
 Just swap your API key and update the base URL — the concepts (buy number → wait for SMS → get code) are identical.
 
@@ -238,7 +238,7 @@ Rental tools (`rent_number`, `extend_rental`, `list_rentals`) are coming in v1.1
 
 `wait_for_code` uses a two-tier delivery system:
 
-1. **WebSocket (instant)** — connects to `wss://virtualsms.io/ws/orders?order_id=xxx` immediately after purchase. When the SMS arrives, the server pushes it in real-time. Typical delivery: 2–15 seconds.
+1. **WebSocket (instant)** — connects to `wss://virtualsms.io/ws/orders?order_id=xxx&api_key=your_key` immediately after purchase. When the SMS arrives, the server pushes it in real-time. Typical delivery: 2–15 seconds.
 
 2. **Polling fallback** — if WebSocket fails to connect or disconnects, automatically falls back to polling `GET /api/v1/order/{id}` every 5 seconds.
 

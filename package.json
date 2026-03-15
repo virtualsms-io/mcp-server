@@ -1,7 +1,7 @@
 {
   "name": "virtualsms-mcp",
   "version": "1.0.7",
-  "description": "MCP server for VirtualSMS — receive SMS verification codes with AI agents. Virtual phone numbers and number rentals for WhatsApp, Telegram, Google & 200+ services. SMS-Activate & DaisySMS alternative.",
+  "description": "MCP server for VirtualSMS — receive SMS verification codes with AI agents. Virtual phone numbers and number rentals for WhatsApp, Telegram, Google & 200+ services. SMS-Activate alternative.",
   "main": "dist/index.js",
   "bin": {
     "virtualsms-mcp": "dist/index.js"
@@ -26,7 +26,6 @@
     "ai-agent",
     "claude",
     "cursor",
-    "daisysms-alternative",
     "temporary-phone-number",
     "whatsapp-verification",
     "telegram-verification",
@@ -52,19 +51,18 @@
   "files": [
     "dist/**/*",
     "README.md",
-    "ROADMAP.md",
-    "ARCHITECTURE.md",
-    "LICENSE"
+    "LICENSE",
+    "smithery.yaml"
   ],
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",
-    "@types/ws": "^8.18.1",
     "axios": "^1.7.0",
     "ws": "^8.18.0",
     "zod": "^3.23.0"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
+    "@types/ws": "^8.18.1",
     "typescript": "^5.5.0"
   }
 }
