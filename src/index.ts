@@ -81,56 +81,56 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
   try {
     switch (name) {
-      case 'virtualsms_list_services':
+      case 'list_services':
         return await handleListServices(client);
 
-      case 'virtualsms_list_countries':
+      case 'list_countries':
         return await handleListCountries(client);
 
-      case 'virtualsms_check_price': {
+      case 'get_price': {
         const parsed = CheckPriceInput.parse(args);
         return await handleCheckPrice(client, parsed);
       }
 
-      case 'virtualsms_get_balance':
+      case 'get_balance':
         return await handleGetBalance(client);
 
-      case 'virtualsms_buy_number': {
+      case 'create_number_order': {
         const parsed = BuyNumberInput.parse(args);
         return await handleBuyNumber(client, parsed);
       }
 
-      case 'virtualsms_check_sms': {
+      case 'get_sms_code': {
         const parsed = CheckSmsInput.parse(args);
         return await handleCheckSms(client, parsed);
       }
 
-      case 'virtualsms_cancel_order': {
+      case 'cancel_order': {
         const parsed = CancelOrderInput.parse(args);
         return await handleCancelOrder(client, parsed);
       }
 
-      case 'virtualsms_swap_number': {
+      case 'swap_phone_number': {
         const parsed = SwapNumberInput.parse(args);
         return await handleSwapNumber(client, parsed);
       }
 
-      case 'virtualsms_wait_for_code': {
+      case 'wait_for_sms_code': {
         const parsed = WaitForCodeInput.parse(args);
         return await handleWaitForCode(client, parsed);
       }
 
-      case 'virtualsms_find_cheapest': {
+      case 'find_cheapest_countries': {
         const parsed = FindCheapestInput.parse(args);
         return await handleFindCheapest(client, parsed);
       }
 
-      case 'virtualsms_search_service': {
+      case 'search_services': {
         const parsed = SearchServiceInput.parse(args);
         return await handleSearchService(client, parsed);
       }
 
-      case 'virtualsms_list_active_orders': {
+      case 'list_active_orders': {
         const parsed = ActiveOrdersInput.parse(args);
         return await handleActiveOrders(client, parsed);
       }
@@ -237,4 +237,23 @@ async function main() {
 main().catch((err) => {
   process.stderr.write(`Fatal error: ${err instanceof Error ? err.message : String(err)}\n`);
   process.exit(1);
+});
+
+// Smithery config schema — exported so Smithery can detect optional config fields
+import { z } from 'zod';
+export const configSchema = z.object({
+  virtualsmsApiKey: z.string()
+    .describe("Your VirtualSMS API key. Get one at https://virtualsms.io/dashboard"),
+  defaultTimeoutSeconds: z.number()
+    .min(30).max(600).default(120)
+    .describe("Default timeout in seconds for wait_for_sms_code tool"),
+  pollingIntervalSeconds: z.number()
+    .min(3).max(15).default(5)
+    .describe("Polling interval in seconds when WebSocket delivery is unavailable"),
+  environment: z.enum(["production", "sandbox"])
+    .default("production")
+    .describe("API environment — use sandbox for testing without real charges"),
+  preferredCurrency: z.enum(["USD", "EUR", "GBP"])
+    .default("USD")
+    .describe("Preferred currency for displaying balances and prices"),
 });
