@@ -1,0 +1,26 @@
+# Smithery configuration file: https://smithery.ai/docs/config#smitheryyaml
+
+startCommand:
+  type: stdio
+  configSchema:
+    # JSON Schema defining the configuration options for the MCP server.
+    type: object
+    required:
+      - virtualsmsApiKey
+    properties:
+      virtualsmsApiKey:
+        type: string
+        description: Your VirtualSMS API key. Get one at https://virtualsms.io
+      virtualsmsBaseUrl:
+        type: string
+        description: "API base URL (optional, default: https://virtualsms.io)"
+        default: "https://virtualsms.io"
+  commandFunction: |
+    (config) => ({
+      command: "npx",
+      args: ["virtualsms-mcp"],
+      env: {
+        VIRTUALSMS_API_KEY: config.virtualsmsApiKey,
+        ...(config.virtualsmsBaseUrl ? { VIRTUALSMS_BASE_URL: config.virtualsmsBaseUrl } : {})
+      }
+    })
