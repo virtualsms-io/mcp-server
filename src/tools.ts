@@ -60,8 +60,20 @@ export const TOOL_DEFINITIONS = [
       'Use this to discover valid service codes before buying a number.',
     inputSchema: {
       type: 'object' as const,
-      properties: {},
+      properties: {
+        search: {
+          type: 'string',
+          description: 'Filter services by name (optional)',
+        },
+      },
       required: [],
+    },
+    annotations: {
+      title: 'List Available Services',
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: true,
     },
   },
   {
@@ -71,8 +83,20 @@ export const TOOL_DEFINITIONS = [
       'Use this to discover valid country codes before buying a number.',
     inputSchema: {
       type: 'object' as const,
-      properties: {},
+      properties: {
+        service: {
+          type: 'string',
+          description: 'Filter countries available for a specific service (optional)',
+        },
+      },
       required: [],
+    },
+    annotations: {
+      title: 'List Available Countries',
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: true,
     },
   },
   {
@@ -94,6 +118,13 @@ export const TOOL_DEFINITIONS = [
       },
       required: ['service', 'country'],
     },
+    annotations: {
+      title: 'Check Service Price',
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: true,
+    },
   },
   {
     name: 'get_balance',
@@ -102,8 +133,20 @@ export const TOOL_DEFINITIONS = [
       'Requires VIRTUALSMS_API_KEY to be set.',
     inputSchema: {
       type: 'object' as const,
-      properties: {},
+      properties: {
+        currency: {
+          type: 'string',
+          description: 'Display balance in specific currency (default: USD)',
+        },
+      },
       required: [],
+    },
+    annotations: {
+      title: 'Get Account Balance',
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: true,
     },
   },
   {
@@ -126,6 +169,13 @@ export const TOOL_DEFINITIONS = [
       },
       required: ['service', 'country'],
     },
+    annotations: {
+      title: 'Buy Virtual Number',
+      readOnlyHint: false,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: true,
+    },
   },
   {
     name: 'check_sms',
@@ -143,6 +193,13 @@ export const TOOL_DEFINITIONS = [
       },
       required: ['order_id'],
     },
+    annotations: {
+      title: 'Check SMS Code',
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: true,
+    },
   },
   {
     name: 'cancel_order',
@@ -159,6 +216,13 @@ export const TOOL_DEFINITIONS = [
         },
       },
       required: ['order_id'],
+    },
+    annotations: {
+      title: 'Cancel Order',
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: true,
+      openWorldHint: true,
     },
   },
   {
@@ -186,6 +250,13 @@ export const TOOL_DEFINITIONS = [
       },
       required: ['service', 'country'],
     },
+    annotations: {
+      title: 'Buy Number and Wait for SMS Code',
+      readOnlyHint: false,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: true,
+    },
   },
   {
     name: 'find_cheapest',
@@ -207,6 +278,13 @@ export const TOOL_DEFINITIONS = [
       },
       required: ['service'],
     },
+    annotations: {
+      title: 'Find Cheapest Countries',
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: true,
+    },
   },
   {
     name: 'search_service',
@@ -224,6 +302,13 @@ export const TOOL_DEFINITIONS = [
       },
       required: ['query'],
     },
+    annotations: {
+      title: 'Search Service by Name',
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: true,
+    },
   },
   {
     name: 'swap_number',
@@ -240,6 +325,13 @@ export const TOOL_DEFINITIONS = [
       },
       required: ['order_id'],
     },
+    annotations: {
+      title: 'Swap Phone Number',
+      readOnlyHint: false,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: true,
+    },
   },
   {
     name: 'active_orders',
@@ -255,6 +347,13 @@ export const TOOL_DEFINITIONS = [
         },
       },
       required: [],
+    },
+    annotations: {
+      title: 'List Active Orders',
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: true,
     },
   },
 ];

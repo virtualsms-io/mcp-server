@@ -11,11 +11,17 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
+  ListPromptsRequestSchema,
+  GetPromptRequestSchema,
+  ListResourcesRequestSchema,
+  ReadResourceRequestSchema,
   McpError,
   ErrorCode,
 } from '@modelcontextprotocol/sdk/types.js';
 
 import { VirtualSMSClient } from './client.js';
+import { PROMPT_DEFINITIONS, getPromptMessages } from './prompts.js';
+import { RESOURCE_DEFINITIONS, getResourceContent } from './resources.js';
 import {
   TOOL_DEFINITIONS,
   CheckPriceInput,
@@ -58,6 +64,8 @@ const server = new Server(
   {
     capabilities: {
       tools: {},
+      prompts: {},
+      resources: {},
     },
   }
 );
@@ -147,6 +155,46 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   }
 });
 
+// ─── Prompts ─────────────────────────────────────────────────────────────────
+
+server.setRequestHandler(ListPromptsRequestSchema, async () => {
+  return { prompts: PROMPT_DEFINITIONS };
+});
+
+server.setRequestHandler(GetPromptRequestSchema, async (request) => {
+  const { name, arguments: args } = request.params;
+  const prompt = PROMPT_DEFINITIONS.find((p) => p.name === name);
+  if (!prompt) {
+    throw new McpError(ErrorCode.InvalidRequest, `Unknown prompt: ${name}`);
+  }
+  const messages = getPromptMessages(name, (args as Record<string, string>) || {});
+  return { description: prompt.description, messages };
+});
+
+// ─── Resources ────────────────────────────────────────────────────────────────
+
+server.setRequestHandler(ListResourcesRequestSchema, async () => {
+  return { resources: RESOURCE_DEFINITIONS };
+});
+
+server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
+  const { uri } = request.params;
+  const resource = RESOURCE_DEFINITIONS.find((r) => r.uri === uri);
+  if (!resource) {
+    throw new McpError(ErrorCode.InvalidRequest, `Unknown resource: ${uri}`);
+  }
+  const content = getResourceContent(uri);
+  return {
+    contents: [
+      {
+        uri,
+        mimeType: resource.mimeType,
+        text: content,
+      },
+    ],
+  };
+});
+
 // ─── Smithery Sandbox (for registry scanning) ────────────────────────────────
 
 export function createSandboxServer() {
@@ -158,12 +206,22 @@ export function createSandboxServer() {
     {
       capabilities: {
         tools: {},
+        prompts: {},
+        resources: {},
       },
     }
   );
 
   sandboxServer.setRequestHandler(ListToolsRequestSchema, async () => {
     return { tools: TOOL_DEFINITIONS };
+  });
+
+  sandboxServer.setRequestHandler(ListPromptsRequestSchema, async () => {
+    return { prompts: PROMPT_DEFINITIONS };
+  });
+
+  sandboxServer.setRequestHandler(ListResourcesRequestSchema, async () => {
+    return { resources: RESOURCE_DEFINITIONS };
   });
 
   return sandboxServer;
