@@ -81,56 +81,56 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
   try {
     switch (name) {
-      case 'list_services':
+      case 'virtualsms_list_services':
         return await handleListServices(client);
 
-      case 'list_countries':
+      case 'virtualsms_list_countries':
         return await handleListCountries(client);
 
-      case 'check_price': {
+      case 'virtualsms_check_price': {
         const parsed = CheckPriceInput.parse(args);
         return await handleCheckPrice(client, parsed);
       }
 
-      case 'get_balance':
+      case 'virtualsms_get_balance':
         return await handleGetBalance(client);
 
-      case 'buy_number': {
+      case 'virtualsms_buy_number': {
         const parsed = BuyNumberInput.parse(args);
         return await handleBuyNumber(client, parsed);
       }
 
-      case 'check_sms': {
+      case 'virtualsms_check_sms': {
         const parsed = CheckSmsInput.parse(args);
         return await handleCheckSms(client, parsed);
       }
 
-      case 'cancel_order': {
+      case 'virtualsms_cancel_order': {
         const parsed = CancelOrderInput.parse(args);
         return await handleCancelOrder(client, parsed);
       }
 
-      case 'swap_number': {
+      case 'virtualsms_swap_number': {
         const parsed = SwapNumberInput.parse(args);
         return await handleSwapNumber(client, parsed);
       }
 
-      case 'wait_for_code': {
+      case 'virtualsms_wait_for_code': {
         const parsed = WaitForCodeInput.parse(args);
         return await handleWaitForCode(client, parsed);
       }
 
-      case 'find_cheapest': {
+      case 'virtualsms_find_cheapest': {
         const parsed = FindCheapestInput.parse(args);
         return await handleFindCheapest(client, parsed);
       }
 
-      case 'search_service': {
+      case 'virtualsms_search_service': {
         const parsed = SearchServiceInput.parse(args);
         return await handleSearchService(client, parsed);
       }
 
-      case 'list_active_orders': {
+      case 'virtualsms_list_active_orders': {
         const parsed = ActiveOrdersInput.parse(args);
         return await handleActiveOrders(client, parsed);
       }
