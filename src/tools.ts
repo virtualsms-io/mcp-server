@@ -228,7 +228,7 @@ export const TOOL_DEFINITIONS = [
   {
     name: 'wait_for_code',
     description:
-      '🚀 RECOMMENDED: One-step tool that buys a number AND waits for the SMS code automatically. ' +
+      'RECOMMENDED: One-step tool that buys a number AND waits for the SMS code automatically. ' +
       'Uses real-time WebSocket delivery with automatic polling fallback. ' +
       'Always returns order_id in the response — even on timeout — so you can use check_sms to recover.',
     inputSchema: {
@@ -261,7 +261,7 @@ export const TOOL_DEFINITIONS = [
   {
     name: 'find_cheapest',
     description:
-      '💰 Find the cheapest countries for a given service, sorted by price. ' +
+      'Find the cheapest countries for a given service, sorted by price. ' +
       'Returns available countries with prices and stock levels so you can pick the best deal.',
     inputSchema: {
       type: 'object' as const,
@@ -289,7 +289,7 @@ export const TOOL_DEFINITIONS = [
   {
     name: 'search_service',
     description:
-      '🔍 Find the right service code using natural language. ' +
+      'Find the right service code using natural language. ' +
       'Don\'t know the exact code? Just search "uber", "binance", "steam" etc. ' +
       'Returns matching services with similarity scores.',
     inputSchema: {
@@ -334,9 +334,9 @@ export const TOOL_DEFINITIONS = [
     },
   },
   {
-    name: 'active_orders',
+    name: 'list_active_orders',
     description:
-      '📋 List your active orders. Essential for crash recovery — if your session was interrupted, ' +
+      'List your active orders. Essential for crash recovery — if your session was interrupted, ' +
       'use this to find pending orders and their phone numbers, then use check_sms to retrieve codes.',
     inputSchema: {
       type: 'object' as const,
