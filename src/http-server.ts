@@ -50,10 +50,19 @@ import { PROMPT_DEFINITIONS, getPromptMessages } from './prompts.js';
 import { RESOURCE_DEFINITIONS, getResourceContent } from './resources.js';
 
 const PORT = parseInt(process.env.MCP_HTTP_PORT || '3456', 10);
-const BASE_URL = (process.env.VIRTUALSMS_BASE_URL || 'https://virtualsms.io').replace(/\/$/, '');
+const DEFAULT_BASE_URL = (process.env.VIRTUALSMS_BASE_URL || 'https://virtualsms.io').replace(/\/$/, '');
+const DEFAULT_COUNTRY = process.env.VIRTUALSMS_DEFAULT_COUNTRY || 'US';
+const DEFAULT_TIMEOUT = parseInt(process.env.VIRTUALSMS_TIMEOUT || '30', 10);
 
-function createMCPServer(apiKey: string | undefined) {
-  const client = new VirtualSMSClient(BASE_URL, apiKey);
+interface ServerConfig {
+  apiKey: string | undefined;
+  baseUrl: string;
+  defaultCountry: string;
+  timeout: number;
+}
+
+function createMCPServer(config: ServerConfig) {
+  const client = new VirtualSMSClient(config.baseUrl, config.apiKey);
 
   const server = new Server(
     { name: 'virtualsms-mcp', version: '1.0.0' },
@@ -109,7 +118,7 @@ function createMCPServer(apiKey: string | undefined) {
           const parsed = SearchServiceInput.parse(args);
           return await handleSearchService(client, parsed);
         }
-        case 'active_orders': {
+        case 'list_active_orders': {
           const parsed = ActiveOrdersInput.parse(args);
           return await handleActiveOrders(client, parsed);
         }
@@ -191,13 +200,19 @@ const httpServer = http.createServer(async (req, res) => {
     return;
   }
 
-  // Extract API key from header or query param
+  // Extract config from headers and query params (x-from mappings)
   const apiKeyHeader = req.headers['x-api-key'] as string | undefined;
   const apiKeyQuery = url.searchParams.get('apiKey') || undefined;
   const apiKey = apiKeyHeader || apiKeyQuery || process.env.VIRTUALSMS_API_KEY;
 
+  // Optional config from query params (with env var fallbacks)
+  const baseUrl = (url.searchParams.get('baseUrl') || DEFAULT_BASE_URL).replace(/\/$/, '');
+  const defaultCountry = url.searchParams.get('defaultCountry') || DEFAULT_COUNTRY;
+  const timeoutParam = url.searchParams.get('timeout');
+  const timeout = timeoutParam ? parseInt(timeoutParam, 10) : DEFAULT_TIMEOUT;
+
   // Create a per-request MCP server + transport (stateless mode)
-  const mcpServer = createMCPServer(apiKey);
+  const mcpServer = createMCPServer({ apiKey, baseUrl, defaultCountry, timeout });
   const transport = new StreamableHTTPServerTransport({
     sessionIdGenerator: undefined, // stateless
   });

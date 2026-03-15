@@ -130,7 +130,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         return await handleSearchService(client, parsed);
       }
 
-      case 'active_orders': {
+      case 'list_active_orders': {
         const parsed = ActiveOrdersInput.parse(args);
         return await handleActiveOrders(client, parsed);
       }
