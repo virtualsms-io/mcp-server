@@ -193,6 +193,44 @@ const httpServer = http.createServer(async (req, res) => {
     return;
   }
 
+  // Serve server card for Smithery config discovery
+  if (req.method === 'GET' && url.pathname === '/.well-known/mcp/server-card.json') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({
+      serverInfo: {
+        name: 'VirtualSMS',
+        version: '1.0.8'
+      },
+      configSchema: {
+        type: 'object',
+        properties: {
+          apiKey: {
+            type: 'string',
+            title: 'VirtualSMS API Key',
+            description: 'Your VirtualSMS API key from virtualsms.io/dashboard',
+            'x-from': { header: 'x-api-key' },
+            'x-to': { header: 'x-api-key' }
+          },
+          defaultCountry: {
+            type: 'string',
+            title: 'Default Country',
+            description: 'Default country code for number purchases (e.g. US, RU, IN)',
+            default: 'US'
+          },
+          timeout: {
+            type: 'number',
+            title: 'Request Timeout',
+            description: 'Request timeout in seconds',
+            default: 30,
+            minimum: 5,
+            maximum: 120
+          }
+        }
+      }
+    }));
+    return;
+  }
+
   // Only handle /mcp path
   if (url.pathname !== '/mcp' && url.pathname !== '/') {
     res.writeHead(404);
