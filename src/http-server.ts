@@ -84,17 +84,17 @@ function createMCPServer(config: ServerConfig) {
           return await handleListServices(client);
         case 'list_countries':
           return await handleListCountries(client);
-        case 'check_price': {
+        case 'get_price': {
           const parsed = CheckPriceInput.parse(args);
           return await handleCheckPrice(client, parsed);
         }
         case 'get_balance':
           return await handleGetBalance(client);
-        case 'buy_number': {
+        case 'create_number_order': {
           const parsed = BuyNumberInput.parse(args);
           return await handleBuyNumber(client, parsed);
         }
-        case 'check_sms': {
+        case 'get_sms_code': {
           const parsed = CheckSmsInput.parse(args);
           return await handleCheckSms(client, parsed);
         }
@@ -102,19 +102,19 @@ function createMCPServer(config: ServerConfig) {
           const parsed = CancelOrderInput.parse(args);
           return await handleCancelOrder(client, parsed);
         }
-        case 'swap_number': {
+        case 'swap_phone_number': {
           const parsed = SwapNumberInput.parse(args);
           return await handleSwapNumber(client, parsed);
         }
-        case 'wait_for_code': {
+        case 'wait_for_sms_code': {
           const parsed = WaitForCodeInput.parse(args);
           return await handleWaitForCode(client, parsed);
         }
-        case 'find_cheapest': {
+        case 'find_cheapest_countries': {
           const parsed = FindCheapestInput.parse(args);
           return await handleFindCheapest(client, parsed);
         }
-        case 'search_service': {
+        case 'search_services': {
           const parsed = SearchServiceInput.parse(args);
           return await handleSearchService(client, parsed);
         }
