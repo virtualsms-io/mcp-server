@@ -80,45 +80,45 @@ function createMCPServer(config: ServerConfig) {
 
     try {
       switch (name) {
-        case 'list_services':
+        case 'virtualsms_list_services':
           return await handleListServices(client);
-        case 'list_countries':
+        case 'virtualsms_list_countries':
           return await handleListCountries(client);
-        case 'get_price': {
+        case 'virtualsms_get_price': {
           const parsed = CheckPriceInput.parse(args);
           return await handleCheckPrice(client, parsed);
         }
-        case 'get_balance':
+        case 'virtualsms_get_balance':
           return await handleGetBalance(client);
-        case 'create_number_order': {
+        case 'virtualsms_create_order': {
           const parsed = BuyNumberInput.parse(args);
           return await handleBuyNumber(client, parsed);
         }
-        case 'get_sms_code': {
+        case 'virtualsms_get_sms': {
           const parsed = CheckSmsInput.parse(args);
           return await handleCheckSms(client, parsed);
         }
-        case 'cancel_order': {
+        case 'virtualsms_cancel_order': {
           const parsed = CancelOrderInput.parse(args);
           return await handleCancelOrder(client, parsed);
         }
-        case 'swap_phone_number': {
+        case 'virtualsms_swap_number': {
           const parsed = SwapNumberInput.parse(args);
           return await handleSwapNumber(client, parsed);
         }
-        case 'wait_for_sms_code': {
+        case 'virtualsms_wait_for_sms': {
           const parsed = WaitForCodeInput.parse(args);
           return await handleWaitForCode(client, parsed);
         }
-        case 'find_cheapest_countries': {
+        case 'virtualsms_find_cheapest': {
           const parsed = FindCheapestInput.parse(args);
           return await handleFindCheapest(client, parsed);
         }
-        case 'search_services': {
+        case 'virtualsms_search_services': {
           const parsed = SearchServiceInput.parse(args);
           return await handleSearchService(client, parsed);
         }
-        case 'list_active_orders': {
+        case 'virtualsms_list_orders': {
           const parsed = ActiveOrdersInput.parse(args);
           return await handleActiveOrders(client, parsed);
         }
