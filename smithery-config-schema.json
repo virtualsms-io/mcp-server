@@ -1,0 +1,33 @@
+{
+  "type": "object",
+  "required": ["virtualsmsApiKey"],
+  "additionalProperties": false,
+  "properties": {
+    "virtualsmsApiKey": {
+      "type": "string",
+      "description": "Your VirtualSMS API key. Get one at https://virtualsms.io/dashboard",
+      "x-order": 0
+    },
+    "virtualsmsBaseUrl": {
+      "type": "string",
+      "description": "API base URL (optional, default: https://virtualsms.io)",
+      "default": "https://virtualsms.io",
+      "x-order": 1
+    },
+    "defaultCountry": {
+      "type": "string",
+      "description": "Default country code for number purchases (e.g. US, RU, IN)",
+      "default": "US",
+      "enum": ["US", "GB", "RU", "IN", "DE", "FR", "UA", "KZ", "ID", "PH", "VN", "TR", "BR", "MX", "CN", "JP", "KR", "PK", "BD", "EG"],
+      "x-order": 2
+    },
+    "timeout": {
+      "type": "number",
+      "description": "Request timeout in seconds (default: 30)",
+      "default": 30,
+      "minimum": 5,
+      "maximum": 120,
+      "x-order": 3
+    }
+  }
+}
