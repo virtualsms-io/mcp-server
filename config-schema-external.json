@@ -1,26 +1,26 @@
 {
   "type": "object",
   "properties": {
-    "virtualsmsApiKey": {
+    "apiKey": {
       "type": "string",
       "title": "VirtualSMS API Key",
-      "description": "Your VirtualSMS API key. Get one at https://virtualsms.io/dashboard"
+      "description": "Your VirtualSMS API key from virtualsms.io/dashboard",
+      "x-from": { "header": "x-api-key" },
+      "x-to": { "header": "x-api-key" }
     },
     "defaultCountry": {
       "type": "string",
       "title": "Default Country",
       "description": "Default country code for number purchases (e.g. US, RU, IN)",
-      "default": "US",
-      "enum": ["US", "GB", "RU", "IN", "DE", "FR", "UA", "KZ", "ID", "PH", "VN", "TR", "BR", "MX", "CN", "JP", "KR", "PK", "BD", "EG"]
+      "default": "US"
     },
     "timeout": {
       "type": "number",
-      "title": "Timeout",
+      "title": "Request Timeout",
       "description": "Request timeout in seconds",
       "default": 30,
       "minimum": 5,
       "maximum": 120
     }
-  },
-  "additionalProperties": false
+  }
 }

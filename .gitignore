@@ -1,4 +1,6 @@
-node_modules/
-dist/
-.env
 *.js.map
+.env
+.env.*
+.env.glama
+dist/
+node_modules/
