@@ -1,0 +1,472 @@
+{
+  "payload": {
+    "type": "hosted",
+    "stateful": false,
+    "hasAuthAdapter": false,
+    "configSchema": {
+      "type": "object",
+      "properties": {
+        "virtualsmsApiKey": {
+          "type": "string",
+          "description": "Your VirtualSMS API key. Get one at https://virtualsms.io/dashboard"
+        },
+        "defaultTimeoutSeconds": {
+          "type": "number",
+          "minimum": 30,
+          "maximum": 600,
+          "default": 120,
+          "description": "Default timeout in seconds for wait_for_sms_code tool"
+        },
+        "pollingIntervalSeconds": {
+          "type": "number",
+          "minimum": 3,
+          "maximum": 15,
+          "default": 5,
+          "description": "Polling interval in seconds when WebSocket delivery is unavailable"
+        },
+        "environment": {
+          "type": "string",
+          "enum": [
+            "production",
+            "sandbox"
+          ],
+          "default": "production",
+          "description": "API environment — use sandbox for testing without real charges"
+        },
+        "preferredCurrency": {
+          "type": "string",
+          "enum": [
+            "USD",
+            "EUR",
+            "GBP"
+          ],
+          "default": "USD",
+          "description": "Preferred currency for displaying balances and prices"
+        }
+      },
+      "required": [
+        "virtualsmsApiKey"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "serverCard": {
+      "serverInfo": {
+        "name": "virtualsms-mcp",
+        "version": "1.0.0"
+      },
+      "tools": [
+        {
+          "name": "list_services",
+          "title": "List Available Services",
+          "description": "Get all available SMS verification services (Telegram, WhatsApp, Google, etc.). Use this to discover valid service codes before buying a number.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "search": {
+                "type": "string",
+                "description": "Filter services by name (optional)"
+              }
+            },
+            "required": []
+          },
+          "annotations": {
+            "title": "List Available Services",
+            "readOnlyHint": true,
+            "destructiveHint": false,
+            "idempotentHint": true,
+            "openWorldHint": true
+          }
+        },
+        {
+          "name": "list_countries",
+          "title": "List Available Countries",
+          "description": "Get all available countries for SMS verification. Use this to discover valid country codes before buying a number.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "service": {
+                "type": "string",
+                "description": "Filter countries available for a specific service (optional)"
+              }
+            },
+            "required": []
+          },
+          "annotations": {
+            "title": "List Available Countries",
+            "readOnlyHint": true,
+            "destructiveHint": false,
+            "idempotentHint": true,
+            "openWorldHint": true
+          }
+        },
+        {
+          "name": "get_price",
+          "title": "Check Service Price",
+          "description": "Check the price and availability for a specific service + country combination. Always check price before buying to confirm availability.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "service": {
+                "type": "string",
+                "description": "Service code (e.g. \"telegram\", \"whatsapp\", \"google\")"
+              },
+              "country": {
+                "type": "string",
+                "description": "Country ISO code (e.g. \"US\", \"GB\", \"RU\")"
+              }
+            },
+            "required": [
+              "service",
+              "country"
+            ]
+          },
+          "annotations": {
+            "title": "Check Service Price",
+            "readOnlyHint": true,
+            "destructiveHint": false,
+            "idempotentHint": true,
+            "openWorldHint": true
+          }
+        },
+        {
+          "name": "get_balance",
+          "title": "Get Account Balance",
+          "description": "Check your VirtualSMS account balance in USD. Requires VIRTUALSMS_API_KEY to be set.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "currency": {
+                "type": "string",
+                "description": "Display balance in specific currency (default: USD)"
+              }
+            },
+            "required": []
+          },
+          "annotations": {
+            "title": "Get Account Balance",
+            "readOnlyHint": true,
+            "destructiveHint": false,
+            "idempotentHint": true,
+            "openWorldHint": true
+          }
+        },
+        {
+          "name": "create_number_order",
+          "title": "Buy Virtual Number",
+          "description": "Purchase a virtual phone number for SMS verification. Returns order_id and phone_number. Use check_sms to poll for the verification code, or use wait_for_code to do it automatically.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "service": {
+                "type": "string",
+                "description": "Service code (e.g. \"telegram\", \"whatsapp\", \"google\")"
+              },
+              "country": {
+                "type": "string",
+                "description": "Country ISO code (e.g. \"US\", \"GB\", \"RU\")"
+              }
+            },
+            "required": [
+              "service",
+              "country"
+            ]
+          },
+          "annotations": {
+            "title": "Buy Virtual Number",
+            "readOnlyHint": false,
+            "destructiveHint": false,
+            "idempotentHint": false,
+            "openWorldHint": true
+          }
+        },
+        {
+          "name": "get_sms_code",
+          "title": "Check SMS Code",
+          "description": "Check if an SMS verification code has been received for an order. Poll this every 5-10 seconds after buying a number. For automatic polling, use wait_for_code instead.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "order_id": {
+                "type": "string",
+                "description": "Order ID returned from buy_number"
+              }
+            },
+            "required": [
+              "order_id"
+            ]
+          },
+          "annotations": {
+            "title": "Check SMS Code",
+            "readOnlyHint": true,
+            "destructiveHint": false,
+            "idempotentHint": true,
+            "openWorldHint": true
+          }
+        },
+        {
+          "name": "cancel_order",
+          "title": "Cancel Order",
+          "description": "Cancel an order and request a refund. Only works if no SMS has been received yet. Use this if the service is taking too long or you want to try a different number.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "order_id": {
+                "type": "string",
+                "description": "Order ID to cancel"
+              }
+            },
+            "required": [
+              "order_id"
+            ]
+          },
+          "annotations": {
+            "title": "Cancel Order",
+            "readOnlyHint": false,
+            "destructiveHint": true,
+            "idempotentHint": true,
+            "openWorldHint": true
+          }
+        },
+        {
+          "name": "wait_for_sms_code",
+          "title": "Buy Number and Wait for SMS Code",
+          "description": "RECOMMENDED: One-step tool that buys a number AND waits for the SMS code automatically. Uses real-time WebSocket delivery with automatic polling fallback. Always returns order_id in the response — even on timeout — so you can use check_sms to recover.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "service": {
+                "type": "string",
+                "description": "Service code (e.g. \"telegram\", \"whatsapp\", \"google\")"
+              },
+              "country": {
+                "type": "string",
+                "description": "Country ISO code (e.g. \"US\", \"GB\", \"RU\")"
+              },
+              "timeout_seconds": {
+                "type": "number",
+                "description": "How long to wait for SMS code in seconds (default: 120, max: 600)",
+                "default": 120
+              }
+            },
+            "required": [
+              "service",
+              "country"
+            ]
+          },
+          "annotations": {
+            "title": "Buy Number and Wait for SMS Code",
+            "readOnlyHint": false,
+            "destructiveHint": false,
+            "idempotentHint": false,
+            "openWorldHint": true
+          }
+        },
+        {
+          "name": "find_cheapest_countries",
+          "title": "Find Cheapest Countries",
+          "description": "Find the cheapest countries for a given service, sorted by price. Returns available countries with prices and stock levels so you can pick the best deal.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "service": {
+                "type": "string",
+                "description": "Service code (e.g. \"telegram\", \"whatsapp\", \"google\")"
+              },
+              "limit": {
+                "type": "number",
+                "description": "Number of cheapest options to return (default: 5)",
+                "default": 5
+              }
+            },
+            "required": [
+              "service"
+            ]
+          },
+          "annotations": {
+            "title": "Find Cheapest Countries",
+            "readOnlyHint": true,
+            "destructiveHint": false,
+            "idempotentHint": true,
+            "openWorldHint": true
+          }
+        },
+        {
+          "name": "search_services",
+          "title": "Search Service by Name",
+          "description": "Find the right service code using natural language. Don't know the exact code? Just search \"uber\", \"binance\", \"steam\" etc. Returns matching services with similarity scores.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "query": {
+                "type": "string",
+                "description": "Natural language search query (e.g. \"uber\", \"whatsapp\", \"binance\")"
+              }
+            },
+            "required": [
+              "query"
+            ]
+          },
+          "annotations": {
+            "title": "Search Service by Name",
+            "readOnlyHint": true,
+            "destructiveHint": false,
+            "idempotentHint": true,
+            "openWorldHint": true
+          }
+        },
+        {
+          "name": "swap_phone_number",
+          "title": "Swap Phone Number",
+          "description": "Swap a phone number on an existing order. Gets a new number for the same service and country without additional charge. Use when the current number isn't receiving SMS.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "order_id": {
+                "type": "string",
+                "description": "Order ID to swap — must be in waiting/created status with no SMS received"
+              }
+            },
+            "required": [
+              "order_id"
+            ]
+          },
+          "annotations": {
+            "title": "Swap Phone Number",
+            "readOnlyHint": false,
+            "destructiveHint": false,
+            "idempotentHint": false,
+            "openWorldHint": true
+          }
+        },
+        {
+          "name": "list_active_orders",
+          "title": "List Active Orders",
+          "description": "List your active orders. Essential for crash recovery — if your session was interrupted, use this to find pending orders and their phone numbers, then use check_sms to retrieve codes.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "string",
+                "description": "Optional status filter: \"pending\", \"sms_received\", \"cancelled\", \"completed\""
+              }
+            },
+            "required": []
+          },
+          "annotations": {
+            "title": "List Active Orders",
+            "readOnlyHint": true,
+            "destructiveHint": false,
+            "idempotentHint": true,
+            "openWorldHint": true
+          }
+        }
+      ],
+      "resources": [
+        {
+          "name": "Quickstart Guide",
+          "uri": "virtualsms://docs/quickstart",
+          "description": "Step-by-step guide to get your first SMS verification code with VirtualSMS MCP.",
+          "mimeType": "text/markdown"
+        },
+        {
+          "name": "Popular Services Reference",
+          "uri": "virtualsms://docs/popular-services",
+          "description": "Commonly used service codes for WhatsApp, Telegram, Google, and other top services.",
+          "mimeType": "text/markdown"
+        },
+        {
+          "name": "Pricing Tips",
+          "uri": "virtualsms://docs/pricing-tips",
+          "description": "Tips on finding the cheapest virtual numbers and maximizing your VirtualSMS budget.",
+          "mimeType": "text/markdown"
+        }
+      ],
+      "prompts": [
+        {
+          "name": "verify-whatsapp",
+          "description": "Complete workflow to get a WhatsApp verification code using a virtual number. Finds the cheapest available country, buys a number, and waits for the SMS code automatically.",
+          "arguments": [
+            {
+              "name": "country",
+              "description": "Preferred country code (e.g. \"US\", \"RU\", \"IN\"). Leave empty to auto-select cheapest.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "verify-telegram",
+          "description": "Complete workflow to verify a Telegram account with a virtual number. Automatically selects cheapest available country and waits for the SMS code.",
+          "arguments": [
+            {
+              "name": "country",
+              "description": "Preferred country code (e.g. \"US\", \"RU\", \"KZ\"). Leave empty to auto-select cheapest.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "verify-google",
+          "description": "Get a Google account verification code via virtual phone number. Useful for creating or recovering Google/Gmail accounts.",
+          "arguments": [
+            {
+              "name": "country",
+              "description": "Preferred country code (e.g. \"US\", \"GB\"). Leave empty to auto-select cheapest.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "find-cheapest-number",
+          "description": "Find the cheapest virtual phone number for any service. Returns top countries sorted by price with stock availability.",
+          "arguments": [
+            {
+              "name": "service",
+              "description": "Service name or code to find cheapest number for (e.g. \"telegram\", \"whatsapp\", \"google\", \"uber\")",
+              "required": true
+            },
+            {
+              "name": "limit",
+              "description": "Number of cheapest options to show (default: 5)",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "verify-any-service",
+          "description": "Universal SMS verification workflow. Searches for the service by name, finds the cheapest country, buys a number, and waits for the verification code.",
+          "arguments": [
+            {
+              "name": "service",
+              "description": "Service to verify (e.g. \"uber\", \"binance\", \"steam\", \"facebook\", \"twitter\")",
+              "required": true
+            },
+            {
+              "name": "country",
+              "description": "Preferred country (optional, auto-selects cheapest if not specified)",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "recover-verification",
+          "description": "Recover an interrupted SMS verification session. Lists active orders and checks for pending verification codes — useful after a crash or timeout.",
+          "arguments": []
+        },
+        {
+          "name": "check-account-status",
+          "description": "Check your VirtualSMS account balance and list all active orders in one shot.",
+          "arguments": []
+        }
+      ]
+    },
+    "source": {
+      "commit": "24ccd8b168a3afecc1106ceb9fa04862693cf8fc",
+      "branch": "main"
+    }
+  },
+  "artifacts": {
+    "module": "module.js",
+    "sourcemap": "module.js.map"
+  }
+}
