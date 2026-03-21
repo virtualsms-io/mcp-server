@@ -4,7 +4,7 @@
       "command": "npx",
       "args": ["virtualsms-mcp"],
       "env": {
-        "VIRTUALSMS_API_KEY": "vsms_your_api_key_here"
+        "VIRTUALSMS_API_KEY": ""
       }
     }
   }
