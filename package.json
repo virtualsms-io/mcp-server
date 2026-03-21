@@ -1,6 +1,6 @@
 {
   "name": "virtualsms-mcp",
-  "mcpName": "io.github.virtualsms-io/virtualsms",
+  "mcpName": "io.github.virtualsms-io/sms",
   "version": "1.0.9",
   "description": "MCP server for VirtualSMS — receive SMS verification codes with AI agents. Virtual phone numbers and number rentals for WhatsApp, Telegram, Google & 200+ services. SMS-Activate alternative.",
   "main": "dist/index.js",
