@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "virtualsms": {
+      "command": "npx",
+      "args": ["-y", "virtualsms-mcp"],
+      "env": {
+        "VIRTUALSMS_API_KEY": ""
+      }
+    }
+  }
+}
