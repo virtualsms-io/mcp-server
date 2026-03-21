@@ -2,9 +2,9 @@
   "mcpServers": {
     "virtualsms": {
       "command": "npx",
-      "args": ["-y", "virtualsms-mcp"],
+      "args": ["virtualsms-mcp"],
       "env": {
-        "VIRTUALSMS_API_KEY": ""
+        "VIRTUALSMS_API_KEY": "vsms_your_api_key_here"
       }
     }
   }
