@@ -4,3 +4,4 @@
 .env.glama
 dist/
 node_modules/
+mcp-publisher.exe
