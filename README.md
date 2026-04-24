@@ -41,7 +41,7 @@ Use it to verify accounts on WhatsApp, Telegram, Google, Instagram, and 500+ oth
 - **Real-time delivery** — WebSocket push means your agent gets the code in seconds, not minutes.
 - **Competitive pricing** — Starting from $0.02 per number.
 - **Simple REST + WebSocket API** — Clean, documented, agent-friendly.
-- **12 MCP tools** — Everything from price discovery to one-step code retrieval.
+- **18 MCP tools** — Discovery, account, and full order management — including unique tools like `find_cheapest`, `search_service`, `swap_number`, and `wait_for_code`.
 
 ---
 
@@ -102,7 +102,32 @@ Edit `~/.cursor/mcp.json`:
 
 ---
 
-## Tools (12 total)
+## Tools (18 total)
+
+⭐ = **unique to VirtualSMS** — no other SMS MCP server ships these.
+
+| # | Tool | Category | Auth | Description |
+|---|---|---|---|---|
+| 1 | `list_services` | Discovery | No | List all available SMS verification services |
+| 2 | `list_countries` | Discovery | No | List all available countries for verification |
+| 3 | `check_price` | Discovery | No | Check pricing and availability for a service in a country |
+| 4 | `find_cheapest` ⭐ | Discovery | No | Find the cheapest countries for a given service, sorted by price |
+| 5 | `search_service` ⭐ | Discovery | No | Natural-language search over available services |
+| 6 | `get_balance` | Account | Yes | Check current account balance in USD |
+| 7 | `get_profile` | Account | Yes | Full account profile — email, Telegram link, balance, lifetime spend, total orders, active API keys |
+| 8 | `get_stats` | Account | Yes | Usage stats — orders count, success rate, spend, status/service/country breakdown |
+| 9 | `get_transactions` | Account | Yes | Transaction history with type, date range, and pagination filters |
+| 10 | `buy_number` | Orders | Yes | Purchase a virtual phone number for verification |
+| 11 | `check_sms` | Orders | Yes | Poll for received SMS and extract verification code |
+| 12 | `get_order` | Orders | Yes | Full order details + all received messages |
+| 13 | `cancel_order` | Orders | Yes | Cancel an order (refund if no SMS received) |
+| 14 | `cancel_all_orders` | Orders | Yes | Bulk cancel every currently active order |
+| 15 | `list_active_orders` | Orders | Yes | List all currently active orders |
+| 16 | `order_history` | Orders | Yes | Past orders with status, service, country, and date filters |
+| 17 | `swap_number` ⭐ | Orders | Yes | Exchange number for another without extra charge |
+| 18 | `wait_for_code` ⭐ | Orders | Yes | WebSocket-backed wait (instant delivery, automatic polling fallback) |
+
+> Tool names above are shown without the `virtualsms_` prefix for readability. Actual MCP tool names are `virtualsms_list_services`, `virtualsms_get_order`, etc. `list_active_orders` is registered as `virtualsms_list_orders`.
 
 ### Discovery Tools (no auth required)
 
@@ -130,7 +155,7 @@ check_price(service: "telegram", country: "US")
 → {price_usd: 0.15, available: true}
 ```
 
-#### `find_cheapest`
+#### `find_cheapest` ⭐
 Find cheapest countries for a service, sorted by price.
 
 ```
@@ -138,7 +163,7 @@ find_cheapest(service: "telegram", limit: 5)
 → {cheapest_options: [{country: "PK", price_usd: 0.05, ...}], total_available_countries: 23}
 ```
 
-#### `search_service`
+#### `search_service` ⭐
 Find the right service code using natural language.
 
 ```
@@ -156,16 +181,61 @@ get_balance()
 → {balance_usd: 5.00}
 ```
 
-#### `active_orders`
-List your active orders. **Essential for crash recovery.**
+#### `get_profile`
+Full account profile: email, Telegram link status, current balance, lifetime spend, total orders, active API key count, and account creation date.
 
 ```
-active_orders()
-active_orders(status: "pending")
-→ {count: 2, orders: [{order_id: "abc123", phone_number: "+14155552671", status: "pending", ...}]}
+get_profile()
+→ {
+    id: "…uuid…",
+    email: "you@example.com",
+    telegram_linked: true,
+    telegram_username: "you_tg",
+    balance_usd: 5.00,
+    total_spent_usd: 27.45,
+    total_credits_usd: 10.00,
+    total_orders: 42,
+    active_api_keys: 2,
+    created_at: "2025-11-03T14:22:07Z"
+  }
 ```
 
-Optional `status` filter: `"pending"`, `"sms_received"`, `"cancelled"`, `"completed"`
+#### `get_stats`
+Aggregated usage stats computed from your order history: total orders, success rate, total spend, status breakdown, top services and top countries over a configurable lookback window.
+
+```
+get_stats()
+get_stats(since_days: 7)
+→ {
+    window_days: 30,
+    balance_usd: 5.00,
+    total_orders: 42,
+    successful_orders: 37,
+    success_rate: 88.1,
+    total_spend_usd: 6.24,
+    status_breakdown: { sms_received: 37, cancelled: 3, waiting: 2 },
+    top_services: [{ key: "telegram", count: 18 }, ...],
+    top_countries: [{ key: "US", count: 14 }, ...]
+  }
+```
+
+#### `get_transactions`
+Transaction history with filters for type, date range, and pagination. Types: `deposit`, `purchase`, `refund`, `admin_credit`.
+
+```
+get_transactions()
+get_transactions(type: "deposit", from: "2026-04-01", limit: 20)
+→ {
+    count: 3,
+    limit: 50,
+    offset: 0,
+    filters: { type: "deposit", from: "2026-04-01" },
+    transactions: [
+      { id: "…", amount: 10.00, type: "deposit", balance_before: 0.00, balance_after: 10.00, created_at: "…" },
+      ...
+    ]
+  }
+```
 
 ### Order Management Tools (API key required)
 
@@ -185,6 +255,25 @@ check_sms(order_id: "abc123")
 → {status: "sms_received", phone_number: "+14155552671", sms_code: "12345", sms_text: "Your code is 12345"}
 ```
 
+#### `get_order`
+Full order detail — service, country, price, timestamps, status, and any received SMS code/text. Use when you need more than `check_sms` returns, or when restoring state for a known `order_id`.
+
+```
+get_order(order_id: "abc123")
+→ {
+    order_id: "abc123",
+    phone_number: "+14155552671",
+    service: "telegram",
+    country: "US",
+    price: 0.15,
+    status: "sms_received",
+    sms_code: "12345",
+    sms_text: "Your Telegram code: 12345",
+    created_at: "2026-04-24T10:15:33Z",
+    expires_at: "2026-04-24T10:35:33Z"
+  }
+```
+
 #### `cancel_order`
 Cancel an order and request a refund (only if no SMS received yet). 2-minute minimum wait after purchase.
 
@@ -193,7 +282,45 @@ cancel_order(order_id: "abc123")
 → {success: true, refunded: true}
 ```
 
-#### `swap_number`
+#### `cancel_all_orders`
+Bulk-cancel every currently active order in your account. Returns counts plus per-order success/failure detail. Useful for cleaning up after a batch or test session.
+
+```
+cancel_all_orders()
+→ {
+    cancelled: 3,
+    failed: 0,
+    total_active: 3,
+    cancelled_orders: [{ order_id: "abc123", refunded: true }, ...]
+  }
+```
+
+#### `list_active_orders`
+List your active orders. **Essential for crash recovery.** Registered as `virtualsms_list_orders`.
+
+```
+list_active_orders()
+list_active_orders(status: "pending")
+→ {count: 2, orders: [{order_id: "abc123", phone_number: "+14155552671", status: "pending", ...}]}
+```
+
+Optional `status` filter: `"pending"`, `"sms_received"`, `"cancelled"`, `"completed"`.
+
+#### `order_history`
+Past orders with optional filters for status, service, country, and a lookback window in days. Most recent first, up to 50 rows (server cap).
+
+```
+order_history(since_days: 7)
+order_history(status: "completed", service: "telegram", limit: 10)
+→ {
+    count: 10,
+    total_matched: 18,
+    filters: { status: "completed", service: "telegram", since_days: null },
+    orders: [{ order_id: "...", service: "telegram", country: "US", status: "completed", price: 0.15, created_at: "..." }, ...]
+  }
+```
+
+#### `swap_number` ⭐
 Swap a phone number on an existing order. Gets a new number for the same service and country without additional charge. Use when the current number isn't receiving SMS. 2-minute minimum wait after purchase.
 
 ```

@@ -33,6 +33,10 @@ import {
   FindCheapestInput,
   SearchServiceInput,
   ActiveOrdersInput,
+  GetOrderInput,
+  OrderHistoryInput,
+  GetStatsInput,
+  GetTransactionsInput,
   handleListServices,
   handleListCountries,
   handleCheckPrice,
@@ -45,6 +49,12 @@ import {
   handleFindCheapest,
   handleSearchService,
   handleActiveOrders,
+  handleGetOrder,
+  handleCancelAllOrders,
+  handleOrderHistory,
+  handleGetStats,
+  handleGetProfile,
+  handleGetTransactions,
 } from './tools.js';
 
 // ─── Configuration ────────────────────────────────────────────────────────────
@@ -59,7 +69,7 @@ const client = new VirtualSMSClient(BASE_URL, API_KEY);
 const server = new Server(
   {
     name: 'virtualsms-mcp',
-    version: '1.0.0',
+    version: '1.1.0',
   },
   {
     capabilities: {
@@ -135,6 +145,32 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         return await handleActiveOrders(client, parsed);
       }
 
+      case 'virtualsms_get_order': {
+        const parsed = GetOrderInput.parse(args);
+        return await handleGetOrder(client, parsed);
+      }
+
+      case 'virtualsms_cancel_all_orders':
+        return await handleCancelAllOrders(client);
+
+      case 'virtualsms_order_history': {
+        const parsed = OrderHistoryInput.parse(args);
+        return await handleOrderHistory(client, parsed);
+      }
+
+      case 'virtualsms_get_stats': {
+        const parsed = GetStatsInput.parse(args);
+        return await handleGetStats(client, parsed);
+      }
+
+      case 'virtualsms_get_profile':
+        return await handleGetProfile(client);
+
+      case 'virtualsms_get_transactions': {
+        const parsed = GetTransactionsInput.parse(args);
+        return await handleGetTransactions(client, parsed);
+      }
+
       default:
         throw new McpError(ErrorCode.MethodNotFound, `Unknown tool: ${name}`);
     }
@@ -201,7 +237,7 @@ export function createSandboxServer() {
   const sandboxServer = new Server(
     {
       name: 'virtualsms-mcp',
-      version: '1.0.0',
+      version: '1.1.0',
     },
     {
       capabilities: {

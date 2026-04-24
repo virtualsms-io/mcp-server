@@ -22,12 +22,44 @@ export interface Balance {
   balance_usd: number;
 }
 
+export interface Profile {
+  id: string;
+  email: string;
+  telegram_linked: boolean;
+  telegram_username?: string;
+  balance_usd: number;
+  total_spent_usd: number;
+  total_credits_usd: number;
+  total_orders: number;
+  active_api_keys: number;
+  created_at: string;
+}
+
+export interface Transaction {
+  id: string;
+  amount: number;
+  type: string;
+  description?: string;
+  order_id?: string;
+  balance_before: number;
+  balance_after: number;
+  created_at: string;
+}
+
+export interface TransactionsPage {
+  count: number;
+  limit: number;
+  offset: number;
+  transactions: Transaction[];
+}
+
 export interface Order {
   order_id: string;
   phone_number: string;
   service?: string;
   country?: string;
   price?: number;
+  created_at?: string;
   expires_at?: string;
   status: string;
   sms_code?: string;
@@ -141,6 +173,54 @@ export class VirtualSMSClient {
     };
   }
 
+  async getProfile(): Promise<Profile> {
+    this.requireApiKey();
+    const res = await this.http.get('/api/v1/customer/profile');
+    const raw = res.data as Record<string, unknown>;
+    return {
+      id: String(raw.id ?? ''),
+      email: String(raw.email ?? ''),
+      telegram_linked: Boolean(raw.telegram_linked),
+      telegram_username: raw.telegram_username ? String(raw.telegram_username) : undefined,
+      balance_usd: Number(raw.balance_usd ?? 0),
+      total_spent_usd: Number(raw.total_spent_usd ?? 0),
+      total_credits_usd: Number(raw.total_credits_usd ?? 0),
+      total_orders: Number(raw.total_orders ?? 0),
+      active_api_keys: Number(raw.active_api_keys ?? 0),
+      created_at: String(raw.created_at ?? ''),
+    };
+  }
+
+  async getTransactions(params: {
+    type?: string;
+    from?: string;
+    to?: string;
+    limit?: number;
+    offset?: number;
+  } = {}): Promise<TransactionsPage> {
+    this.requireApiKey();
+    const res = await this.http.get('/api/v1/customer/transactions', { params });
+    const raw = res.data as Record<string, unknown>;
+    const items: Array<Record<string, unknown>> = Array.isArray(raw.transactions)
+      ? (raw.transactions as Array<Record<string, unknown>>)
+      : [];
+    return {
+      count: Number(raw.count ?? items.length),
+      limit: Number(raw.limit ?? 0),
+      offset: Number(raw.offset ?? 0),
+      transactions: items.map((t) => ({
+        id: String(t.id ?? ''),
+        amount: Number(t.amount ?? 0),
+        type: String(t.type ?? ''),
+        description: t.description ? String(t.description) : undefined,
+        order_id: t.order_id ? String(t.order_id) : undefined,
+        balance_before: Number(t.balance_before ?? 0),
+        balance_after: Number(t.balance_after ?? 0),
+        created_at: String(t.created_at ?? ''),
+      })),
+    };
+  }
+
   async createOrder(service: string, country: string): Promise<Order> {
     this.requireApiKey();
     const res = await this.http.post('/api/v1/customer/purchase', { service, country });
@@ -186,6 +266,7 @@ export class VirtualSMSClient {
         service: String(o.service_id ?? o.service ?? ''),
         country: String(o.country_id ?? o.country ?? ''),
         price: Number(o.price_charged ?? o.price ?? 0),
+        created_at: o.created_at ? String(o.created_at) : undefined,
         expires_at: o.expires_at ? String(o.expires_at) : undefined,
         status: String(o.status ?? ''),
         sms_code: o.sms_code ? String(o.sms_code) : undefined,

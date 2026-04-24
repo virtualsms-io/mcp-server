@@ -50,6 +50,34 @@ export const ActiveOrdersInput = z.object({
   status: z.string().optional().describe('Optional status filter: "pending", "sms_received", "cancelled", "completed"'),
 });
 
+export const GetOrderInput = z.object({
+  order_id: z.string().describe('Order ID to retrieve full details for'),
+});
+
+export const OrderHistoryInput = z.object({
+  status: z.string().optional().describe('Optional status filter: "completed", "cancelled", "expired", "sms_received", "waiting"'),
+  service: z.string().optional().describe('Optional service code filter (e.g. "telegram", "whatsapp")'),
+  country: z.string().optional().describe('Optional country ISO code filter (e.g. "US", "GB")'),
+  since_days: z.number().int().min(1).max(365).optional().describe('Only include orders from the last N days'),
+  limit: z.number().int().min(1).max(50).default(20).describe('Max orders to return (default: 20, server cap: 50)'),
+});
+
+export const CancelAllOrdersInput = z.object({});
+
+export const GetStatsInput = z.object({
+  since_days: z.number().int().min(1).max(365).default(30).describe('Window in days for activity stats (default: 30)'),
+});
+
+export const GetProfileInput = z.object({});
+
+export const GetTransactionsInput = z.object({
+  type: z.enum(['deposit', 'purchase', 'refund', 'admin_credit']).optional().describe('Filter by transaction type'),
+  from: z.string().optional().describe('Lower bound on created_at — RFC3339 timestamp or YYYY-MM-DD'),
+  to: z.string().optional().describe('Upper bound on created_at — RFC3339 timestamp or YYYY-MM-DD'),
+  limit: z.number().int().min(1).max(200).default(50).describe('Max transactions to return (1-200, default: 50)'),
+  offset: z.number().int().min(0).default(0).describe('Pagination offset (default: 0)'),
+});
+
 // ─── Tool Definitions ────────────────────────────────────────────────────────
 
 export const TOOL_DEFINITIONS = [
@@ -362,6 +390,177 @@ export const TOOL_DEFINITIONS = [
     },
     annotations: {
       title: 'List Active Orders',
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: true,
+    },
+  },
+  {
+    name: 'virtualsms_get_order',
+    title: 'Get Order Details',
+    description:
+      'Get the full details of a specific order, including status, phone number, service, country, ' +
+      'timestamps, and any received SMS code/text. Use this when you have an order_id and need the ' +
+      'latest state beyond what check_sms returns.',
+    inputSchema: {
+      type: 'object' as const,
+      properties: {
+        order_id: {
+          type: 'string',
+          description: 'Order ID to retrieve full details for',
+        },
+      },
+      required: ['order_id'],
+    },
+    annotations: {
+      title: 'Get Order Details',
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: true,
+    },
+  },
+  {
+    name: 'virtualsms_cancel_all_orders',
+    title: 'Cancel All Active Orders',
+    description:
+      'Bulk-cancel every currently active order in your account. Returns the number of orders ' +
+      'cancelled plus any failures. Useful for quick cleanup after a batch run or test session.',
+    inputSchema: {
+      type: 'object' as const,
+      properties: {},
+      required: [],
+    },
+    annotations: {
+      title: 'Cancel All Active Orders',
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: true,
+      openWorldHint: true,
+    },
+  },
+  {
+    name: 'virtualsms_order_history',
+    title: 'Order History',
+    description:
+      'List past orders with optional filters for status, service, country, and a lookback window in days. ' +
+      'Returns up to 50 orders (server cap) ordered most-recent-first.',
+    inputSchema: {
+      type: 'object' as const,
+      properties: {
+        status: {
+          type: 'string',
+          description: 'Optional status filter: "completed", "cancelled", "expired", "sms_received", "waiting"',
+        },
+        service: {
+          type: 'string',
+          description: 'Optional service code filter (e.g. "telegram", "whatsapp")',
+        },
+        country: {
+          type: 'string',
+          description: 'Optional country ISO code filter (e.g. "US", "GB")',
+        },
+        since_days: {
+          type: 'number',
+          description: 'Only include orders from the last N days',
+        },
+        limit: {
+          type: 'number',
+          description: 'Max orders to return (default: 20, server cap: 50)',
+          default: 20,
+        },
+      },
+      required: [],
+    },
+    annotations: {
+      title: 'Order History',
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: true,
+    },
+  },
+  {
+    name: 'virtualsms_get_stats',
+    title: 'Get Account Stats',
+    description:
+      'Account usage stats aggregated from your order history: total orders, success rate, total spend, ' +
+      'top services/countries, and status breakdown over a configurable lookback window.',
+    inputSchema: {
+      type: 'object' as const,
+      properties: {
+        since_days: {
+          type: 'number',
+          description: 'Window in days for activity stats (default: 30)',
+          default: 30,
+        },
+      },
+      required: [],
+    },
+    annotations: {
+      title: 'Get Account Stats',
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: true,
+    },
+  },
+  {
+    name: 'virtualsms_get_profile',
+    title: 'Get Account Profile',
+    description:
+      'Full account profile: email, Telegram link status, current balance, lifetime spend, total orders, ' +
+      'active API keys, and account creation date.',
+    inputSchema: {
+      type: 'object' as const,
+      properties: {},
+      required: [],
+    },
+    annotations: {
+      title: 'Get Account Profile',
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: true,
+    },
+  },
+  {
+    name: 'virtualsms_get_transactions',
+    title: 'Get Transaction History',
+    description:
+      'Transaction history for the account with optional filters for type, date range, and pagination. ' +
+      'Types: "deposit", "purchase", "refund", "admin_credit".',
+    inputSchema: {
+      type: 'object' as const,
+      properties: {
+        type: {
+          type: 'string',
+          description: 'Filter by type: "deposit", "purchase", "refund", "admin_credit"',
+        },
+        from: {
+          type: 'string',
+          description: 'Lower bound on created_at — RFC3339 or YYYY-MM-DD',
+        },
+        to: {
+          type: 'string',
+          description: 'Upper bound on created_at — RFC3339 or YYYY-MM-DD',
+        },
+        limit: {
+          type: 'number',
+          description: 'Max transactions (1-200, default: 50)',
+          default: 50,
+        },
+        offset: {
+          type: 'number',
+          description: 'Pagination offset (default: 0)',
+          default: 0,
+        },
+      },
+      required: [],
+    },
+    annotations: {
+      title: 'Get Transaction History',
       readOnlyHint: true,
       destructiveHint: false,
       idempotentHint: true,
@@ -926,6 +1125,289 @@ export async function handleActiveOrders(
             tip: orders.length > 0
               ? 'Use check_sms with any order_id to get the latest status, or cancel_order to refund pending orders.'
               : 'No orders found.',
+          },
+          null,
+          2
+        ),
+      },
+    ],
+  };
+}
+
+export async function handleGetOrder(
+  client: VirtualSMSClient,
+  args: z.infer<typeof GetOrderInput>
+) {
+  const order = await client.getOrder(args.order_id);
+  return {
+    content: [
+      {
+        type: 'text' as const,
+        text: JSON.stringify(
+          {
+            order_id: order.order_id,
+            phone_number: order.phone_number,
+            service: order.service,
+            country: order.country,
+            price: order.price,
+            status: order.status,
+            sms_code: order.sms_code,
+            sms_text: order.sms_text,
+            created_at: order.created_at,
+            expires_at: order.expires_at,
+          },
+          null,
+          2
+        ),
+      },
+    ],
+  };
+}
+
+// Statuses considered "active" (order is live and billable/cancellable).
+const ACTIVE_STATUSES = new Set(['waiting', 'pending', 'sms_received', 'created']);
+
+export async function handleCancelAllOrders(client: VirtualSMSClient) {
+  const orders = await client.listOrders();
+  const active = orders.filter((o) => ACTIVE_STATUSES.has(o.status));
+
+  if (active.length === 0) {
+    return {
+      content: [
+        {
+          type: 'text' as const,
+          text: JSON.stringify(
+            { cancelled: 0, failed: 0, message: 'No active orders to cancel.' },
+            null,
+            2
+          ),
+        },
+      ],
+    };
+  }
+
+  const results = await Promise.allSettled(
+    active.map((o) =>
+      client.cancelOrder(o.order_id).then((res) => ({ order_id: o.order_id, ...res }))
+    )
+  );
+
+  const succeeded: Array<{ order_id: string; refunded: boolean }> = [];
+  const failed: Array<{ order_id: string; error: string }> = [];
+
+  results.forEach((r, i) => {
+    const orderId = active[i].order_id;
+    if (r.status === 'fulfilled') {
+      succeeded.push({ order_id: orderId, refunded: r.value.refunded });
+    } else {
+      failed.push({ order_id: orderId, error: (r.reason as Error)?.message ?? String(r.reason) });
+    }
+  });
+
+  return {
+    content: [
+      {
+        type: 'text' as const,
+        text: JSON.stringify(
+          {
+            cancelled: succeeded.length,
+            failed: failed.length,
+            total_active: active.length,
+            cancelled_orders: succeeded,
+            failures: failed,
+          },
+          null,
+          2
+        ),
+      },
+    ],
+  };
+}
+
+function parseOrderDate(value?: string): number | null {
+  if (!value) return null;
+  const t = Date.parse(value);
+  return Number.isFinite(t) ? t : null;
+}
+
+export async function handleOrderHistory(
+  client: VirtualSMSClient,
+  args: z.infer<typeof OrderHistoryInput>
+) {
+  const limit = args.limit ?? 20;
+  const orders = await client.listOrders(args.status);
+
+  const cutoffMs = args.since_days
+    ? Date.now() - args.since_days * 24 * 60 * 60 * 1000
+    : null;
+
+  const serviceFilter = args.service?.toLowerCase();
+  const countryFilter = args.country?.toUpperCase();
+
+  const filtered = orders.filter((o) => {
+    if (cutoffMs !== null) {
+      const ts = parseOrderDate(o.created_at);
+      if (ts === null || ts < cutoffMs) return false;
+    }
+    if (serviceFilter && (o.service ?? '').toLowerCase() !== serviceFilter) return false;
+    if (countryFilter && (o.country ?? '').toUpperCase() !== countryFilter) return false;
+    return true;
+  });
+
+  const capped = filtered.slice(0, limit);
+
+  return {
+    content: [
+      {
+        type: 'text' as const,
+        text: JSON.stringify(
+          {
+            count: capped.length,
+            total_matched: filtered.length,
+            filters: {
+              status: args.status,
+              service: args.service,
+              country: args.country,
+              since_days: args.since_days,
+            },
+            orders: capped.map((o) => ({
+              order_id: o.order_id,
+              phone_number: o.phone_number,
+              service: o.service,
+              country: o.country,
+              price: o.price,
+              status: o.status,
+              created_at: o.created_at,
+              sms_code: o.sms_code,
+            })),
+          },
+          null,
+          2
+        ),
+      },
+    ],
+  };
+}
+
+export async function handleGetStats(
+  client: VirtualSMSClient,
+  args: z.infer<typeof GetStatsInput>
+) {
+  const sinceDays = args.since_days ?? 30;
+  const cutoffMs = Date.now() - sinceDays * 24 * 60 * 60 * 1000;
+
+  const [balance, orders] = await Promise.all([
+    client.getBalance(),
+    client.listOrders(),
+  ]);
+
+  const inWindow = orders.filter((o) => {
+    const ts = parseOrderDate(o.created_at);
+    return ts !== null && ts >= cutoffMs;
+  });
+
+  const byStatus: Record<string, number> = {};
+  const byService: Record<string, number> = {};
+  const byCountry: Record<string, number> = {};
+  let totalSpend = 0;
+  let successful = 0;
+  let terminal = 0;
+
+  for (const o of inWindow) {
+    byStatus[o.status] = (byStatus[o.status] ?? 0) + 1;
+    if (o.service) byService[o.service] = (byService[o.service] ?? 0) + 1;
+    if (o.country) byCountry[o.country] = (byCountry[o.country] ?? 0) + 1;
+
+    // Spend: charges that weren't fully refunded. Cancelled orders typically refunded.
+    if (o.status !== 'cancelled' && typeof o.price === 'number') {
+      totalSpend += o.price;
+    }
+
+    // Success rate denominator = orders in terminal state (excludes still-waiting)
+    if (['completed', 'sms_received', 'expired', 'cancelled'].includes(o.status)) {
+      terminal++;
+      if (o.status === 'completed' || o.status === 'sms_received') successful++;
+    }
+  }
+
+  const topEntries = (rec: Record<string, number>, n = 5) =>
+    Object.entries(rec)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, n)
+      .map(([key, count]) => ({ key, count }));
+
+  return {
+    content: [
+      {
+        type: 'text' as const,
+        text: JSON.stringify(
+          {
+            window_days: sinceDays,
+            balance_usd: balance.balance_usd,
+            total_orders: inWindow.length,
+            successful_orders: successful,
+            success_rate: terminal > 0 ? Math.round((successful / terminal) * 1000) / 10 : null,
+            total_spend_usd: Math.round(totalSpend * 100) / 100,
+            status_breakdown: byStatus,
+            top_services: topEntries(byService),
+            top_countries: topEntries(byCountry),
+            note:
+              orders.length >= 50
+                ? 'Server caps order history at 50 rows — stats may undercount if your activity exceeds 50 orders in the window.'
+                : undefined,
+          },
+          null,
+          2
+        ),
+      },
+    ],
+  };
+}
+
+export async function handleGetProfile(client: VirtualSMSClient) {
+  const profile = await client.getProfile();
+  return {
+    content: [
+      {
+        type: 'text' as const,
+        text: JSON.stringify(profile, null, 2),
+      },
+    ],
+  };
+}
+
+export async function handleGetTransactions(
+  client: VirtualSMSClient,
+  args: z.infer<typeof GetTransactionsInput>
+) {
+  const page = await client.getTransactions({
+    type: args.type,
+    from: args.from,
+    to: args.to,
+    limit: args.limit,
+    offset: args.offset,
+  });
+  return {
+    content: [
+      {
+        type: 'text' as const,
+        text: JSON.stringify(
+          {
+            count: page.count,
+            limit: page.limit,
+            offset: page.offset,
+            filters: {
+              type: args.type,
+              from: args.from,
+              to: args.to,
+            },
+            transactions: page.transactions,
+            tip:
+              page.transactions.length === 0
+                ? 'No transactions match the filters. Try widening the date range or removing the type filter.'
+                : page.count === page.limit
+                  ? 'Page is full — increment offset by limit to fetch the next page.'
+                  : undefined,
           },
           null,
           2
