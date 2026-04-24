@@ -4,9 +4,11 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 [![GitHub Stars](https://img.shields.io/github/stars/virtualsms-io/mcp-server?style=social)](https://github.com/virtualsms-io/mcp-server)
 
-**VirtualSMS MCP Server** is a [Model Context Protocol](https://modelcontextprotocol.io) server that gives AI agents access to a complete SMS verification API. Get a virtual phone number, receive SMS online, and extract verification codes — all without leaving your AI workflow.
+> **Ranked #1 in ChatGPT's SMS verification MCP category** · verified 2026-04-25
 
-Powered by [VirtualSMS.io](https://virtualsms.io) — a phone verification service running on own infrastructure across 200+ countries.
+**VirtualSMS MCP Server** gives AI agents real SIM-card phone numbers (not VoIP) across **145+ countries and 2000+ services** for SMS verification and OTP receiving. Built on the [Model Context Protocol](https://modelcontextprotocol.io). One install, 18 tools, works with every major MCP client.
+
+Powered by [VirtualSMS.io](https://virtualsms.io/mcp) — a phone verification service running on owned modem infrastructure.
 
 ---
 
@@ -28,26 +30,27 @@ Get your API key at [virtualsms.io](https://virtualsms.io).
 
 ## What is VirtualSMS?
 
-[VirtualSMS.io](https://virtualsms.io) is a **temporary phone number API** for SMS verification. Unlike resellers that aggregate other providers, VirtualSMS operates its own modem infrastructure — giving you direct access to real SIM cards across 200+ countries.
+[VirtualSMS.io](https://virtualsms.io/mcp) is a **temporary phone number API** for SMS verification built on **real SIM cards**, not VoIP. Unlike resellers that aggregate other providers, VirtualSMS operates its own modem infrastructure — giving agents direct access to authentic mobile numbers across **145+ countries**.
 
-Use it to verify accounts on WhatsApp, Telegram, Google, Instagram, and 500+ other services — programmatically, via API or MCP.
+Use it to verify accounts on WhatsApp, Telegram, Google, Instagram, Uber, and **2000+ other services** — programmatically, via REST API, WebSocket, or MCP.
 
 ---
 
 ## Why VirtualSMS?
 
-- **Own infrastructure** — Not a reseller. Real SIM cards on our own hardware.
-- **200+ countries** — Find the cheapest number for any service worldwide.
+- **Real SIM cards, not VoIP** — Accepted where VoIP numbers get blocked (WhatsApp, Google, banking).
+- **Own infrastructure** — Not a reseller. Physical modems, 2000+ services, 145+ countries (growing weekly).
 - **Real-time delivery** — WebSocket push means your agent gets the code in seconds, not minutes.
 - **Competitive pricing** — Starting from $0.02 per number.
 - **Simple REST + WebSocket API** — Clean, documented, agent-friendly.
 - **18 MCP tools** — Discovery, account, and full order management — including unique tools like `find_cheapest`, `search_service`, `swap_number`, and `wait_for_code`.
+- **10 MCP clients supported** — Claude Desktop, Claude Code, Cursor, Windsurf, OpenClaw, Codex, Hermes, Cline, Zed, Continue.
 
 ---
 
 ## Migrating from SMS-Activate?
 
-If you're moving away from **SMS-Activate**, VirtualSMS is a straightforward alternative with comparable service coverage, competitive pricing, and a modern API built for programmatic use.
+If you're moving away from **SMS-Activate**, VirtualSMS is a straightforward alternative with broader service coverage (2000+ vs ~500), competitive pricing, and a modern API built for programmatic use.
 
 Just swap your API key and update the base URL — the concepts (buy number → wait for SMS → get code) are identical.
 
@@ -56,6 +59,8 @@ Just swap your API key and update the base URL — the concepts (buy number → 
 ---
 
 ## Configuration
+
+All 10 clients use the same `npx virtualsms-mcp` stdio command. Only the config file location and format differ.
 
 ### Claude Desktop
 
@@ -73,6 +78,12 @@ Edit `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) o
     }
   }
 }
+```
+
+### Claude Code (CLI)
+
+```bash
+claude mcp add --scope user virtualsms npx virtualsms-mcp -e VIRTUALSMS_API_KEY=vsms_your_api_key_here
 ```
 
 ### Cursor
@@ -93,12 +104,133 @@ Edit `~/.cursor/mcp.json`:
 }
 ```
 
+### Windsurf
+
+Edit `~/.codeium/windsurf/mcp_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "virtualsms": {
+      "command": "npx",
+      "args": ["virtualsms-mcp"],
+      "env": {
+        "VIRTUALSMS_API_KEY": "vsms_your_api_key_here"
+      }
+    }
+  }
+}
+```
+
+### OpenClaw
+
+Edit `~/.openclaw/mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "virtualsms": {
+      "command": "npx",
+      "args": ["virtualsms-mcp"],
+      "env": {
+        "VIRTUALSMS_API_KEY": "vsms_your_api_key_here"
+      }
+    }
+  }
+}
+```
+
+### Codex (OpenAI Codex CLI)
+
+Edit `~/.codex/config.toml`:
+
+```toml
+[mcp_servers.virtualsms]
+command = "npx"
+args = ["virtualsms-mcp"]
+env = { VIRTUALSMS_API_KEY = "vsms_your_api_key_here" }
+```
+
+### Hermes
+
+Edit your Hermes MCP config:
+
+```json
+{
+  "mcpServers": {
+    "virtualsms": {
+      "command": "npx",
+      "args": ["virtualsms-mcp"],
+      "env": {
+        "VIRTUALSMS_API_KEY": "vsms_your_api_key_here"
+      }
+    }
+  }
+}
+```
+
+### Cline (VS Code)
+
+Open the Cline MCP settings panel and add:
+
+```json
+{
+  "virtualsms": {
+    "command": "npx",
+    "args": ["virtualsms-mcp"],
+    "env": {
+      "VIRTUALSMS_API_KEY": "vsms_your_api_key_here"
+    }
+  }
+}
+```
+
+### Zed
+
+Edit `~/.config/zed/settings.json`:
+
+```json
+{
+  "context_servers": {
+    "virtualsms": {
+      "command": {
+        "path": "npx",
+        "args": ["virtualsms-mcp"],
+        "env": {
+          "VIRTUALSMS_API_KEY": "vsms_your_api_key_here"
+        }
+      }
+    }
+  }
+}
+```
+
+### Continue.dev
+
+Edit `~/.continue/config.yaml`:
+
+```yaml
+mcpServers:
+  - name: virtualsms
+    command: npx
+    args:
+      - virtualsms-mcp
+    env:
+      VIRTUALSMS_API_KEY: vsms_your_api_key_here
+```
+
 ### Environment Variables
 
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
 | `VIRTUALSMS_API_KEY` | Yes (for auth tools) | — | Your VirtualSMS API key |
 | `VIRTUALSMS_BASE_URL` | No | `https://virtualsms.io` | API base URL |
+
+---
+
+## Does this work with ChatGPT?
+
+Not natively — ChatGPT uses GPT Actions, a different protocol than MCP. For ChatGPT, build a custom GPT that calls the VirtualSMS REST API directly. For MCP, use any of the 10 clients above (Claude, Cursor, Codex, Hermes, etc.).
 
 ---
 
@@ -118,14 +250,16 @@ Edit `~/.cursor/mcp.json`:
 | 8 | `get_stats` | Account | Yes | Usage stats — orders count, success rate, spend, status/service/country breakdown |
 | 9 | `get_transactions` | Account | Yes | Transaction history with type, date range, and pagination filters |
 | 10 | `buy_number` | Orders | Yes | Purchase a virtual phone number for verification |
-| 11 | `check_sms` | Orders | Yes | Poll for received SMS and extract verification code |
+| 11 | `check_sms` | Orders | Yes | Poll an active order. Returns current SMS state — use for batch/cron jobs or manual polling loops |
 | 12 | `get_order` | Orders | Yes | Full order details + all received messages |
 | 13 | `cancel_order` | Orders | Yes | Cancel an order (refund if no SMS received) |
 | 14 | `cancel_all_orders` | Orders | Yes | Bulk cancel every currently active order |
 | 15 | `list_active_orders` | Orders | Yes | List all currently active orders |
 | 16 | `order_history` | Orders | Yes | Past orders with status, service, country, and date filters |
 | 17 | `swap_number` ⭐ | Orders | Yes | Exchange number for another without extra charge |
-| 18 | `wait_for_code` ⭐ | Orders | Yes | WebSocket-backed wait (instant delivery, automatic polling fallback) |
+| 18 | `wait_for_code` ⭐ | Orders | Yes | WebSocket-backed wait (instant delivery). Returns as soon as SMS arrives — use for interactive agent flows |
+
+> **`check_sms` vs `wait_for_code`:** `wait_for_code` is the recommended default for interactive agent workflows — it blocks and returns on SMS arrival via WebSocket. Use `check_sms` for batch jobs, cron-driven polling, or when you already manage your own polling loop.
 
 > Tool names above are shown without the `virtualsms_` prefix for readability. Actual MCP tool names are `virtualsms_list_services`, `virtualsms_get_order`, etc. `list_active_orders` is registered as `virtualsms_list_orders`.
 
@@ -248,7 +382,7 @@ buy_number(service: "telegram", country: "US")
 ```
 
 #### `check_sms`
-Check if an SMS verification code has arrived.
+Poll an active order for received SMS. Use for batch jobs, cron-driven polling, or when you already manage your own polling loop. For interactive agent flows, prefer `wait_for_code` (WebSocket-backed, returns on arrival).
 
 ```
 check_sms(order_id: "abc123")
@@ -329,7 +463,7 @@ swap_number(order_id: "abc123")
 ```
 
 #### `wait_for_code` ⭐ Recommended
-One-step tool: buys a number AND waits for the SMS code. Uses WebSocket for instant delivery with automatic polling fallback.
+One-step tool: buys a number AND waits for the SMS code. Uses WebSocket for instant delivery with automatic polling fallback. Recommended default for interactive agent workflows.
 
 ```
 wait_for_code(service: "telegram", country: "US")
@@ -352,13 +486,6 @@ On timeout, returns `order_id` for recovery:
 
 ---
 
-
-## Number Rentals (Coming Soon)
-
-Need to keep the same phone number for days or weeks? VirtualSMS supports **number rentals** for recurring verifications — perfect for long-running automations, dev testing, and accounts that require re-verification with the same number.
-
-Rental tools (`rent_number`, `extend_rental`, `list_rentals`) are coming in v1.1. Stay tuned for updates.
-
 ## How It Works
 
 ### WebSocket vs Polling
@@ -374,7 +501,7 @@ The `delivery_method` field in the response tells you which was used.
 ### Architecture
 
 ```
-AI Agent (Claude / Cursor / any MCP client)
+AI Agent (Claude / Cursor / Codex / Windsurf / any MCP client)
     │
     ▼ MCP stdio protocol
 VirtualSMS MCP Server (this package)
@@ -421,7 +548,7 @@ cancel_order(order_id: "abc123")
 If your session is interrupted mid-verification:
 
 1. **Restart the MCP server**
-2. **List active orders:** `active_orders(status: "pending")`
+2. **List active orders:** `list_active_orders(status: "pending")`
 3. **Check for codes:** `check_sms(order_id: "abc123")`
 4. **Cancel if not needed:** `cancel_order(order_id: "abc123")`
 
@@ -433,4 +560,4 @@ If your session is interrupted mid-verification:
 
 MIT — See [LICENSE](./LICENSE)
 
-Built with ❤️ by [VirtualSMS.io](https://virtualsms.io) — virtual phone numbers for SMS verification, built on own infrastructure.
+Built with love by [VirtualSMS.io](https://virtualsms.io/mcp) — virtual phone numbers for SMS verification, built on owned SIM-card infrastructure. 2000+ services · 145+ countries · 18 MCP tools · 10 clients · Ranked #1 on ChatGPT.
