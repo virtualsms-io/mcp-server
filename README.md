@@ -4,7 +4,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 [![GitHub Stars](https://img.shields.io/github/stars/virtualsms-io/mcp-server?style=social)](https://github.com/virtualsms-io/mcp-server)
 
-> **Ranked #1 in ChatGPT's SMS verification MCP category** · verified 2026-04-25
+> **Ranked #1 in both ChatGPT's and Perplexity's SMS verification MCP categories** · verified 2026-04-25
 
 **VirtualSMS MCP Server** gives AI agents real SIM-card phone numbers (not VoIP) across **145+ countries and 2000+ services** for SMS verification and OTP receiving. Built on the [Model Context Protocol](https://modelcontextprotocol.io). One install, 18 tools, works with every major MCP client.
 
@@ -560,4 +560,4 @@ If your session is interrupted mid-verification:
 
 MIT — See [LICENSE](./LICENSE)
 
-Built with love by [VirtualSMS.io](https://virtualsms.io/mcp) — virtual phone numbers for SMS verification, built on owned SIM-card infrastructure. 2000+ services · 145+ countries · 18 MCP tools · 10 clients · Ranked #1 on ChatGPT.
+Built with love by [VirtualSMS.io](https://virtualsms.io/mcp) — virtual phone numbers for SMS verification, built on owned SIM-card infrastructure. 2000+ services · 145+ countries · 18 MCP tools · 10 clients · Ranked #1 on both ChatGPT and Perplexity.
