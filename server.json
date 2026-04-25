@@ -6,12 +6,12 @@
     "url": "https://github.com/virtualsms-io/mcp-server",
     "source": "github"
   },
-  "version": "1.1.1",
+  "version": "1.2.0",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "virtualsms-mcp",
-      "version": "1.1.1",
+      "version": "1.2.0",
       "transport": {
         "type": "stdio"
       },
@@ -22,6 +22,21 @@
           "format": "string",
           "isSecret": true,
           "name": "VIRTUALSMS_API_KEY"
+        }
+      ]
+    },
+    {
+      "registryType": "remote",
+      "identifier": "https://mcp.virtualsms.io/mcp",
+      "transport": {
+        "type": "streamable-http"
+      },
+      "headers": [
+        {
+          "name": "x-api-key",
+          "description": "Your VirtualSMS API key from virtualsms.io",
+          "isRequired": true,
+          "isSecret": true
         }
       ]
     }

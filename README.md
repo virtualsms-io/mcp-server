@@ -12,7 +12,27 @@ Powered by [VirtualSMS.io](https://virtualsms.io/mcp) — a phone verification s
 
 ---
 
-## Quick Start
+## Quick Install — Hosted (recommended, zero install)
+
+Paste this into your AI assistant's MCP config:
+
+```json
+{
+  "mcpServers": {
+    "virtualsms": {
+      "type": "streamableHttp",
+      "url": "https://mcp.virtualsms.io/mcp",
+      "headers": {
+        "x-api-key": "vsms_your_api_key_here"
+      }
+    }
+  }
+}
+```
+
+No npm install, no Node.js required on the client. The MCP server runs at `mcp.virtualsms.io`.
+
+## Quick Install — Local (stdio via npm)
 
 ```bash
 npx virtualsms-mcp
