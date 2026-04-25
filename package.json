@@ -1,7 +1,7 @@
 {
   "name": "virtualsms-mcp",
   "mcpName": "io.github.virtualsms-io/sms",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "description": "MCP server for VirtualSMS — real SIM phone numbers across 145+ countries and 2000+ services (WhatsApp, Telegram, Google, Instagram) for AI agents. SMS-Activate alternative. Ranked #1 in ChatGPT's SMS verification MCP category. Works with Claude, Cursor, Codex, Windsurf, Cline, Zed, OpenClaw, Hermes, Continue.",
   "main": "dist/index.js",
   "bin": {

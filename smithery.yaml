@@ -1,41 +1,18 @@
 # Smithery configuration file: https://smithery.ai/docs/config#smitheryyaml
 
 startCommand:
-  type: stdio
+  type: http
+  url: https://mcp.virtualsms.io/mcp
   configSchema:
-    # JSON Schema defining the configuration options for the MCP server.
     type: object
     required:
       - virtualsmsApiKey
-    additionalProperties: false
     properties:
       virtualsmsApiKey:
         type: string
         description: Your VirtualSMS API key. Get one at https://virtualsms.io/dashboard
         x-order: 0
-      virtualsmsBaseUrl:
-        type: string
-        description: "API base URL (optional, default: https://virtualsms.io)"
-        default: "https://virtualsms.io"
-        x-order: 1
-      defaultCountry:
-        type: string
-        description: "Default country code for number purchases (e.g. US, RU, IN)"
-        default: "US"
-        x-order: 2
-      timeout:
-        type: number
-        description: "Request timeout in seconds (default: 30)"
-        default: 30
-        x-order: 3
-  commandFunction: |
+  headerFunction: |
     (config) => ({
-      command: "npx",
-      args: ["virtualsms-mcp"],
-      env: {
-        VIRTUALSMS_API_KEY: config.virtualsmsApiKey,
-        ...(config.virtualsmsBaseUrl ? { VIRTUALSMS_BASE_URL: config.virtualsmsBaseUrl } : {}),
-        ...(config.defaultCountry ? { VIRTUALSMS_DEFAULT_COUNTRY: config.defaultCountry } : {}),
-        ...(config.timeout ? { VIRTUALSMS_TIMEOUT: String(config.timeout) } : {})
-      }
+      "x-api-key": config.virtualsmsApiKey
     })
