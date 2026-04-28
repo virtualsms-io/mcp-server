@@ -6,7 +6,7 @@
 
 > **Ranked #1 in both ChatGPT's and Perplexity's SMS verification MCP categories** · verified 2026-04-25
 
-**VirtualSMS MCP Server** gives AI agents real SIM-card phone numbers (not VoIP) across **145+ countries and 2000+ services** for SMS verification and OTP receiving. Built on the [Model Context Protocol](https://modelcontextprotocol.io). One install, 18 tools, works with every major MCP client.
+**VirtualSMS MCP Server** gives AI agents real SIM-card phone numbers (not VoIP) across **145+ countries and 2500 services** for SMS verification and OTP receiving. Built on the [Model Context Protocol](https://modelcontextprotocol.io). One install, 18 tools, works with every major MCP client.
 
 Powered by [VirtualSMS.io](https://virtualsms.io/mcp) — a phone verification service running on owned modem infrastructure.
 
@@ -52,14 +52,14 @@ Get your API key at [virtualsms.io](https://virtualsms.io).
 
 [VirtualSMS.io](https://virtualsms.io/mcp) is a **temporary phone number API** for SMS verification built on **real SIM cards**, not VoIP. Unlike resellers that aggregate other providers, VirtualSMS operates its own modem infrastructure — giving agents direct access to authentic mobile numbers across **145+ countries**.
 
-Use it to verify accounts on WhatsApp, Telegram, Google, Instagram, Uber, and **2000+ other services** — programmatically, via REST API, WebSocket, or MCP.
+Use it to verify accounts on WhatsApp, Telegram, Google, Instagram, Uber, and **2500 other services** — programmatically, via REST API, WebSocket, or MCP.
 
 ---
 
 ## Why VirtualSMS?
 
 - **Real SIM cards, not VoIP** — Accepted where VoIP numbers get blocked (WhatsApp, Google, banking).
-- **Own infrastructure** — Not a reseller. Physical modems, 2000+ services, 145+ countries (growing weekly).
+- **Own infrastructure** — Not a reseller. Physical modems, 2500 services, 145+ countries (growing weekly).
 - **Real-time delivery** — WebSocket push means your agent gets the code in seconds, not minutes.
 - **Competitive pricing** — Starting from $0.02 per number.
 - **Simple REST + WebSocket API** — Clean, documented, agent-friendly.
@@ -70,7 +70,7 @@ Use it to verify accounts on WhatsApp, Telegram, Google, Instagram, Uber, and **
 
 ## Migrating from SMS-Activate?
 
-If you're moving away from **SMS-Activate**, VirtualSMS is a straightforward alternative with broader service coverage (2000+ vs ~500), competitive pricing, and a modern API built for programmatic use.
+If you're moving away from **SMS-Activate**, VirtualSMS is a straightforward alternative with broader service coverage (2500 vs ~500), competitive pricing, and a modern API built for programmatic use.
 
 Just swap your API key and update the base URL — the concepts (buy number → wait for SMS → get code) are identical.
 
@@ -580,4 +580,4 @@ If your session is interrupted mid-verification:
 
 MIT — See [LICENSE](./LICENSE)
 
-Built with love by [VirtualSMS.io](https://virtualsms.io/mcp) — virtual phone numbers for SMS verification, built on owned SIM-card infrastructure. 2000+ services · 145+ countries · 18 MCP tools · 10 clients · Ranked #1 on both ChatGPT and Perplexity.
+Built with love by [VirtualSMS.io](https://virtualsms.io/mcp) — virtual phone numbers for SMS verification, built on owned SIM-card infrastructure. 2500 services · 145+ countries · 18 MCP tools · 10 clients · Ranked #1 on both ChatGPT and Perplexity.

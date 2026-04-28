@@ -30,7 +30,7 @@ export function getResourceContent(uri: string): string {
       return `# VirtualSMS MCP — Quickstart Guide
 
 ## What is VirtualSMS?
-VirtualSMS provides disposable virtual phone numbers for SMS verification. Use it to verify accounts on Telegram, WhatsApp, Google, and 500+ other services.
+VirtualSMS provides disposable virtual phone numbers for SMS verification. Use it to verify accounts on Telegram, WhatsApp, Google, and 2500 other services.
 
 ## Quick Start (3 steps)
 
@@ -117,7 +117,7 @@ Use these service codes with \`buy_number\`, \`wait_for_code\`, \`check_price\`,
 ## Tips
 - Prices vary by country and availability
 - Use \`find_cheapest(service="<code>")\` to compare current prices
-- Use \`search_service(query="<name>")\` to find codes for services not listed here (500+ supported)
+- Use \`search_service(query="<name>")\` to find codes for services not listed here (2500 supported)
 `;
 
     case 'virtualsms://docs/pricing-tips':
