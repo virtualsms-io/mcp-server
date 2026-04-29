@@ -69,7 +69,7 @@ const client = new VirtualSMSClient(BASE_URL, API_KEY);
 const server = new Server(
   {
     name: 'virtualsms-mcp',
-    version: '1.1.0',
+    version: '1.2.1',
   },
   {
     capabilities: {
@@ -237,7 +237,7 @@ export function createSandboxServer() {
   const sandboxServer = new Server(
     {
       name: 'virtualsms-mcp',
-      version: '1.1.0',
+      version: '1.2.1',
     },
     {
       capabilities: {
