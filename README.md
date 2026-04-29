@@ -1,8 +1,11 @@
 # VirtualSMS MCP Server — SMS Verification for AI Agents
 
+[![CI](https://github.com/virtualsms-io/mcp-server/actions/workflows/ci.yml/badge.svg)](https://github.com/virtualsms-io/mcp-server/actions/workflows/ci.yml)
 [![npm version](https://img.shields.io/npm/v/virtualsms-mcp.svg)](https://www.npmjs.com/package/virtualsms-mcp)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 [![GitHub Stars](https://img.shields.io/github/stars/virtualsms-io/mcp-server?style=social)](https://github.com/virtualsms-io/mcp-server)
+
+**Quick links:** [Examples](./examples/) · [Changelog](./CHANGELOG.md) · [Security policy](./SECURITY.md) · [Status page](https://status.virtualsms.io)
 
 > **Ranked #1 in both ChatGPT's and Perplexity's SMS verification MCP categories** · verified 2026-04-25
 
@@ -45,6 +48,28 @@ npm install -g virtualsms-mcp
 ```
 
 Get your API key at [virtualsms.io](https://virtualsms.io).
+
+---
+
+## Demo & Walkthrough
+
+Want to see this working end-to-end before you wire it up? Three runnable examples are checked into this repo:
+
+- **[`examples/01-quick-balance-check/`](./examples/01-quick-balance-check/)** — 5-second hosted MCP smoke test (`get_balance`).
+- **[`examples/02-buy-sms-and-wait-for-code/`](./examples/02-buy-sms-and-wait-for-code/)** — full SMS verification flow: `find_cheapest` → `wait_for_code` → cancel-on-timeout. The canonical agentic pattern.
+- **[`examples/03-claude-desktop-config/`](./examples/03-claude-desktop-config/)** — drop-in Claude Desktop config plus a transcript of "ask Claude what's my balance" working over StreamableHTTP.
+
+Each example is `node run.mjs` away once you've set `VIRTUALSMS_API_KEY`. Walkthroughs and expected output are in each example's README.
+
+---
+
+## Production & Status
+
+- **Hosted MCP endpoint:** `https://mcp.virtualsms.io/mcp` — TLS-only StreamableHTTP, fronted by Cloudflare.
+- **Status & uptime:** live at [status.virtualsms.io](https://status.virtualsms.io). Target SLA 99.9% on the hosted MCP path.
+- **Backend infrastructure:** physical SIM modems with 145+ countries online, 2500+ services indexed.
+- **Data retention:** SMS message bodies are retained 7 days, then permanently deleted. Order metadata (phone number, service, country, timestamps) is retained for the lifetime of your account. See [SECURITY.md](./SECURITY.md) for full details.
+- **Vulnerability disclosure:** email `security@virtualsms.io` or open a [private security advisory](https://github.com/virtualsms-io/mcp-server/security/advisories/new).
 
 ---
 
@@ -575,6 +600,13 @@ If your session is interrupted mid-verification:
 `wait_for_code` always returns `order_id` even on timeout — use it to recover.
 
 ---
+
+## More
+
+- [SECURITY.md](./SECURITY.md) — vulnerability disclosure, supported versions, retention policy
+- [CHANGELOG.md](./CHANGELOG.md) — versioned release notes (v1.0.0 → v1.2.0)
+- [examples/](./examples/) — three runnable, copy-pasteable examples
+- [Status page](https://status.virtualsms.io) — live health of the hosted MCP endpoint
 
 ## License
 

@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "virtualsms": {
+      "type": "streamableHttp",
+      "url": "https://mcp.virtualsms.io/mcp",
+      "headers": {
+        "x-api-key": "vsms_your_api_key_here"
+      }
+    }
+  }
+}
