@@ -1,0 +1,89 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build (Node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['18', '20']
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js ${{ matrix.node }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: TypeScript build
+        run: npm run build
+
+      - name: Verify dist/ output
+        run: |
+          test -f dist/index.js || (echo "dist/index.js missing after build" && exit 1)
+          echo "Build artifacts:"
+          ls -la dist/
+
+  lint:
+    name: Lint (best-effort)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run lint if configured
+        run: |
+          if [ -f .eslintrc.json ] || [ -f .eslintrc.cjs ] || [ -f eslint.config.js ] || [ -f eslint.config.mjs ]; then
+            npx eslint . --ext .ts,.js
+          else
+            echo "No eslint config found — skipping lint step. (CI still passes.)"
+          fi
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests if configured
+        run: |
+          if node -e "const p=require('./package.json'); process.exit(p.scripts && p.scripts.test && !/no test specified/i.test(p.scripts.test) ? 0 : 1)"; then
+            npm test
+          else
+            echo "No test script configured — running TypeScript syntax check as smoke test."
+            npx tsc --noEmit
+          fi
