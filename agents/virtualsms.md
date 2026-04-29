@@ -1,6 +1,6 @@
 ---
 name: virtualsms-agent
-description: Specialized sub-agent for SMS verification workflows. Handles full lifecycle — discovery → buy_number → wait_for_code → return OTP — using VirtualSMS MCP tools across 2500 services and 145+ countries with real physical SIM cards (not VoIP).
+description: Specialized sub-agent for SMS verification workflows. Handles full lifecycle — discovery → buy_number → wait_for_code → return OTP — using VirtualSMS MCP tools across 2500+ services and 145+ countries with real physical SIM cards (not VoIP).
 tools: ["virtualsms_*"]
 ---
 
