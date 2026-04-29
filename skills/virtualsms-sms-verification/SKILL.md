@@ -3,7 +3,7 @@ name: virtualsms-sms-verification
 description: |
   Real SIM-card SMS verification for AI agents via VirtualSMS MCP server.
   TRIGGERS: SMS verification, OTP code, phone number, virtual number, SIM card, two-factor authentication, account verification, WhatsApp verify, Telegram verify, real SIM, agent phone, MCP SMS, virtualsms.
-  Use when an agent needs to receive an SMS verification code, get a verification phone number for account creation, or handle OTP flows for any of 2500 services across 145+ countries.
+  Use when an agent needs to receive an SMS verification code, get a verification phone number for account creation, or handle OTP flows for any of 2500+ services across 145+ countries.
 ---
 
 # VirtualSMS — Real SIM SMS Verification for AI Agents
