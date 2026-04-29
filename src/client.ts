@@ -53,6 +53,12 @@ export interface TransactionsPage {
   transactions: Transaction[];
 }
 
+export interface SmsMessage {
+  content: string;
+  sender?: string;
+  received_at?: string;
+}
+
 export interface Order {
   order_id: string;
   phone_number: string;
@@ -62,8 +68,12 @@ export interface Order {
   created_at?: string;
   expires_at?: string;
   status: string;
+  // Legacy fields — kept for backward compat with older API responses.
   sms_code?: string;
   sms_text?: string;
+  // Canonical SMS payload — server returns one entry per inbound message.
+  messages?: SmsMessage[];
+  sms_received?: boolean;
 }
 
 export interface CancelResult {
