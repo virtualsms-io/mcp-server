@@ -24,13 +24,12 @@
           "name": "VIRTUALSMS_API_KEY"
         }
       ]
-    },
+    }
+  ],
+  "remotes": [
     {
-      "registryType": "remote",
-      "identifier": "https://mcp.virtualsms.io/mcp",
-      "transport": {
-        "type": "streamable-http"
-      },
+      "url": "https://mcp.virtualsms.io/mcp",
+      "type": "streamable-http",
       "headers": [
         {
           "name": "x-api-key",
