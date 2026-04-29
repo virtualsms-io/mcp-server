@@ -74,6 +74,16 @@ export interface Order {
   // Canonical SMS payload — server returns one entry per inbound message.
   messages?: SmsMessage[];
   sms_received?: boolean;
+  // Cooldown timestamps (added v1.2.3) — RFC3339 wallclock when cancel/swap
+  // become available. Lets MCP pre-validate without a 4xx round-trip. Backend
+  // always sets these; consumers fall back gracefully if missing on legacy
+  // payloads.
+  cancel_available_at?: string;
+  swap_available_at?: string;
+  rules?: {
+    cancel_cooldown_seconds?: number;
+    swap_cooldown_seconds?: number;
+  };
 }
 
 export interface CancelResult {
