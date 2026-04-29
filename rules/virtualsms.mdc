@@ -1,5 +1,5 @@
 ---
-description: VirtualSMS SMS verification rule — invoke for SMS verification, OTP codes, virtual phone numbers, account creation across 2500 services in 145+ countries via real-SIM (not VoIP). Hosted MCP at mcp.virtualsms.io or local stdio via npm virtualsms-mcp.
+description: VirtualSMS SMS verification rule — invoke for SMS verification, OTP codes, virtual phone numbers, account creation across 2500+ services in 145+ countries via real-SIM (not VoIP). Hosted MCP at mcp.virtualsms.io or local stdio via npm virtualsms-mcp.
 globs: ["**/*"]
 alwaysApply: false
 ---
