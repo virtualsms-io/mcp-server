@@ -27,14 +27,13 @@ export const SwapNumberInput = z.object({
 });
 
 export const WaitForCodeInput = z.object({
-  service: z.string().describe('Service code (e.g. "telegram", "whatsapp", "google")'),
-  country: z.string().describe('Country ISO code (e.g. "US", "GB", "RU")'),
+  order_id: z.string().describe('Existing order ID returned from create_order — the tool waits for SMS on this order.'),
   timeout_seconds: z.number()
     .int()
-    .min(10)
+    .min(5)
     .max(600)
-    .default(120)
-    .describe('How long to wait for SMS code in seconds (default: 120, max: 600)'),
+    .default(60)
+    .describe('How long to wait for SMS in seconds (default: 60, min: 5, max: 600)'),
 });
 
 export const FindCheapestInput = z.object({
@@ -215,8 +214,8 @@ export const TOOL_DEFINITIONS = [
     title: 'Check SMS Code',
     description:
       'Check if an SMS verification code has been received for an order. ' +
-      'Poll this every 5-10 seconds after buying a number. ' +
-      'For automatic polling, use wait_for_code instead.',
+      'Returns status, phone_number, and (when delivered) messages[] array plus an extracted code. ' +
+      'Poll this every 5-10 seconds after buying a number, or use wait_for_sms to block until delivery.',
     inputSchema: {
       type: 'object' as const,
       properties: {
@@ -262,35 +261,33 @@ export const TOOL_DEFINITIONS = [
   },
   {
     name: 'virtualsms_wait_for_sms',
-    title: 'Buy Number and Wait for SMS Code',
+    title: 'Wait for SMS on Existing Order',
     description:
-      'RECOMMENDED: One-step tool that buys a number AND waits for the SMS code automatically. ' +
+      'Wait (block) until the SMS arrives on an existing order_id, or until timeout. ' +
       'Uses real-time WebSocket delivery with automatic polling fallback. ' +
-      'Always returns order_id in the response — even on timeout — so you can use check_sms to recover.',
+      'Pass an order_id from create_order. To buy AND wait in one step, call create_order then this tool.',
     inputSchema: {
       type: 'object' as const,
       properties: {
-        service: {
+        order_id: {
           type: 'string',
-          description: 'Service code (e.g. "telegram", "whatsapp", "google")',
-        },
-        country: {
-          type: 'string',
-          description: 'Country ISO code (e.g. "US", "GB", "RU")',
+          description: 'Existing order ID returned from create_order',
         },
         timeout_seconds: {
           type: 'number',
-          description: 'How long to wait for SMS code in seconds (default: 120, max: 600)',
-          default: 120,
+          description: 'How long to wait for SMS in seconds (default: 60, min: 5, max: 600)',
+          default: 60,
+          minimum: 5,
+          maximum: 600,
         },
       },
-      required: ['service', 'country'],
+      required: ['order_id'],
     },
     annotations: {
-      title: 'Buy Number and Wait for SMS Code',
-      readOnlyHint: false,
+      title: 'Wait for SMS on Existing Order',
+      readOnlyHint: true,
       destructiveHint: false,
-      idempotentHint: false,
+      idempotentHint: true,
       openWorldHint: true,
     },
   },
@@ -685,17 +682,41 @@ export async function handleBuyNumber(
   };
 }
 
+// Pull the most likely numeric verification code out of an SMS body.
+// Heuristic: first 4-8 digit run wins (covers "SMS code: 666512", "Your code is 1234", etc.).
+function extractCode(text: string): string | undefined {
+  if (!text) return undefined;
+  const m = text.match(/\b(\d{4,8})\b/);
+  return m ? m[1] : undefined;
+}
+
 export async function handleCheckSms(
   client: VirtualSMSClient,
   args: z.infer<typeof CheckSmsInput>
 ) {
   const order = await client.getOrder(args.order_id);
+
+  // Normalize messages: prefer canonical messages[] from API; synthesize from
+  // legacy sms_code/sms_text if needed so older responses still work.
+  const messages = (order.messages && order.messages.length > 0)
+    ? order.messages
+    : (order.sms_text || order.sms_code)
+      ? [{ content: order.sms_text || order.sms_code || '', sender: undefined, received_at: undefined }]
+      : [];
+
+  // Surface the most useful single field: extracted numeric code.
+  const firstContent = messages[0]?.content;
+  const code = order.sms_code || (firstContent ? extractCode(firstContent) : undefined);
+
   const result: Record<string, unknown> = {
     status: order.status,
     phone_number: order.phone_number,
   };
-  if (order.sms_code) result.sms_code = order.sms_code;
-  if (order.sms_text) result.sms_text = order.sms_text;
+  if (messages.length > 0) result.messages = messages;
+  if (code) result.code = code;
+  // Backward-compat aliases — older consumers read these.
+  if (code) result.sms_code = code;
+  if (firstContent) result.sms_text = firstContent;
 
   return {
     content: [
@@ -839,54 +860,86 @@ export async function handleWaitForCode(
   client: VirtualSMSClient,
   args: z.infer<typeof WaitForCodeInput>
 ) {
-  const timeoutMs = (args.timeout_seconds ?? 120) * 1000;
+  const timeoutMs = (args.timeout_seconds ?? 60) * 1000;
   const pollIntervalMs = 5000;
   const startTime = Date.now();
 
-  // Step 1: Buy the number
-  let order;
-  try {
-    order = await client.createOrder(args.service, args.country);
-  } catch (err) {
-    throw new Error(`Failed to buy number: ${(err as Error).message}`);
-  }
-
-  const orderId = order.order_id;
-  const phoneNumber = order.phone_number;
+  const orderId = args.order_id;
   const apiKey = client.getApiKey();
   const baseUrl = client.getBaseUrl();
 
-  // Step 2: Try WebSocket first (if we have an API key)
-  if (apiKey) {
-    const remainingMs = timeoutMs - (Date.now() - startTime);
-    const wsResult = await waitForSMSViaWebSocket(baseUrl, apiKey, orderId, remainingMs);
-
-    if (wsResult) {
-      return {
-        content: [
-          {
-            type: 'text' as const,
-            text: JSON.stringify(
-              {
-                success: true,
-                phone_number: phoneNumber,
-                sms_code: wsResult.sms_code,
-                sms_text: wsResult.sms_text,
-                order_id: orderId,
-                delivery_method: wsResult.delivery_method,
-                elapsed_seconds: Math.round((Date.now() - startTime) / 1000),
-              },
-              null,
-              2
-            ),
-          },
-        ],
-      };
-    }
-    // WS timed out or failed — fall through to polling
+  // Fetch the order once up front so we can return phone_number on timeout
+  // and short-circuit if SMS already arrived before this call.
+  let initial;
+  try {
+    initial = await client.getOrder(orderId);
+  } catch (err) {
+    throw new Error(`Failed to load order ${orderId}: ${(err as Error).message}`);
   }
 
-  // Step 3: Polling fallback
+  const phoneNumber = initial.phone_number;
+
+  const buildSuccess = (
+    messages: Array<{ content: string; sender?: string; received_at?: string }>,
+    deliveryMethod: 'websocket' | 'polling' | 'instant',
+    pollAttempts?: number
+  ) => {
+    const firstContent = messages[0]?.content || '';
+    const code = extractCode(firstContent);
+    return {
+      content: [
+        {
+          type: 'text' as const,
+          text: JSON.stringify(
+            {
+              success: true,
+              order_id: orderId,
+              phone_number: phoneNumber,
+              status: 'sms_received',
+              messages,
+              code,
+              // Backward-compat aliases
+              sms_code: code,
+              sms_text: firstContent,
+              delivery_method: deliveryMethod,
+              elapsed_seconds: Math.round((Date.now() - startTime) / 1000),
+              ...(pollAttempts !== undefined ? { poll_attempts: pollAttempts } : {}),
+            },
+            null,
+            2
+          ),
+        },
+      ],
+    };
+  };
+
+  // Short-circuit: SMS already delivered before we got called.
+  if (initial.messages && initial.messages.length > 0) {
+    return buildSuccess(initial.messages, 'instant');
+  }
+  if (initial.sms_code || initial.sms_text) {
+    return buildSuccess(
+      [{ content: initial.sms_text || initial.sms_code || '', sender: undefined, received_at: undefined }],
+      'instant'
+    );
+  }
+
+  // WebSocket path (if we have an API key) — race against timeout.
+  if (apiKey) {
+    const remainingMs = timeoutMs - (Date.now() - startTime);
+    if (remainingMs > 0) {
+      const wsResult = await waitForSMSViaWebSocket(baseUrl, apiKey, orderId, remainingMs);
+      if (wsResult) {
+        return buildSuccess(
+          [{ content: wsResult.sms_text || wsResult.sms_code, sender: undefined, received_at: undefined }],
+          'websocket'
+        );
+      }
+      // WS timed out or failed — fall through to polling for any remaining time.
+    }
+  }
+
+  // Polling fallback.
   let attempts = 0;
   while (Date.now() - startTime < timeoutMs) {
     attempts++;
@@ -894,28 +947,15 @@ export async function handleWaitForCode(
     try {
       const status = await client.getOrder(orderId);
 
-      if (status.sms_code) {
-        return {
-          content: [
-            {
-              type: 'text' as const,
-              text: JSON.stringify(
-                {
-                  success: true,
-                  phone_number: phoneNumber,
-                  sms_code: status.sms_code,
-                  sms_text: status.sms_text,
-                  order_id: orderId,
-                  delivery_method: 'polling',
-                  elapsed_seconds: Math.round((Date.now() - startTime) / 1000),
-                  poll_attempts: attempts,
-                },
-                null,
-                2
-              ),
-            },
-          ],
-        };
+      if (status.messages && status.messages.length > 0) {
+        return buildSuccess(status.messages, 'polling', attempts);
+      }
+      if (status.sms_code || status.sms_text) {
+        return buildSuccess(
+          [{ content: status.sms_text || status.sms_code || '', sender: undefined, received_at: undefined }],
+          'polling',
+          attempts
+        );
       }
 
       if (status.status === 'cancelled' || status.status === 'failed') {
@@ -935,7 +975,7 @@ export async function handleWaitForCode(
     await sleep(Math.min(pollIntervalMs, remaining));
   }
 
-  // Timeout — return order_id for crash recovery (don't cancel automatically)
+  // Timeout — return order_id for crash recovery (don't cancel automatically).
   return {
     content: [
       {
@@ -947,7 +987,7 @@ export async function handleWaitForCode(
             message: `No SMS received within ${args.timeout_seconds} seconds.`,
             order_id: orderId,
             phone_number: phoneNumber,
-            tip: 'Use check_sms with this order_id to check if code arrived later, or cancel_order to get a refund.',
+            tip: 'Call get_sms with this order_id later to check, or cancel_order to refund.',
           },
           null,
           2
@@ -1139,26 +1179,34 @@ export async function handleGetOrder(
   args: z.infer<typeof GetOrderInput>
 ) {
   const order = await client.getOrder(args.order_id);
+  const messages = (order.messages && order.messages.length > 0)
+    ? order.messages
+    : (order.sms_text || order.sms_code)
+      ? [{ content: order.sms_text || order.sms_code || '', sender: undefined, received_at: undefined }]
+      : [];
+  const firstContent = messages[0]?.content;
+  const code = order.sms_code || (firstContent ? extractCode(firstContent) : undefined);
+  const out: Record<string, unknown> = {
+    order_id: order.order_id,
+    phone_number: order.phone_number,
+    service: order.service,
+    country: order.country,
+    price: order.price,
+    status: order.status,
+    created_at: order.created_at,
+    expires_at: order.expires_at,
+  };
+  if (messages.length > 0) out.messages = messages;
+  if (code) {
+    out.code = code;
+    out.sms_code = code;
+  }
+  if (firstContent) out.sms_text = firstContent;
   return {
     content: [
       {
         type: 'text' as const,
-        text: JSON.stringify(
-          {
-            order_id: order.order_id,
-            phone_number: order.phone_number,
-            service: order.service,
-            country: order.country,
-            price: order.price,
-            status: order.status,
-            sms_code: order.sms_code,
-            sms_text: order.sms_text,
-            created_at: order.created_at,
-            expires_at: order.expires_at,
-          },
-          null,
-          2
-        ),
+        text: JSON.stringify(out, null, 2),
       },
     ],
   };
