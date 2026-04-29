@@ -65,7 +65,7 @@ function createMCPServer(config: ServerConfig) {
   const client = new VirtualSMSClient(config.baseUrl, config.apiKey, config.timeout);
 
   const server = new Server(
-    { name: 'virtualsms-mcp', version: '1.0.0' },
+    { name: 'virtualsms-mcp', version: '1.2.1' },
     { capabilities: { tools: {}, prompts: {}, resources: {} } }
   );
 
@@ -199,7 +199,7 @@ const httpServer = http.createServer(async (req, res) => {
     res.end(JSON.stringify({
       serverInfo: {
         name: 'VirtualSMS',
-        version: '1.0.8'
+        version: '1.2.1'
       },
       configSchema: {
         type: 'object',
