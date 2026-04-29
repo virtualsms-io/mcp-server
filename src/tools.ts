@@ -240,7 +240,10 @@ export const TOOL_DEFINITIONS = [
     description:
       'Cancel an order and request a refund. ' +
       'Only works if no SMS has been received yet. ' +
-      'Use this if the service is taking too long or you want to try a different number.',
+      'Use this if the service is taking too long or you want to try a different number. ' +
+      '**Cooldown:** cancel is only available 120 seconds after purchase. ' +
+      'Check `cancel_available_at` on the order before calling. ' +
+      'Calling earlier returns a `cooldown_active` error from this MCP server (no backend round-trip).',
     inputSchema: {
       type: 'object' as const,
       properties: {
@@ -350,7 +353,10 @@ export const TOOL_DEFINITIONS = [
     title: 'Swap Phone Number',
     description:
       'Swap a phone number on an existing order. Gets a new number for the same service and country without additional charge. ' +
-      'Use when the current number isn\'t receiving SMS.',
+      'Use when the current number isn\'t receiving SMS. ' +
+      '**Cooldown:** swap is only available 120 seconds after purchase. ' +
+      'Check `swap_available_at` on the order before calling. ' +
+      'Calling earlier returns a `cooldown_active` error from this MCP server (no backend round-trip).',
     inputSchema: {
       type: 'object' as const,
       properties: {
@@ -728,10 +734,57 @@ export async function handleCheckSms(
   };
 }
 
+// preCheckCooldown reads cancel_available_at / swap_available_at off an order
+// and returns a cooldown_active payload if it's still in the future. Returns
+// null when the action is allowed (or the field is missing on a legacy payload,
+// in which case we let the backend make the call). Saves a 4xx round-trip on
+// the typical "agent fires immediately after purchase" pattern.
+function preCheckCooldown(
+  availableAt: string | undefined,
+  action: 'cancel' | 'swap'
+): { content: Array<{ type: 'text'; text: string }>; isError: boolean } | null {
+  if (!availableAt) return null;
+  const availableMs = Date.parse(availableAt);
+  if (!Number.isFinite(availableMs)) return null;
+  const now = Date.now();
+  if (now >= availableMs) return null;
+  const waitSeconds = Math.ceil((availableMs - now) / 1000);
+  return {
+    content: [
+      {
+        type: 'text' as const,
+        text: JSON.stringify(
+          {
+            error: 'cooldown_active',
+            action,
+            message: `${action === 'cancel' ? 'Cancel' : 'Swap'} cooldown active. Try again in ${waitSeconds} seconds.`,
+            retry_at: availableAt,
+            wait_seconds: waitSeconds,
+          },
+          null,
+          2
+        ),
+      },
+    ],
+    isError: true,
+  };
+}
+
 export async function handleCancelOrder(
   client: VirtualSMSClient,
   args: z.infer<typeof CancelOrderInput>
 ) {
+  // Pre-check: fetch order to see if cancel_available_at is still in the future.
+  // This is best-effort — if the lookup fails we still call the backend (which
+  // enforces the cooldown anyway).
+  try {
+    const order = await client.getOrder(args.order_id);
+    const blocked = preCheckCooldown(order.cancel_available_at, 'cancel');
+    if (blocked) return blocked;
+  } catch {
+    // Lookup failed — let the backend handle it.
+  }
+
   const result = await client.cancelOrder(args.order_id);
   return {
     content: [
@@ -747,6 +800,16 @@ export async function handleSwapNumber(
   client: VirtualSMSClient,
   args: z.infer<typeof SwapNumberInput>
 ) {
+  // Pre-check: fetch order to see if swap_available_at is still in the future.
+  // Best-effort, same fallback as handleCancelOrder.
+  try {
+    const order = await client.getOrder(args.order_id);
+    const blocked = preCheckCooldown(order.swap_available_at, 'swap');
+    if (blocked) return blocked;
+  } catch {
+    // Lookup failed — let the backend handle it.
+  }
+
   const result = await client.swapNumber(args.order_id);
   return {
     content: [
