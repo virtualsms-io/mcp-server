@@ -32,6 +32,10 @@ import {
   FindCheapestInput,
   SearchServiceInput,
   ActiveOrdersInput,
+  GetOrderInput,
+  OrderHistoryInput,
+  GetStatsInput,
+  GetTransactionsInput,
   handleListServices,
   handleListCountries,
   handleCheckPrice,
@@ -44,6 +48,12 @@ import {
   handleFindCheapest,
   handleSearchService,
   handleActiveOrders,
+  handleGetOrder,
+  handleCancelAllOrders,
+  handleOrderHistory,
+  handleGetStats,
+  handleGetProfile,
+  handleGetTransactions,
 } from './tools.js';
 
 import { PROMPT_DEFINITIONS, getPromptMessages } from './prompts.js';
@@ -65,7 +75,7 @@ function createMCPServer(config: ServerConfig) {
   const client = new VirtualSMSClient(config.baseUrl, config.apiKey, config.timeout);
 
   const server = new Server(
-    { name: 'virtualsms-mcp', version: '1.2.2' },
+    { name: 'virtualsms-mcp', version: '1.2.3' },
     { capabilities: { tools: {}, prompts: {}, resources: {} } }
   );
 
@@ -121,6 +131,26 @@ function createMCPServer(config: ServerConfig) {
         case 'virtualsms_list_orders': {
           const parsed = ActiveOrdersInput.parse(args);
           return await handleActiveOrders(client, parsed);
+        }
+        case 'virtualsms_get_order': {
+          const parsed = GetOrderInput.parse(args);
+          return await handleGetOrder(client, parsed);
+        }
+        case 'virtualsms_cancel_all_orders':
+          return await handleCancelAllOrders(client);
+        case 'virtualsms_order_history': {
+          const parsed = OrderHistoryInput.parse(args);
+          return await handleOrderHistory(client, parsed);
+        }
+        case 'virtualsms_get_stats': {
+          const parsed = GetStatsInput.parse(args);
+          return await handleGetStats(client, parsed);
+        }
+        case 'virtualsms_get_profile':
+          return await handleGetProfile(client);
+        case 'virtualsms_get_transactions': {
+          const parsed = GetTransactionsInput.parse(args);
+          return await handleGetTransactions(client, parsed);
         }
         default:
           throw new McpError(ErrorCode.MethodNotFound, `Unknown tool: ${name}`);
@@ -199,7 +229,7 @@ const httpServer = http.createServer(async (req, res) => {
     res.end(JSON.stringify({
       serverInfo: {
         name: 'VirtualSMS',
-        version: '1.2.2'
+        version: '1.2.3'
       },
       configSchema: {
         type: 'object',
