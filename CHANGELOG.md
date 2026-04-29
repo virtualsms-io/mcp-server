@@ -14,6 +14,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `examples/` directory with three runnable, copy-pasteable examples (balance check, end-to-end SMS verification, Claude Desktop config).
 - README sections: CI status badge, Demo / Screenshots, Production / Status, links to `SECURITY.md`, `CHANGELOG.md`, and `examples/`.
 
+## [1.2.3] - 2026-04-30
+
+### Added
+- **Cancel/swap cooldown pre-validation.** `virtualsms_cancel_order` and `virtualsms_swap_number` now read `cancel_available_at` / `swap_available_at` off the order before calling the backend and return a `cooldown_active` payload immediately when the action is still in cooldown — saving a 4xx round-trip on the typical "agent fires immediately after purchase" pattern. Falls back to backend enforcement when the lookup fails or the field is missing on a legacy payload.
+- Tool descriptions for `virtualsms_cancel_order` + `virtualsms_swap_number` now document the 120-second cooldown.
+- `Order` type extended with `cancel_available_at`, `swap_available_at`, and `rules` (`cancel_cooldown_seconds`, `swap_cooldown_seconds`).
+
+### Fixed
+- **HTTP transport (`mcp.virtualsms.io`) now dispatches all 18 tools.** `virtualsms_get_order`, `virtualsms_cancel_all_orders`, `virtualsms_order_history`, `virtualsms_get_stats`, `virtualsms_get_profile`, and `virtualsms_get_transactions` were defined and dispatched on the stdio transport but missing from the HTTP server's switch statement, returning `Unknown tool` over hosted MCP. Fixed by importing the missing schemas + handlers and registering all six dispatch cases.
+
 ## [1.2.0] - 2026-04-25
 
 ### Added
