@@ -14,6 +14,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `examples/` directory with three runnable, copy-pasteable examples (balance check, end-to-end SMS verification, Claude Desktop config).
 - README sections: CI status badge, Demo / Screenshots, Production / Status, links to `SECURITY.md`, `CHANGELOG.md`, and `examples/`.
 
+## [1.3.0] - 2026-05-01
+
+### Added — 6 new tools (18 → 24 total)
+
+Compound agent tooling. Same MCP, more leverage.
+
+- **`virtualsms_buy_batch`** — purchase 1-20 numbers for one service+country in a single call. Returns `succeeded[]` + `failed[]` + `total_charged_usd`. `Promise.allSettled` fan-out with a balance × cheapest-price guard that refuses to spend > 80% of balance in one call.
+- **`virtualsms_wait_for_sms_batch`** — collect SMS for N order_ids in parallel. Per-order WebSocket race vs polling with shared deadline. Returns `received[]` + `timed_out[]` + `errors[]` (`return_partial` controls top-level error shape).
+- **`virtualsms_find_best_pick`** — single-shot decision with `country_pool` whitelist + `country_exclude` blacklist + plain-English `reasoning` string. `prefer` modes: `cheapest`, `most_stock`, `balanced` (default = `0.7 × price_inverse + 0.3 × stock_signal`).
+- **`virtualsms_x402_info`** — discover whether the server accepts x402 payments + on which networks/assets. Public discovery, no api_key needed. Defensively strips BNB/BSC entries even if a self-hosted backend leaks them.
+- **`virtualsms_pay_and_buy`** — x402 deposit-first one-shot. First call returns the 402 manifest; second call (with `payment_proof`) tops up + optionally bundles `create_order` in the same call. On bundled-buy failure the api_key is still surfaced so the deposit isn't lost.
+- **`virtualsms_subscribe_webhook`** — register an HTTPS callback for `sms.received` / `order.cancelled` / `order.expired` / `order.swapped` / `balance.low` events. Returns `webhook_id` + HMAC-SHA256 `secret`. `balance.low` requires positive `threshold_usd` (validated client-side, saves a 4xx).
+- **`virtualsms_manage_webhooks`** — combined list / delete / test / deliveries via `action` enum. Keeps tool count down without losing functionality.
+
+### Added — additive enhancements to existing tools (zero break)
+
+- **`virtualsms_get_balance`** now returns `topup_url` + `x402_topup_available` (boolean from `getX402Info`) plus a low-balance `tip` when balance < $1. Original `balance_usd` field unchanged.
+- **`virtualsms_create_order`** now returns `webhook_subscribe_hint` for long-running agents — suppressed when an `sms.received` webhook already exists for the api_key. Webhook lookup cached for 30s, so bursty agents pay one extra round-trip per minute regardless of QPS.
+
+### Backward compatibility
+
+- **Zero breaking changes for v1.2.x clients.** Locked via the `tests/v1_2_3_schema_snapshot.test.ts` snapshot test. All 18 v1.2.x tools keep their name, `inputSchema`, `annotations`, and description prefix. New tools are additive only.
+- Internal layout: `TOOL_DEFINITIONS_V1_2_X` (locked) + `V1_3_TOOL_DEFS` (additive) → public `TOOL_DEFINITIONS = [...V1_2_X, ...V1_3]`.
+
+### Tooling
+
+- **Vitest 2.x** added as devDependency. New `npm test` + `npm run test:watch` scripts. Production `npm run build` (tsc) excludes `tests/`, so `dist/` stays clean.
+
 ## [1.2.3] - 2026-04-30
 
 ### Added
