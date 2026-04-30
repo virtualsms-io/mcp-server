@@ -69,9 +69,61 @@ export const SUBSCRIBE_WEBHOOK_TOOL_DEF = {
 };
 
 export async function handleSubscribeWebhook(
-  _client: VirtualSMSClient,
-  _args: z.infer<typeof SubscribeWebhookInput>
+  client: VirtualSMSClient,
+  args: z.infer<typeof SubscribeWebhookInput>
 ): Promise<{ content: Array<{ type: 'text'; text: string }> }> {
-  // STUB — design only. Implementation in v1.3.0 Task 8.
-  throw new Error('virtualsms_subscribe_webhook is a v1.3.0 stub — not implemented');
+  // Pre-flight: balance.low requires threshold_usd. Same pattern as the
+  // cooldown pre-check in v1.2.3 — fail fast client-side, save a 4xx.
+  if (args.events.includes('balance.low') && (typeof args.threshold_usd !== 'number' || args.threshold_usd <= 0)) {
+    return {
+      content: [
+        {
+          type: 'text' as const,
+          text: JSON.stringify(
+            {
+              error: 'threshold_required',
+              message:
+                'balance.low webhook requires a positive threshold_usd. The webhook fires when account balance drops below this value.',
+              tip: 'Pass e.g. threshold_usd: 5 to be alerted when balance < $5.',
+            },
+            null,
+            2
+          ),
+        },
+      ],
+    };
+  }
+
+  const wh = await client.createWebhook({
+    url: args.url,
+    events: args.events,
+    threshold_usd: args.threshold_usd,
+    description: args.description,
+  });
+
+  return {
+    content: [
+      {
+        type: 'text' as const,
+        text: JSON.stringify(
+          {
+            webhook_id: wh.id,
+            url: wh.url,
+            events: wh.events,
+            secret: wh.secret,
+            active: wh.active ?? true,
+            created_at: wh.created_at,
+            tip:
+              'Verify deliveries with HMAC-SHA256 of the request body using `secret`. ' +
+              'See https://docs.virtualsms.io/webhooks. ' +
+              'Use manage_webhooks(action:"test", webhook_id:"' +
+              wh.id +
+              '") to fire a test event right now.',
+          },
+          null,
+          2
+        ),
+      },
+    ],
+  };
 }
