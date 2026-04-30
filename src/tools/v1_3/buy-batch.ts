@@ -42,9 +42,92 @@ export const BUY_BATCH_TOOL_DEF = {
 };
 
 export async function handleBuyBatch(
-  _client: VirtualSMSClient,
-  _args: z.infer<typeof BuyBatchInput>
+  client: VirtualSMSClient,
+  args: z.infer<typeof BuyBatchInput>
 ): Promise<{ content: Array<{ type: 'text'; text: string }> }> {
-  // STUB — design only. Implementation in v1.3.0 Task 3.
-  throw new Error('virtualsms_buy_batch is a v1.3.0 stub — not implemented');
+  // Budget guard — refuse if the planned spend would consume >80% of balance.
+  // Best-effort: skip the guard if either lookup fails (let backend enforce).
+  let balanceUsd: number | undefined;
+  let cheapestUsd: number | undefined;
+  try {
+    const [bal, price] = await Promise.all([
+      client.getBalance(),
+      client.checkPrice(args.service, args.country),
+    ]);
+    balanceUsd = bal.balance_usd;
+    cheapestUsd = price.price_usd;
+  } catch {
+    // ignore — proceed with batch
+  }
+  if (
+    typeof balanceUsd === 'number' &&
+    typeof cheapestUsd === 'number' &&
+    cheapestUsd > 0 &&
+    args.count * cheapestUsd > balanceUsd * 0.8
+  ) {
+    return {
+      content: [
+        {
+          type: 'text' as const,
+          text: JSON.stringify(
+            {
+              error: 'budget_guard',
+              message: `Refusing: ${args.count} × $${cheapestUsd.toFixed(3)} = $${(args.count * cheapestUsd).toFixed(2)} would exceed 80% of your $${balanceUsd.toFixed(2)} balance. Reduce count, top up first, or pick a cheaper country.`,
+              balance_usd: balanceUsd,
+              estimated_total_usd: Math.round(args.count * cheapestUsd * 100) / 100,
+              tip: 'Call get_balance + find_best_pick to size the batch correctly.',
+            },
+            null,
+            2
+          ),
+        },
+      ],
+    };
+  }
+
+  const result = await client.createOrderBatch(args.service, args.country, args.count);
+
+  // If stop_on_failure was set and any failed, surface that. Note: with
+  // Promise.allSettled in the client there's no actual early-stop happening,
+  // but we still annotate the response so callers can see it was requested.
+  const totalCharged = result.succeeded.reduce((sum, s) => sum + (typeof s.price === 'number' ? s.price : 0), 0);
+
+  // Best-effort post-batch balance lookup.
+  let remainingBalanceUsd: number | undefined;
+  try {
+    const bal = await client.getBalance();
+    remainingBalanceUsd = bal.balance_usd;
+  } catch {
+    // ignore
+  }
+
+  return {
+    content: [
+      {
+        type: 'text' as const,
+        text: JSON.stringify(
+          {
+            requested: args.count,
+            succeeded: result.succeeded.map((s) => ({
+              order_id: s.order_id,
+              phone_number: s.phone_number,
+              price: s.price,
+            })),
+            failed: result.failed,
+            total_charged_usd: Math.round(totalCharged * 100) / 100,
+            remaining_balance_usd: remainingBalanceUsd,
+            tip:
+              result.succeeded.length > 0
+                ? 'Pass these order_ids to virtualsms_wait_for_sms_batch to collect SMS in parallel.'
+                : 'No orders placed. Check failed[] for the error and try again.',
+            ...(args.stop_on_failure && result.failed.length > 0
+              ? { stop_on_failure_note: 'stop_on_failure was requested. The batch ran in parallel (no early stop), but failures are surfaced for review.' }
+              : {}),
+          },
+          null,
+          2
+        ),
+      },
+    ],
+  };
 }

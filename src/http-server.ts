@@ -54,6 +54,9 @@ import {
   handleGetStats,
   handleGetProfile,
   handleGetTransactions,
+  // v1.3.0
+  BuyBatchInput,
+  handleBuyBatch,
 } from './tools.js';
 
 import { PROMPT_DEFINITIONS, getPromptMessages } from './prompts.js';
@@ -151,6 +154,11 @@ function createMCPServer(config: ServerConfig) {
         case 'virtualsms_get_transactions': {
           const parsed = GetTransactionsInput.parse(args);
           return await handleGetTransactions(client, parsed);
+        }
+        // ─── v1.3.0 tools ───────────────────────────────────────────────────
+        case 'virtualsms_buy_batch': {
+          const parsed = BuyBatchInput.parse(args);
+          return await handleBuyBatch(client, parsed);
         }
         default:
           throw new McpError(ErrorCode.MethodNotFound, `Unknown tool: ${name}`);

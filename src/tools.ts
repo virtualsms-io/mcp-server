@@ -2,6 +2,17 @@ import { z } from 'zod';
 import WebSocket from 'ws';
 import { VirtualSMSClient } from './client.js';
 
+// v1.3.0 tool imports — re-exported below so index.ts + http-server.ts can
+// pick them up from a single tools.ts surface. Each tool file owns its own
+// input schema, tool def, and handler.
+import {
+  BuyBatchInput,
+  BUY_BATCH_TOOL_DEF,
+  handleBuyBatch,
+} from './tools/v1_3/buy-batch.js';
+
+export { BuyBatchInput, BUY_BATCH_TOOL_DEF, handleBuyBatch };
+
 // ─── Input Schemas ───────────────────────────────────────────────────────────
 
 export const CheckPriceInput = z.object({
@@ -79,7 +90,10 @@ export const GetTransactionsInput = z.object({
 
 // ─── Tool Definitions ────────────────────────────────────────────────────────
 
-export const TOOL_DEFINITIONS = [
+// v1.2.x tool defs — locked by the schema-snapshot test in
+// tests/v1_2_3_schema_snapshot.test.ts. Don't edit any entry below; v1.3.x
+// only ADDS tools at the end via the V1_3_TOOL_DEFS append.
+export const TOOL_DEFINITIONS_V1_2_X = [
   {
     name: 'virtualsms_list_services',
     title: 'List Available Services',
@@ -571,6 +585,14 @@ export const TOOL_DEFINITIONS = [
     },
   },
 ];
+
+// v1.3.0 additions — appended below; never edit V1_2_X entries above.
+const V1_3_TOOL_DEFS = [
+  BUY_BATCH_TOOL_DEF,
+];
+
+// Public surface — concatenated for both transports.
+export const TOOL_DEFINITIONS = [...TOOL_DEFINITIONS_V1_2_X, ...V1_3_TOOL_DEFS];
 
 // ─── Tool Handlers ────────────────────────────────────────────────────────────
 
