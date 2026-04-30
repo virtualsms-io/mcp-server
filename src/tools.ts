@@ -717,14 +717,72 @@ export async function handleCheckPrice(
 
 export async function handleGetBalance(client: VirtualSMSClient) {
   const balance = await client.getBalance();
+  // v1.3.0 additive: surface topup capability so agents can self-rescue when
+  // balance is low. Best-effort — if x402 lookup fails we still return the
+  // balance.
+  let x402Available = false;
+  try {
+    const info = await client.getX402Info();
+    x402Available = Boolean(info.enabled);
+  } catch {
+    // ignore — leave x402_topup_available=false
+  }
+  let baseUrl = 'https://virtualsms.io';
+  try {
+    const candidate = client.getBaseUrl();
+    if (candidate) baseUrl = candidate;
+  } catch {
+    // ignore — fall back to canonical host
+  }
+  const topupUrl = `${baseUrl.replace(/\/$/, '')}/dashboard?topup=1`;
   return {
     content: [
       {
         type: 'text' as const,
-        text: JSON.stringify(balance, null, 2),
+        text: JSON.stringify(
+          {
+            ...balance,
+            topup_url: topupUrl,
+            x402_topup_available: x402Available,
+            ...(balance.balance_usd < 1
+              ? { tip: 'Low balance. Use pay_and_buy (x402) or visit topup_url to top up.' }
+              : {}),
+          },
+          null,
+          2
+        ),
       },
     ],
   };
+}
+
+// 30-second cache for the listWebhooks lookup the buy-number hint relies on.
+// Bursty agents fire create_order in tight loops — a 30s cache cuts the
+// per-call overhead to ~one extra request per minute regardless of QPS.
+let _webhookCache: { hasSmsReceived: boolean; expiresAt: number } | null = null;
+const WEBHOOK_CACHE_TTL_MS = 30_000;
+
+// Test-only escape hatch — clears the cache between tests so cached state
+// doesn't leak across test files.
+export function _resetWebhookCacheForTests(): void {
+  _webhookCache = null;
+}
+
+async function hasSmsReceivedWebhookCached(client: VirtualSMSClient): Promise<boolean | null> {
+  const now = Date.now();
+  if (_webhookCache && _webhookCache.expiresAt > now) {
+    return _webhookCache.hasSmsReceived;
+  }
+  try {
+    const list = await client.listWebhooks();
+    const hasIt = list.some((w) => Array.isArray(w.events) && w.events.includes('sms.received'));
+    _webhookCache = { hasSmsReceived: hasIt, expiresAt: now + WEBHOOK_CACHE_TTL_MS };
+    return hasIt;
+  } catch {
+    // Lookup failed (auth, network, missing endpoint) — return null so the
+    // caller can decide. Don't cache failures.
+    return null;
+  }
 }
 
 export async function handleBuyNumber(
@@ -732,21 +790,25 @@ export async function handleBuyNumber(
   args: z.infer<typeof BuyNumberInput>
 ) {
   const order = await client.createOrder(args.service, args.country);
+  // v1.3.0 additive: hint at subscribe_webhook for long-running agents.
+  // Suppressed when one already exists. Cached 30s.
+  const hasHook = await hasSmsReceivedWebhookCached(client);
+  const out: Record<string, unknown> = {
+    order_id: order.order_id,
+    phone_number: order.phone_number,
+    expires_at: order.expires_at,
+    status: order.status,
+    tip: 'Use check_sms to poll for the code, or cancel_order to refund.',
+  };
+  if (hasHook === false) {
+    out.webhook_subscribe_hint =
+      'Long-running agents: call subscribe_webhook(events:["sms.received"]) once to get pushed deliveries — much cheaper than polling.';
+  }
   return {
     content: [
       {
         type: 'text' as const,
-        text: JSON.stringify(
-          {
-            order_id: order.order_id,
-            phone_number: order.phone_number,
-            expires_at: order.expires_at,
-            status: order.status,
-            tip: 'Use check_sms to poll for the code, or cancel_order to refund.',
-          },
-          null,
-          2
-        ),
+        text: JSON.stringify(out, null, 2),
       },
     ],
   };
