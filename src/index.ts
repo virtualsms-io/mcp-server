@@ -64,6 +64,8 @@ import {
   handleFindBestPick,
   X402InfoInput,
   handleX402Info,
+  PayAndBuyInput,
+  handlePayAndBuy,
 } from './tools.js';
 
 // ─── Configuration ────────────────────────────────────────────────────────────
@@ -196,6 +198,10 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       case 'virtualsms_x402_info': {
         const parsed = X402InfoInput.parse(args ?? {});
         return await handleX402Info(client, parsed);
+      }
+      case 'virtualsms_pay_and_buy': {
+        const parsed = PayAndBuyInput.parse(args);
+        return await handlePayAndBuy(client, parsed);
       }
 
       default:
