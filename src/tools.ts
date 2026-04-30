@@ -20,10 +20,16 @@ import {
   FIND_BEST_PICK_TOOL_DEF,
   handleFindBestPick,
 } from './tools/v1_3/find-best-pick.js';
+import {
+  X402InfoInput,
+  X402_INFO_TOOL_DEF,
+  handleX402Info,
+} from './tools/v1_3/x402-info.js';
 
 export { BuyBatchInput, BUY_BATCH_TOOL_DEF, handleBuyBatch };
 export { WaitForSmsBatchInput, WAIT_FOR_SMS_BATCH_TOOL_DEF, handleWaitForSmsBatch };
 export { FindBestPickInput, FIND_BEST_PICK_TOOL_DEF, handleFindBestPick };
+export { X402InfoInput, X402_INFO_TOOL_DEF, handleX402Info };
 
 // ─── Input Schemas ───────────────────────────────────────────────────────────
 
@@ -603,6 +609,7 @@ const V1_3_TOOL_DEFS = [
   BUY_BATCH_TOOL_DEF,
   WAIT_FOR_SMS_BATCH_TOOL_DEF,
   FIND_BEST_PICK_TOOL_DEF,
+  X402_INFO_TOOL_DEF,
 ];
 
 // Public surface — concatenated for both transports.

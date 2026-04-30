@@ -62,6 +62,8 @@ import {
   handleWaitForSmsBatch,
   FindBestPickInput,
   handleFindBestPick,
+  X402InfoInput,
+  handleX402Info,
 } from './tools.js';
 
 // ─── Configuration ────────────────────────────────────────────────────────────
@@ -190,6 +192,10 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       case 'virtualsms_find_best_pick': {
         const parsed = FindBestPickInput.parse(args);
         return await handleFindBestPick(client, parsed);
+      }
+      case 'virtualsms_x402_info': {
+        const parsed = X402InfoInput.parse(args ?? {});
+        return await handleX402Info(client, parsed);
       }
 
       default:
