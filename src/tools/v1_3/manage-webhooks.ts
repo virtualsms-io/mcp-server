@@ -52,10 +52,76 @@ export const MANAGE_WEBHOOKS_TOOL_DEF = {
   },
 };
 
+function out(payload: unknown) {
+  return {
+    content: [
+      {
+        type: 'text' as const,
+        text: JSON.stringify(payload, null, 2),
+      },
+    ],
+  };
+}
+
 export async function handleManageWebhooks(
-  _client: VirtualSMSClient,
-  _args: z.infer<typeof ManageWebhooksInput>
+  client: VirtualSMSClient,
+  args: z.infer<typeof ManageWebhooksInput>
 ): Promise<{ content: Array<{ type: 'text'; text: string }> }> {
-  // STUB — design only. Implementation in v1.3.0 Task 9.
-  throw new Error('virtualsms_manage_webhooks is a v1.3.0 stub — not implemented');
+  switch (args.action) {
+    case 'list': {
+      const webhooks = await client.listWebhooks();
+      return out({
+        count: webhooks.length,
+        webhooks: webhooks.map((w) => ({
+          id: w.id,
+          url: w.url,
+          events: w.events,
+          threshold_usd: w.threshold_usd,
+          description: w.description,
+          active: w.active ?? true,
+          created_at: w.created_at,
+        })),
+        tip:
+          webhooks.length === 0
+            ? 'No webhooks. Use subscribe_webhook to create one.'
+            : 'Use action:"delete"|"test"|"deliveries" with one of these webhook_ids.',
+      });
+    }
+    case 'delete': {
+      // Zod refine guarantees webhook_id is set, but TS narrowing requires guard.
+      const id = args.webhook_id as string;
+      const r = await client.deleteWebhook(id);
+      return out({
+        deleted: Boolean(r.deleted),
+        webhook_id: id,
+        tip: r.deleted ? 'Webhook removed. No more deliveries will fire.' : 'Delete failed; check webhook_id.',
+      });
+    }
+    case 'test': {
+      const id = args.webhook_id as string;
+      const r = await client.testWebhook(id);
+      return out({
+        webhook_id: id,
+        delivered: r.delivered,
+        response_code: r.response_code,
+        error: r.error,
+        tip: r.delivered
+          ? 'Synthetic event fired. Check your endpoint logs.'
+          : 'Test failed. Common causes: endpoint down, non-2xx response, TLS error. Inspect deliveries for details.',
+      });
+    }
+    case 'deliveries': {
+      const id = args.webhook_id as string;
+      const list = await client.getDeliveries(id);
+      return out({
+        webhook_id: id,
+        count: list.length,
+        deliveries: list,
+        tip:
+          list.length === 0
+            ? 'No deliveries yet. Use action:"test" to fire a synthetic event.'
+            : 'Most recent deliveries first. Check status + response_code for failures.',
+      });
+    }
+  }
 }

@@ -66,6 +66,10 @@ import {
   handleX402Info,
   PayAndBuyInput,
   handlePayAndBuy,
+  SubscribeWebhookInput,
+  handleSubscribeWebhook,
+  ManageWebhooksInput,
+  handleManageWebhooks,
 } from './tools.js';
 
 // ─── Configuration ────────────────────────────────────────────────────────────
@@ -202,6 +206,14 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       case 'virtualsms_pay_and_buy': {
         const parsed = PayAndBuyInput.parse(args);
         return await handlePayAndBuy(client, parsed);
+      }
+      case 'virtualsms_subscribe_webhook': {
+        const parsed = SubscribeWebhookInput.parse(args);
+        return await handleSubscribeWebhook(client, parsed);
+      }
+      case 'virtualsms_manage_webhooks': {
+        const parsed = ManageWebhooksInput.parse(args);
+        return await handleManageWebhooks(client, parsed);
       }
 
       default:

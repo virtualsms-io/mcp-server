@@ -30,12 +30,24 @@ import {
   PAY_AND_BUY_TOOL_DEF,
   handlePayAndBuy,
 } from './tools/v1_3/pay-and-buy.js';
+import {
+  SubscribeWebhookInput,
+  SUBSCRIBE_WEBHOOK_TOOL_DEF,
+  handleSubscribeWebhook,
+} from './tools/v1_3/subscribe-webhook.js';
+import {
+  ManageWebhooksInput,
+  MANAGE_WEBHOOKS_TOOL_DEF,
+  handleManageWebhooks,
+} from './tools/v1_3/manage-webhooks.js';
 
 export { BuyBatchInput, BUY_BATCH_TOOL_DEF, handleBuyBatch };
 export { WaitForSmsBatchInput, WAIT_FOR_SMS_BATCH_TOOL_DEF, handleWaitForSmsBatch };
 export { FindBestPickInput, FIND_BEST_PICK_TOOL_DEF, handleFindBestPick };
 export { X402InfoInput, X402_INFO_TOOL_DEF, handleX402Info };
 export { PayAndBuyInput, PAY_AND_BUY_TOOL_DEF, handlePayAndBuy };
+export { SubscribeWebhookInput, SUBSCRIBE_WEBHOOK_TOOL_DEF, handleSubscribeWebhook };
+export { ManageWebhooksInput, MANAGE_WEBHOOKS_TOOL_DEF, handleManageWebhooks };
 
 // ─── Input Schemas ───────────────────────────────────────────────────────────
 
@@ -617,6 +629,8 @@ const V1_3_TOOL_DEFS = [
   FIND_BEST_PICK_TOOL_DEF,
   X402_INFO_TOOL_DEF,
   PAY_AND_BUY_TOOL_DEF,
+  SUBSCRIBE_WEBHOOK_TOOL_DEF,
+  MANAGE_WEBHOOKS_TOOL_DEF,
 ];
 
 // Public surface — concatenated for both transports.

@@ -65,6 +65,10 @@ import {
   handleX402Info,
   PayAndBuyInput,
   handlePayAndBuy,
+  SubscribeWebhookInput,
+  handleSubscribeWebhook,
+  ManageWebhooksInput,
+  handleManageWebhooks,
 } from './tools.js';
 
 import { PROMPT_DEFINITIONS, getPromptMessages } from './prompts.js';
@@ -183,6 +187,14 @@ function createMCPServer(config: ServerConfig) {
         case 'virtualsms_pay_and_buy': {
           const parsed = PayAndBuyInput.parse(args);
           return await handlePayAndBuy(client, parsed);
+        }
+        case 'virtualsms_subscribe_webhook': {
+          const parsed = SubscribeWebhookInput.parse(args);
+          return await handleSubscribeWebhook(client, parsed);
+        }
+        case 'virtualsms_manage_webhooks': {
+          const parsed = ManageWebhooksInput.parse(args);
+          return await handleManageWebhooks(client, parsed);
         }
         default:
           throw new McpError(ErrorCode.MethodNotFound, `Unknown tool: ${name}`);
