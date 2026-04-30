@@ -54,6 +54,21 @@ import {
   handleGetStats,
   handleGetProfile,
   handleGetTransactions,
+  // v1.3.0
+  BuyBatchInput,
+  handleBuyBatch,
+  WaitForSmsBatchInput,
+  handleWaitForSmsBatch,
+  FindBestPickInput,
+  handleFindBestPick,
+  X402InfoInput,
+  handleX402Info,
+  PayAndBuyInput,
+  handlePayAndBuy,
+  SubscribeWebhookInput,
+  handleSubscribeWebhook,
+  ManageWebhooksInput,
+  handleManageWebhooks,
 } from './tools.js';
 
 import { PROMPT_DEFINITIONS, getPromptMessages } from './prompts.js';
@@ -75,7 +90,7 @@ function createMCPServer(config: ServerConfig) {
   const client = new VirtualSMSClient(config.baseUrl, config.apiKey, config.timeout);
 
   const server = new Server(
-    { name: 'virtualsms-mcp', version: '1.2.3' },
+    { name: 'virtualsms-mcp', version: '1.3.0' },
     { capabilities: { tools: {}, prompts: {}, resources: {} } }
   );
 
@@ -151,6 +166,35 @@ function createMCPServer(config: ServerConfig) {
         case 'virtualsms_get_transactions': {
           const parsed = GetTransactionsInput.parse(args);
           return await handleGetTransactions(client, parsed);
+        }
+        // ─── v1.3.0 tools ───────────────────────────────────────────────────
+        case 'virtualsms_buy_batch': {
+          const parsed = BuyBatchInput.parse(args);
+          return await handleBuyBatch(client, parsed);
+        }
+        case 'virtualsms_wait_for_sms_batch': {
+          const parsed = WaitForSmsBatchInput.parse(args);
+          return await handleWaitForSmsBatch(client, parsed);
+        }
+        case 'virtualsms_find_best_pick': {
+          const parsed = FindBestPickInput.parse(args);
+          return await handleFindBestPick(client, parsed);
+        }
+        case 'virtualsms_x402_info': {
+          const parsed = X402InfoInput.parse(args ?? {});
+          return await handleX402Info(client, parsed);
+        }
+        case 'virtualsms_pay_and_buy': {
+          const parsed = PayAndBuyInput.parse(args);
+          return await handlePayAndBuy(client, parsed);
+        }
+        case 'virtualsms_subscribe_webhook': {
+          const parsed = SubscribeWebhookInput.parse(args);
+          return await handleSubscribeWebhook(client, parsed);
+        }
+        case 'virtualsms_manage_webhooks': {
+          const parsed = ManageWebhooksInput.parse(args);
+          return await handleManageWebhooks(client, parsed);
         }
         default:
           throw new McpError(ErrorCode.MethodNotFound, `Unknown tool: ${name}`);
@@ -229,7 +273,7 @@ const httpServer = http.createServer(async (req, res) => {
     res.end(JSON.stringify({
       serverInfo: {
         name: 'VirtualSMS',
-        version: '1.2.3'
+        version: '1.3.0'
       },
       configSchema: {
         type: 'object',

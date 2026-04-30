@@ -1,0 +1,568 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`v1.2.x backward-compat schema snapshot > annotations for every v1.2.x tool match the locked snapshot 1`] = `
+[
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "idempotentHint": true,
+      "openWorldHint": true,
+      "readOnlyHint": false,
+      "title": "Cancel All Active Orders",
+    },
+    "name": "virtualsms_cancel_all_orders",
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "idempotentHint": true,
+      "openWorldHint": true,
+      "readOnlyHint": false,
+      "title": "Cancel Order",
+    },
+    "name": "virtualsms_cancel_order",
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true,
+      "readOnlyHint": false,
+      "title": "Buy Virtual Number",
+    },
+    "name": "virtualsms_create_order",
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true,
+      "readOnlyHint": true,
+      "title": "Find Cheapest Countries",
+    },
+    "name": "virtualsms_find_cheapest",
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true,
+      "readOnlyHint": true,
+      "title": "Get Account Balance",
+    },
+    "name": "virtualsms_get_balance",
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true,
+      "readOnlyHint": true,
+      "title": "Get Order Details",
+    },
+    "name": "virtualsms_get_order",
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true,
+      "readOnlyHint": true,
+      "title": "Check Service Price",
+    },
+    "name": "virtualsms_get_price",
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true,
+      "readOnlyHint": true,
+      "title": "Get Account Profile",
+    },
+    "name": "virtualsms_get_profile",
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true,
+      "readOnlyHint": true,
+      "title": "Check SMS Code",
+    },
+    "name": "virtualsms_get_sms",
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true,
+      "readOnlyHint": true,
+      "title": "Get Account Stats",
+    },
+    "name": "virtualsms_get_stats",
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true,
+      "readOnlyHint": true,
+      "title": "Get Transaction History",
+    },
+    "name": "virtualsms_get_transactions",
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true,
+      "readOnlyHint": true,
+      "title": "List Available Countries",
+    },
+    "name": "virtualsms_list_countries",
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true,
+      "readOnlyHint": true,
+      "title": "List Active Orders",
+    },
+    "name": "virtualsms_list_orders",
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true,
+      "readOnlyHint": true,
+      "title": "List Available Services",
+    },
+    "name": "virtualsms_list_services",
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true,
+      "readOnlyHint": true,
+      "title": "Order History",
+    },
+    "name": "virtualsms_order_history",
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true,
+      "readOnlyHint": true,
+      "title": "Search Service by Name",
+    },
+    "name": "virtualsms_search_services",
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true,
+      "readOnlyHint": false,
+      "title": "Swap Phone Number",
+    },
+    "name": "virtualsms_swap_number",
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true,
+      "readOnlyHint": true,
+      "title": "Wait for SMS on Existing Order",
+    },
+    "name": "virtualsms_wait_for_sms",
+  },
+]
+`;
+
+exports[`v1.2.x backward-compat schema snapshot > description prefix is stable for every v1.2.x tool (catches accidental rewrites) 1`] = `
+[
+  {
+    "description_head": "Bulk-cancel every currently active order in your account. Re",
+    "name": "virtualsms_cancel_all_orders",
+  },
+  {
+    "description_head": "Cancel an order and request a refund. Only works if no SMS h",
+    "name": "virtualsms_cancel_order",
+  },
+  {
+    "description_head": "Purchase a virtual phone number for SMS verification. Return",
+    "name": "virtualsms_create_order",
+  },
+  {
+    "description_head": "Find the cheapest countries for a given service, sorted by p",
+    "name": "virtualsms_find_cheapest",
+  },
+  {
+    "description_head": "Check your VirtualSMS account balance in USD. Requires VIRTU",
+    "name": "virtualsms_get_balance",
+  },
+  {
+    "description_head": "Get the full details of a specific order, including status, ",
+    "name": "virtualsms_get_order",
+  },
+  {
+    "description_head": "Check the price and availability for a specific service + co",
+    "name": "virtualsms_get_price",
+  },
+  {
+    "description_head": "Full account profile: email, Telegram link status, current b",
+    "name": "virtualsms_get_profile",
+  },
+  {
+    "description_head": "Check if an SMS verification code has been received for an o",
+    "name": "virtualsms_get_sms",
+  },
+  {
+    "description_head": "Account usage stats aggregated from your order history: tota",
+    "name": "virtualsms_get_stats",
+  },
+  {
+    "description_head": "Transaction history for the account with optional filters fo",
+    "name": "virtualsms_get_transactions",
+  },
+  {
+    "description_head": "Get all available countries for SMS verification. Use this t",
+    "name": "virtualsms_list_countries",
+  },
+  {
+    "description_head": "List your active orders. Essential for crash recovery — if y",
+    "name": "virtualsms_list_orders",
+  },
+  {
+    "description_head": "Get all available SMS verification services (Telegram, Whats",
+    "name": "virtualsms_list_services",
+  },
+  {
+    "description_head": "List past orders with optional filters for status, service, ",
+    "name": "virtualsms_order_history",
+  },
+  {
+    "description_head": "Find the right service code using natural language. Don't kn",
+    "name": "virtualsms_search_services",
+  },
+  {
+    "description_head": "Swap a phone number on an existing order. Gets a new number ",
+    "name": "virtualsms_swap_number",
+  },
+  {
+    "description_head": "Wait (block) until the SMS arrives on an existing order_id, ",
+    "name": "virtualsms_wait_for_sms",
+  },
+]
+`;
+
+exports[`v1.2.x backward-compat schema snapshot > inputSchema for every v1.2.x tool matches the locked snapshot 1`] = `
+[
+  {
+    "inputSchema": {
+      "properties": {},
+      "required": [],
+      "type": "object",
+    },
+    "name": "virtualsms_cancel_all_orders",
+  },
+  {
+    "inputSchema": {
+      "properties": {
+        "order_id": {
+          "description": "Order ID to cancel",
+          "type": "string",
+        },
+      },
+      "required": [
+        "order_id",
+      ],
+      "type": "object",
+    },
+    "name": "virtualsms_cancel_order",
+  },
+  {
+    "inputSchema": {
+      "properties": {
+        "country": {
+          "description": "Country ISO code (e.g. "US", "GB", "RU")",
+          "type": "string",
+        },
+        "service": {
+          "description": "Service code (e.g. "telegram", "whatsapp", "google")",
+          "type": "string",
+        },
+      },
+      "required": [
+        "service",
+        "country",
+      ],
+      "type": "object",
+    },
+    "name": "virtualsms_create_order",
+  },
+  {
+    "inputSchema": {
+      "properties": {
+        "limit": {
+          "default": 5,
+          "description": "Number of cheapest options to return (default: 5)",
+          "type": "number",
+        },
+        "service": {
+          "description": "Service code (e.g. "telegram", "whatsapp", "google")",
+          "type": "string",
+        },
+      },
+      "required": [
+        "service",
+      ],
+      "type": "object",
+    },
+    "name": "virtualsms_find_cheapest",
+  },
+  {
+    "inputSchema": {
+      "properties": {
+        "currency": {
+          "description": "Display balance in specific currency (default: USD)",
+          "type": "string",
+        },
+      },
+      "required": [],
+      "type": "object",
+    },
+    "name": "virtualsms_get_balance",
+  },
+  {
+    "inputSchema": {
+      "properties": {
+        "order_id": {
+          "description": "Order ID to retrieve full details for",
+          "type": "string",
+        },
+      },
+      "required": [
+        "order_id",
+      ],
+      "type": "object",
+    },
+    "name": "virtualsms_get_order",
+  },
+  {
+    "inputSchema": {
+      "properties": {
+        "country": {
+          "description": "Country ISO code (e.g. "US", "GB", "RU")",
+          "type": "string",
+        },
+        "service": {
+          "description": "Service code (e.g. "telegram", "whatsapp", "google")",
+          "type": "string",
+        },
+      },
+      "required": [
+        "service",
+        "country",
+      ],
+      "type": "object",
+    },
+    "name": "virtualsms_get_price",
+  },
+  {
+    "inputSchema": {
+      "properties": {},
+      "required": [],
+      "type": "object",
+    },
+    "name": "virtualsms_get_profile",
+  },
+  {
+    "inputSchema": {
+      "properties": {
+        "order_id": {
+          "description": "Order ID returned from buy_number",
+          "type": "string",
+        },
+      },
+      "required": [
+        "order_id",
+      ],
+      "type": "object",
+    },
+    "name": "virtualsms_get_sms",
+  },
+  {
+    "inputSchema": {
+      "properties": {
+        "since_days": {
+          "default": 30,
+          "description": "Window in days for activity stats (default: 30)",
+          "type": "number",
+        },
+      },
+      "required": [],
+      "type": "object",
+    },
+    "name": "virtualsms_get_stats",
+  },
+  {
+    "inputSchema": {
+      "properties": {
+        "from": {
+          "description": "Lower bound on created_at — RFC3339 or YYYY-MM-DD",
+          "type": "string",
+        },
+        "limit": {
+          "default": 50,
+          "description": "Max transactions (1-200, default: 50)",
+          "type": "number",
+        },
+        "offset": {
+          "default": 0,
+          "description": "Pagination offset (default: 0)",
+          "type": "number",
+        },
+        "to": {
+          "description": "Upper bound on created_at — RFC3339 or YYYY-MM-DD",
+          "type": "string",
+        },
+        "type": {
+          "description": "Filter by type: "deposit", "purchase", "refund", "admin_credit"",
+          "type": "string",
+        },
+      },
+      "required": [],
+      "type": "object",
+    },
+    "name": "virtualsms_get_transactions",
+  },
+  {
+    "inputSchema": {
+      "properties": {
+        "service": {
+          "description": "Filter countries available for a specific service (optional)",
+          "type": "string",
+        },
+      },
+      "required": [],
+      "type": "object",
+    },
+    "name": "virtualsms_list_countries",
+  },
+  {
+    "inputSchema": {
+      "properties": {
+        "status": {
+          "description": "Optional status filter: "pending", "sms_received", "cancelled", "completed"",
+          "type": "string",
+        },
+      },
+      "required": [],
+      "type": "object",
+    },
+    "name": "virtualsms_list_orders",
+  },
+  {
+    "inputSchema": {
+      "properties": {
+        "search": {
+          "description": "Filter services by name (optional)",
+          "type": "string",
+        },
+      },
+      "required": [],
+      "type": "object",
+    },
+    "name": "virtualsms_list_services",
+  },
+  {
+    "inputSchema": {
+      "properties": {
+        "country": {
+          "description": "Optional country ISO code filter (e.g. "US", "GB")",
+          "type": "string",
+        },
+        "limit": {
+          "default": 20,
+          "description": "Max orders to return (default: 20, server cap: 50)",
+          "type": "number",
+        },
+        "service": {
+          "description": "Optional service code filter (e.g. "telegram", "whatsapp")",
+          "type": "string",
+        },
+        "since_days": {
+          "description": "Only include orders from the last N days",
+          "type": "number",
+        },
+        "status": {
+          "description": "Optional status filter: "completed", "cancelled", "expired", "sms_received", "waiting"",
+          "type": "string",
+        },
+      },
+      "required": [],
+      "type": "object",
+    },
+    "name": "virtualsms_order_history",
+  },
+  {
+    "inputSchema": {
+      "properties": {
+        "query": {
+          "description": "Natural language search query (e.g. "uber", "whatsapp", "binance")",
+          "type": "string",
+        },
+      },
+      "required": [
+        "query",
+      ],
+      "type": "object",
+    },
+    "name": "virtualsms_search_services",
+  },
+  {
+    "inputSchema": {
+      "properties": {
+        "order_id": {
+          "description": "Order ID to swap — must be in waiting/created status with no SMS received",
+          "type": "string",
+        },
+      },
+      "required": [
+        "order_id",
+      ],
+      "type": "object",
+    },
+    "name": "virtualsms_swap_number",
+  },
+  {
+    "inputSchema": {
+      "properties": {
+        "order_id": {
+          "description": "Existing order ID returned from create_order",
+          "type": "string",
+        },
+        "timeout_seconds": {
+          "default": 60,
+          "description": "How long to wait for SMS in seconds (default: 60, min: 5, max: 600)",
+          "maximum": 600,
+          "minimum": 5,
+          "type": "number",
+        },
+      },
+      "required": [
+        "order_id",
+      ],
+      "type": "object",
+    },
+    "name": "virtualsms_wait_for_sms",
+  },
+]
+`;

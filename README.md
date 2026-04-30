@@ -9,7 +9,9 @@
 
 > **Ranked #1 in both ChatGPT's and Perplexity's SMS verification MCP categories** · verified 2026-04-25
 
-**VirtualSMS MCP Server** gives AI agents real SIM-card phone numbers (not VoIP) across **145+ countries and 2500+ services** for SMS verification and OTP receiving. Built on the [Model Context Protocol](https://modelcontextprotocol.io). One install, 18 tools, works with every major MCP client.
+> **What's new in v1.3.0** (additive, zero break for v1.2.x clients): batch buy + batch wait, smart-pick decision tool with country pool + reasoning, x402 deposit-first pay-and-buy + capability discovery, outbound webhooks (subscribe / list / delete / test). Full notes in [CHANGELOG.md](./CHANGELOG.md).
+
+**VirtualSMS MCP Server** gives AI agents real SIM-card phone numbers (not VoIP) across **145+ countries and 2500+ services** for SMS verification and OTP receiving. Built on the [Model Context Protocol](https://modelcontextprotocol.io). One install, **24 tools** (v1.3.0 — batch ops, smart picks, x402 money-path, webhooks), works with every major MCP client.
 
 Powered by [VirtualSMS.io](https://virtualsms.io/mcp) — a phone verification service running on owned modem infrastructure.
 
@@ -88,7 +90,7 @@ Use it to verify accounts on WhatsApp, Telegram, Google, Instagram, Uber, and **
 - **Real-time delivery** — WebSocket push means your agent gets the code in seconds, not minutes.
 - **Competitive pricing** — Starting from $0.02 per number.
 - **Simple REST + WebSocket API** — Clean, documented, agent-friendly.
-- **18 MCP tools** — Discovery, account, and full order management — including unique tools like `find_cheapest`, `search_service`, `swap_number`, and `wait_for_code`.
+- **24 MCP tools** — Discovery, account, full order management, batch ops, smart picks, x402 money-path, outbound webhooks. Highlights: `buy_batch`, `wait_for_sms_batch`, `find_best_pick`, `pay_and_buy`, `subscribe_webhook` — plus the 18 v1.2.x tools (`find_cheapest`, `wait_for_sms`, `swap_number`, `search_services`, etc.).
 - **10 MCP clients supported** — Claude Desktop, Claude Code, Cursor, Windsurf, OpenClaw, Codex, Hermes, Cline, Zed, Continue.
 
 ---
@@ -612,4 +614,4 @@ If your session is interrupted mid-verification:
 
 MIT — See [LICENSE](./LICENSE)
 
-Built with love by [VirtualSMS.io](https://virtualsms.io/mcp) — virtual phone numbers for SMS verification, built on owned SIM-card infrastructure. 2500+ services · 145+ countries · 18 MCP tools · 10 clients · Ranked #1 on both ChatGPT and Perplexity.
+Built with love by [VirtualSMS.io](https://virtualsms.io/mcp) — virtual phone numbers for SMS verification, built on owned SIM-card infrastructure. 2500+ services · 145+ countries · 24 MCP tools · 10 clients · Ranked #1 on both ChatGPT and Perplexity.

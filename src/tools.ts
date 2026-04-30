@@ -2,6 +2,53 @@ import { z } from 'zod';
 import WebSocket from 'ws';
 import { VirtualSMSClient } from './client.js';
 
+// v1.3.0 tool imports — re-exported below so index.ts + http-server.ts can
+// pick them up from a single tools.ts surface. Each tool file owns its own
+// input schema, tool def, and handler.
+import {
+  BuyBatchInput,
+  BUY_BATCH_TOOL_DEF,
+  handleBuyBatch,
+} from './tools/v1_3/buy-batch.js';
+import {
+  WaitForSmsBatchInput,
+  WAIT_FOR_SMS_BATCH_TOOL_DEF,
+  handleWaitForSmsBatch,
+} from './tools/v1_3/wait-batch.js';
+import {
+  FindBestPickInput,
+  FIND_BEST_PICK_TOOL_DEF,
+  handleFindBestPick,
+} from './tools/v1_3/find-best-pick.js';
+import {
+  X402InfoInput,
+  X402_INFO_TOOL_DEF,
+  handleX402Info,
+} from './tools/v1_3/x402-info.js';
+import {
+  PayAndBuyInput,
+  PAY_AND_BUY_TOOL_DEF,
+  handlePayAndBuy,
+} from './tools/v1_3/pay-and-buy.js';
+import {
+  SubscribeWebhookInput,
+  SUBSCRIBE_WEBHOOK_TOOL_DEF,
+  handleSubscribeWebhook,
+} from './tools/v1_3/subscribe-webhook.js';
+import {
+  ManageWebhooksInput,
+  MANAGE_WEBHOOKS_TOOL_DEF,
+  handleManageWebhooks,
+} from './tools/v1_3/manage-webhooks.js';
+
+export { BuyBatchInput, BUY_BATCH_TOOL_DEF, handleBuyBatch };
+export { WaitForSmsBatchInput, WAIT_FOR_SMS_BATCH_TOOL_DEF, handleWaitForSmsBatch };
+export { FindBestPickInput, FIND_BEST_PICK_TOOL_DEF, handleFindBestPick };
+export { X402InfoInput, X402_INFO_TOOL_DEF, handleX402Info };
+export { PayAndBuyInput, PAY_AND_BUY_TOOL_DEF, handlePayAndBuy };
+export { SubscribeWebhookInput, SUBSCRIBE_WEBHOOK_TOOL_DEF, handleSubscribeWebhook };
+export { ManageWebhooksInput, MANAGE_WEBHOOKS_TOOL_DEF, handleManageWebhooks };
+
 // ─── Input Schemas ───────────────────────────────────────────────────────────
 
 export const CheckPriceInput = z.object({
@@ -79,7 +126,10 @@ export const GetTransactionsInput = z.object({
 
 // ─── Tool Definitions ────────────────────────────────────────────────────────
 
-export const TOOL_DEFINITIONS = [
+// v1.2.x tool defs — locked by the schema-snapshot test in
+// tests/v1_2_3_schema_snapshot.test.ts. Don't edit any entry below; v1.3.x
+// only ADDS tools at the end via the V1_3_TOOL_DEFS append.
+export const TOOL_DEFINITIONS_V1_2_X = [
   {
     name: 'virtualsms_list_services',
     title: 'List Available Services',
@@ -572,6 +622,20 @@ export const TOOL_DEFINITIONS = [
   },
 ];
 
+// v1.3.0 additions — appended below; never edit V1_2_X entries above.
+const V1_3_TOOL_DEFS = [
+  BUY_BATCH_TOOL_DEF,
+  WAIT_FOR_SMS_BATCH_TOOL_DEF,
+  FIND_BEST_PICK_TOOL_DEF,
+  X402_INFO_TOOL_DEF,
+  PAY_AND_BUY_TOOL_DEF,
+  SUBSCRIBE_WEBHOOK_TOOL_DEF,
+  MANAGE_WEBHOOKS_TOOL_DEF,
+];
+
+// Public surface — concatenated for both transports.
+export const TOOL_DEFINITIONS = [...TOOL_DEFINITIONS_V1_2_X, ...V1_3_TOOL_DEFS];
+
 // ─── Tool Handlers ────────────────────────────────────────────────────────────
 
 export async function handleListServices(client: VirtualSMSClient) {
@@ -653,14 +717,72 @@ export async function handleCheckPrice(
 
 export async function handleGetBalance(client: VirtualSMSClient) {
   const balance = await client.getBalance();
+  // v1.3.0 additive: surface topup capability so agents can self-rescue when
+  // balance is low. Best-effort — if x402 lookup fails we still return the
+  // balance.
+  let x402Available = false;
+  try {
+    const info = await client.getX402Info();
+    x402Available = Boolean(info.enabled);
+  } catch {
+    // ignore — leave x402_topup_available=false
+  }
+  let baseUrl = 'https://virtualsms.io';
+  try {
+    const candidate = client.getBaseUrl();
+    if (candidate) baseUrl = candidate;
+  } catch {
+    // ignore — fall back to canonical host
+  }
+  const topupUrl = `${baseUrl.replace(/\/$/, '')}/dashboard?topup=1`;
   return {
     content: [
       {
         type: 'text' as const,
-        text: JSON.stringify(balance, null, 2),
+        text: JSON.stringify(
+          {
+            ...balance,
+            topup_url: topupUrl,
+            x402_topup_available: x402Available,
+            ...(balance.balance_usd < 1
+              ? { tip: 'Low balance. Use pay_and_buy (x402) or visit topup_url to top up.' }
+              : {}),
+          },
+          null,
+          2
+        ),
       },
     ],
   };
+}
+
+// 30-second cache for the listWebhooks lookup the buy-number hint relies on.
+// Bursty agents fire create_order in tight loops — a 30s cache cuts the
+// per-call overhead to ~one extra request per minute regardless of QPS.
+let _webhookCache: { hasSmsReceived: boolean; expiresAt: number } | null = null;
+const WEBHOOK_CACHE_TTL_MS = 30_000;
+
+// Test-only escape hatch — clears the cache between tests so cached state
+// doesn't leak across test files.
+export function _resetWebhookCacheForTests(): void {
+  _webhookCache = null;
+}
+
+async function hasSmsReceivedWebhookCached(client: VirtualSMSClient): Promise<boolean | null> {
+  const now = Date.now();
+  if (_webhookCache && _webhookCache.expiresAt > now) {
+    return _webhookCache.hasSmsReceived;
+  }
+  try {
+    const list = await client.listWebhooks();
+    const hasIt = list.some((w) => Array.isArray(w.events) && w.events.includes('sms.received'));
+    _webhookCache = { hasSmsReceived: hasIt, expiresAt: now + WEBHOOK_CACHE_TTL_MS };
+    return hasIt;
+  } catch {
+    // Lookup failed (auth, network, missing endpoint) — return null so the
+    // caller can decide. Don't cache failures.
+    return null;
+  }
 }
 
 export async function handleBuyNumber(
@@ -668,21 +790,25 @@ export async function handleBuyNumber(
   args: z.infer<typeof BuyNumberInput>
 ) {
   const order = await client.createOrder(args.service, args.country);
+  // v1.3.0 additive: hint at subscribe_webhook for long-running agents.
+  // Suppressed when one already exists. Cached 30s.
+  const hasHook = await hasSmsReceivedWebhookCached(client);
+  const out: Record<string, unknown> = {
+    order_id: order.order_id,
+    phone_number: order.phone_number,
+    expires_at: order.expires_at,
+    status: order.status,
+    tip: 'Use check_sms to poll for the code, or cancel_order to refund.',
+  };
+  if (hasHook === false) {
+    out.webhook_subscribe_hint =
+      'Long-running agents: call subscribe_webhook(events:["sms.received"]) once to get pushed deliveries — much cheaper than polling.';
+  }
   return {
     content: [
       {
         type: 'text' as const,
-        text: JSON.stringify(
-          {
-            order_id: order.order_id,
-            phone_number: order.phone_number,
-            expires_at: order.expires_at,
-            status: order.status,
-            tip: 'Use check_sms to poll for the code, or cancel_order to refund.',
-          },
-          null,
-          2
-        ),
+        text: JSON.stringify(out, null, 2),
       },
     ],
   };

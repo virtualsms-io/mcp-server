@@ -55,6 +55,21 @@ import {
   handleGetStats,
   handleGetProfile,
   handleGetTransactions,
+  // v1.3.0
+  BuyBatchInput,
+  handleBuyBatch,
+  WaitForSmsBatchInput,
+  handleWaitForSmsBatch,
+  FindBestPickInput,
+  handleFindBestPick,
+  X402InfoInput,
+  handleX402Info,
+  PayAndBuyInput,
+  handlePayAndBuy,
+  SubscribeWebhookInput,
+  handleSubscribeWebhook,
+  ManageWebhooksInput,
+  handleManageWebhooks,
 } from './tools.js';
 
 // ─── Configuration ────────────────────────────────────────────────────────────
@@ -69,7 +84,7 @@ const client = new VirtualSMSClient(BASE_URL, API_KEY);
 const server = new Server(
   {
     name: 'virtualsms-mcp',
-    version: '1.2.3',
+    version: '1.3.0',
   },
   {
     capabilities: {
@@ -171,6 +186,36 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         return await handleGetTransactions(client, parsed);
       }
 
+      // ─── v1.3.0 tools ─────────────────────────────────────────────────────
+      case 'virtualsms_buy_batch': {
+        const parsed = BuyBatchInput.parse(args);
+        return await handleBuyBatch(client, parsed);
+      }
+      case 'virtualsms_wait_for_sms_batch': {
+        const parsed = WaitForSmsBatchInput.parse(args);
+        return await handleWaitForSmsBatch(client, parsed);
+      }
+      case 'virtualsms_find_best_pick': {
+        const parsed = FindBestPickInput.parse(args);
+        return await handleFindBestPick(client, parsed);
+      }
+      case 'virtualsms_x402_info': {
+        const parsed = X402InfoInput.parse(args ?? {});
+        return await handleX402Info(client, parsed);
+      }
+      case 'virtualsms_pay_and_buy': {
+        const parsed = PayAndBuyInput.parse(args);
+        return await handlePayAndBuy(client, parsed);
+      }
+      case 'virtualsms_subscribe_webhook': {
+        const parsed = SubscribeWebhookInput.parse(args);
+        return await handleSubscribeWebhook(client, parsed);
+      }
+      case 'virtualsms_manage_webhooks': {
+        const parsed = ManageWebhooksInput.parse(args);
+        return await handleManageWebhooks(client, parsed);
+      }
+
       default:
         throw new McpError(ErrorCode.MethodNotFound, `Unknown tool: ${name}`);
     }
@@ -237,7 +282,7 @@ export function createSandboxServer() {
   const sandboxServer = new Server(
     {
       name: 'virtualsms-mcp',
-      version: '1.2.3',
+      version: '1.3.0',
     },
     {
       capabilities: {
