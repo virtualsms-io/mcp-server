@@ -60,6 +60,8 @@ import {
   handleBuyBatch,
   WaitForSmsBatchInput,
   handleWaitForSmsBatch,
+  FindBestPickInput,
+  handleFindBestPick,
 } from './tools.js';
 
 // ─── Configuration ────────────────────────────────────────────────────────────
@@ -184,6 +186,10 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       case 'virtualsms_wait_for_sms_batch': {
         const parsed = WaitForSmsBatchInput.parse(args);
         return await handleWaitForSmsBatch(client, parsed);
+      }
+      case 'virtualsms_find_best_pick': {
+        const parsed = FindBestPickInput.parse(args);
+        return await handleFindBestPick(client, parsed);
       }
 
       default:

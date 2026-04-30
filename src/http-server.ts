@@ -59,6 +59,8 @@ import {
   handleBuyBatch,
   WaitForSmsBatchInput,
   handleWaitForSmsBatch,
+  FindBestPickInput,
+  handleFindBestPick,
 } from './tools.js';
 
 import { PROMPT_DEFINITIONS, getPromptMessages } from './prompts.js';
@@ -165,6 +167,10 @@ function createMCPServer(config: ServerConfig) {
         case 'virtualsms_wait_for_sms_batch': {
           const parsed = WaitForSmsBatchInput.parse(args);
           return await handleWaitForSmsBatch(client, parsed);
+        }
+        case 'virtualsms_find_best_pick': {
+          const parsed = FindBestPickInput.parse(args);
+          return await handleFindBestPick(client, parsed);
         }
         default:
           throw new McpError(ErrorCode.MethodNotFound, `Unknown tool: ${name}`);

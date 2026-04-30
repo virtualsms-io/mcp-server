@@ -15,9 +15,15 @@ import {
   WAIT_FOR_SMS_BATCH_TOOL_DEF,
   handleWaitForSmsBatch,
 } from './tools/v1_3/wait-batch.js';
+import {
+  FindBestPickInput,
+  FIND_BEST_PICK_TOOL_DEF,
+  handleFindBestPick,
+} from './tools/v1_3/find-best-pick.js';
 
 export { BuyBatchInput, BUY_BATCH_TOOL_DEF, handleBuyBatch };
 export { WaitForSmsBatchInput, WAIT_FOR_SMS_BATCH_TOOL_DEF, handleWaitForSmsBatch };
+export { FindBestPickInput, FIND_BEST_PICK_TOOL_DEF, handleFindBestPick };
 
 // ─── Input Schemas ───────────────────────────────────────────────────────────
 
@@ -596,6 +602,7 @@ export const TOOL_DEFINITIONS_V1_2_X = [
 const V1_3_TOOL_DEFS = [
   BUY_BATCH_TOOL_DEF,
   WAIT_FOR_SMS_BATCH_TOOL_DEF,
+  FIND_BEST_PICK_TOOL_DEF,
 ];
 
 // Public surface — concatenated for both transports.
