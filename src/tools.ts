@@ -10,8 +10,14 @@ import {
   BUY_BATCH_TOOL_DEF,
   handleBuyBatch,
 } from './tools/v1_3/buy-batch.js';
+import {
+  WaitForSmsBatchInput,
+  WAIT_FOR_SMS_BATCH_TOOL_DEF,
+  handleWaitForSmsBatch,
+} from './tools/v1_3/wait-batch.js';
 
 export { BuyBatchInput, BUY_BATCH_TOOL_DEF, handleBuyBatch };
+export { WaitForSmsBatchInput, WAIT_FOR_SMS_BATCH_TOOL_DEF, handleWaitForSmsBatch };
 
 // ─── Input Schemas ───────────────────────────────────────────────────────────
 
@@ -589,6 +595,7 @@ export const TOOL_DEFINITIONS_V1_2_X = [
 // v1.3.0 additions — appended below; never edit V1_2_X entries above.
 const V1_3_TOOL_DEFS = [
   BUY_BATCH_TOOL_DEF,
+  WAIT_FOR_SMS_BATCH_TOOL_DEF,
 ];
 
 // Public surface — concatenated for both transports.

@@ -58,6 +58,8 @@ import {
   // v1.3.0
   BuyBatchInput,
   handleBuyBatch,
+  WaitForSmsBatchInput,
+  handleWaitForSmsBatch,
 } from './tools.js';
 
 // ─── Configuration ────────────────────────────────────────────────────────────
@@ -178,6 +180,10 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       case 'virtualsms_buy_batch': {
         const parsed = BuyBatchInput.parse(args);
         return await handleBuyBatch(client, parsed);
+      }
+      case 'virtualsms_wait_for_sms_batch': {
+        const parsed = WaitForSmsBatchInput.parse(args);
+        return await handleWaitForSmsBatch(client, parsed);
       }
 
       default:
