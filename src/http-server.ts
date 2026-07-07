@@ -36,6 +36,14 @@ import {
   OrderHistoryInput,
   GetStatsInput,
   GetTransactionsInput,
+  BuyProxyInput,
+  RotateProxyInput,
+  StartManualRegistrationSessionInput,
+  handleListProxyCatalog,
+  handleListProxies,
+  handleBuyProxy,
+  handleRotateProxy,
+  handleStartManualRegistrationSession,
   handleListServices,
   handleListCountries,
   handleCheckPrice,
@@ -90,6 +98,22 @@ function createMCPServer(config: ServerConfig) {
 
     try {
       switch (name) {
+        case 'virtualsms_list_proxy_catalog':
+          return await handleListProxyCatalog(client);
+        case 'virtualsms_list_proxies':
+          return await handleListProxies(client);
+        case 'virtualsms_buy_proxy': {
+          const parsed = BuyProxyInput.parse(args);
+          return await handleBuyProxy(client, parsed);
+        }
+        case 'virtualsms_rotate_proxy': {
+          const parsed = RotateProxyInput.parse(args);
+          return await handleRotateProxy(client, parsed);
+        }
+        case 'virtualsms_start_manual_registration_session': {
+          const parsed = StartManualRegistrationSessionInput.parse(args);
+          return await handleStartManualRegistrationSession(client, parsed);
+        }
         case 'virtualsms_list_services':
           return await handleListServices(client);
         case 'virtualsms_list_countries':
@@ -268,13 +292,22 @@ const httpServer = http.createServer(async (req, res) => {
     return;
   }
 
-  // Extract config from headers and query params (x-from mappings)
+  // Extract config from headers and query params (x-from mappings).
+  // H-005: no env-var fallback for apiKey — caller must provide their own key.
   const apiKeyHeader = req.headers['x-api-key'] as string | undefined;
   const apiKeyQuery = url.searchParams.get('apiKey') || undefined;
-  const apiKey = apiKeyHeader || apiKeyQuery || process.env.VIRTUALSMS_API_KEY;
+  const apiKey = apiKeyHeader || apiKeyQuery;
 
-  // Optional config from query params (with env var fallbacks)
-  const baseUrl = (url.searchParams.get('baseUrl') || DEFAULT_BASE_URL).replace(/\/$/, '');
+  // H-005: reject unauthenticated requests before creating the MCP server.
+  if (!apiKey) {
+    res.writeHead(401, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ error: 'API key required. Provide via x-api-key header or apiKey query parameter.' }));
+    return;
+  }
+
+  // H-005: baseUrl is always the hardcoded DEFAULT_BASE_URL — never accept
+  // caller-controlled baseUrl (prevents API key exfiltration to attacker servers).
+  const baseUrl = DEFAULT_BASE_URL;
   const defaultCountry = url.searchParams.get('defaultCountry') || DEFAULT_COUNTRY;
   const timeoutParam = url.searchParams.get('timeout');
   const timeout = timeoutParam ? parseInt(timeoutParam, 10) : DEFAULT_TIMEOUT;

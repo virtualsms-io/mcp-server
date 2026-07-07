@@ -91,6 +91,71 @@ export interface CancelResult {
   refunded: boolean;
 }
 
+export interface ProxyCatalogCountry {
+  code: string;
+  name: string;
+  available: boolean;
+  ip_count: number;
+}
+
+export interface ProxyCatalogPoolType {
+  id: string;
+  label: string;
+  price_per_gb: number;
+  countries: ProxyCatalogCountry[];
+}
+
+export interface ProxyListItem {
+  proxy_id: string;
+  pool_type: string;
+  country_code: string;
+  country_name?: string;
+  gb_total: number;
+  gb_used: number;
+  gb_remaining: number;
+  proxy_host: string;
+  proxy_port: number;
+  proxy_login: string;
+  proxy_password: string;
+  updated_at?: string;
+  created_at?: string;
+}
+
+export interface ProxyPurchaseResult {
+  proxy_id: string;
+  pool_type: string;
+  gb_added: number;
+  gb_remaining: number;
+  country_code: string;
+  proxy_login: string;
+  proxy_password: string;
+  proxy_host: string;
+  proxy_port: number;
+  proxy_port_socks?: number;
+  price: number;
+  balance?: number;
+}
+
+export interface ProxyRotateResult {
+  rotated: boolean;
+  port: number;
+  message: string;
+}
+
+export interface BrowserSessionResult {
+  id: string;
+  status: string;
+  service_name?: string;
+  country_code?: string;
+  device_mode?: string;
+  with_proxy?: boolean;
+  debug_url?: string;
+  target_url?: string;
+  order_id?: string;
+  phone_number?: string;
+  timeline?: Array<{ at: string; event: string; detail?: string }>;
+}
+
 export class VirtualSMSClient {
   private http: AxiosInstance;
   private apiKey?: string;
@@ -300,6 +365,108 @@ export class VirtualSMSClient {
       }
       throw err;
     }
+  }
+
+  async listProxyCatalog(): Promise<ProxyCatalogPoolType[]> {
+    const res = await this.http.get('/api/v1/proxies/catalog');
+    const raw = Array.isArray(res.data?.pool_types) ? res.data.pool_types : (Array.isArray(res.data) ? res.data : []);
+    return raw.map((p: Record<string, unknown>) => ({
+      id: String(p.id ?? ''),
+      label: String(p.label ?? ''),
+      price_per_gb: Number(p.price_per_gb ?? 0),
+      countries: Array.isArray(p.countries)
+        ? p.countries.map((c: Record<string, unknown>) => ({
+            code: String(c.code ?? ''),
+            name: String(c.name ?? ''),
+            available: Boolean(c.available),
+            ip_count: Number(c.ip_count ?? 0),
+          }))
+        : [],
+    }));
+  }
+
+  async listProxies(): Promise<ProxyListItem[]> {
+    this.requireApiKey();
+    const res = await this.http.get('/api/v1/proxies');
+    const raw = Array.isArray(res.data) ? res.data : [];
+    return raw.map((p: Record<string, unknown>) => ({
+      proxy_id: String(p.proxy_id ?? ''),
+      pool_type: String(p.pool_type ?? ''),
+      country_code: String(p.country_code ?? ''),
+      country_name: p.country_name ? String(p.country_name) : undefined,
+      gb_total: Number(p.gb_total ?? 0),
+      gb_used: Number(p.gb_used ?? 0),
+      gb_remaining: Number(p.gb_remaining ?? 0),
+      proxy_host: String(p.proxy_host ?? ''),
+      proxy_port: Number(p.proxy_port ?? 0),
+      proxy_login: String(p.proxy_login ?? ''),
+      proxy_password: String(p.proxy_password ?? ''),
+      updated_at: p.updated_at ? String(p.updated_at) : undefined,
+      created_at: p.created_at ? String(p.created_at) : undefined,
+    }));
+  }
+
+  async purchaseProxy(params: {
+    pool_type: string;
+    gb: number;
+    country_code?: string;
+    idempotency_key?: string;
+  }): Promise<ProxyPurchaseResult> {
+    this.requireApiKey();
+    const res = await this.http.post('/api/v1/proxies', params);
+    return res.data as ProxyPurchaseResult;
+  }
+
+  async rotateProxy(proxyId: string, port?: number): Promise<ProxyRotateResult> {
+    this.requireApiKey();
+    const body = typeof port === 'number' ? { port } : {};
+    const res = await this.http.post(`/api/v1/proxies/${proxyId}/rotate`, body);
+    return res.data as ProxyRotateResult;
+  }
+
+  async startManualRegistrationSession(params: {
+    serviceName?: string;
+    country?: string;
+    deviceMode?: 'desktop' | 'mobile';
+    withProxy?: boolean;
+    targetUrl?: string;
+    orderId?: string;
+    mode?: 'attach' | 'fresh';
+  }): Promise<BrowserSessionResult> {
+    this.requireApiKey();
+    const withProxy = params.withProxy ?? Boolean(params.country);
+    const res = await this.http.post('/api/v1/browser-sessions/start', {
+      serviceName: params.serviceName,
+      country: params.country,
+      deviceMode: params.deviceMode,
+      withProxy,
+      targetUrl: params.targetUrl,
+      orderId: params.orderId,
+      mode: params.mode ?? 'fresh',
+    });
+    const data = res.data as { session?: BrowserSessionResult };
+    return data.session ?? (res.data as BrowserSessionResult);
+  }
+
+  async prepBrowserSession(
+    sessionId: string,
+    preset: 'generic' | 'telegram',
+    targetUrl?: string,
+  ): Promise<BrowserSessionResult> {
+    this.requireApiKey();
+    const res = await this.http.post(`/api/v1/browser-sessions/${sessionId}/prep`, {
+      preset,
+      targetUrl,
+    });
+    const data = res.data as { session?: BrowserSessionResult };
+    return data.session ?? (res.data as BrowserSessionResult);
+  }
+
+  async stopBrowserSession(sessionId: string): Promise<BrowserSessionResult> {
+    this.requireApiKey();
+    const res = await this.http.post(`/api/v1/browser-sessions/${sessionId}/stop`, {});
+    const data = res.data as { session?: BrowserSessionResult };
+    return data.session ?? (res.data as BrowserSessionResult);
   }
 
   getApiKey(): string | undefined {
