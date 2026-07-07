@@ -37,6 +37,14 @@ import {
   OrderHistoryInput,
   GetStatsInput,
   GetTransactionsInput,
+  BuyProxyInput,
+  RotateProxyInput,
+  StartManualRegistrationSessionInput,
+  handleListProxyCatalog,
+  handleListProxies,
+  handleBuyProxy,
+  handleRotateProxy,
+  handleStartManualRegistrationSession,
   handleListServices,
   handleListCountries,
   handleCheckPrice,
@@ -91,6 +99,27 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
   try {
     switch (name) {
+      case 'virtualsms_list_proxy_catalog':
+        return await handleListProxyCatalog(client);
+
+      case 'virtualsms_list_proxies':
+        return await handleListProxies(client);
+
+      case 'virtualsms_buy_proxy': {
+        const parsed = BuyProxyInput.parse(args);
+        return await handleBuyProxy(client, parsed);
+      }
+
+      case 'virtualsms_rotate_proxy': {
+        const parsed = RotateProxyInput.parse(args);
+        return await handleRotateProxy(client, parsed);
+      }
+
+      case 'virtualsms_start_manual_registration_session': {
+        const parsed = StartManualRegistrationSessionInput.parse(args);
+        return await handleStartManualRegistrationSession(client, parsed);
+      }
+
       case 'virtualsms_list_services':
         return await handleListServices(client);
 

@@ -77,9 +77,161 @@ export const GetTransactionsInput = z.object({
   offset: z.number().int().min(0).default(0).describe('Pagination offset (default: 0)'),
 });
 
+export const BuyProxyInput = z.object({
+  pool_type: z.enum(['residential', 'residential_premium', 'mobile', 'datacenter'])
+    .describe('Proxy pool type'),
+  gb: z.number().positive().describe('How many GB to add to the proxy account'),
+  country_code: z.string().optional().describe('Optional ISO-2 country hint (e.g. "us", "gb")'),
+  idempotency_key: z.string().optional().describe('Optional idempotency key for safe retries'),
+});
+
+export const RotateProxyInput = z.object({
+  proxy_id: z.string().describe('Proxy ID returned by list_proxies or buy_proxy'),
+  port: z.number().int().positive().optional().describe('Optional proxy port (defaults to rotating HTTP port)'),
+});
+
+export const StartManualRegistrationSessionInput = z.object({
+  service_name: z.string().optional().describe('Friendly service name (e.g. telegram, whatsapp) — influences default device profile'),
+  country: z.string().optional().describe('ISO-2 country code when attaching a matching proxy (e.g. id, de)'),
+  device_mode: z.enum(['desktop', 'mobile']).optional().describe('Browser viewport profile (auto-picked from service when omitted)'),
+  with_proxy: z.boolean().optional().describe('Attach matching VSMS proxy (default: true when country is set)'),
+  target_url: z.string().optional().describe('Optional first navigation target for generic prep'),
+  order_id: z.string().optional().describe('Existing activation order UUID to attach'),
+  mode: z.enum(['attach', 'fresh']).optional().describe('attach = reuse active session if present; fresh = new session (default fresh)'),
+  run_prep: z.boolean().optional().describe('Run scripted prep immediately after start (default false)'),
+  prep_preset: z.enum(['generic', 'telegram']).optional().describe('Prep preset when run_prep is true (default generic)'),
+});
+
 // ─── Tool Definitions ────────────────────────────────────────────────────────
 
 export const TOOL_DEFINITIONS = [
+  {
+    name: 'virtualsms_list_proxy_catalog',
+    title: 'List Proxy Catalog',
+    description:
+      'List available proxy pool types, countries, and price-per-GB. ' +
+      'Use this before buying proxy traffic.',
+    inputSchema: {
+      type: 'object' as const,
+      properties: {},
+      required: [],
+    },
+    annotations: {
+      title: 'List Proxy Catalog',
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: true,
+    },
+  },
+  {
+    name: 'virtualsms_list_proxies',
+    title: 'List My Proxies',
+    description:
+      'List all proxies on your account with remaining GB and login credentials.',
+    inputSchema: {
+      type: 'object' as const,
+      properties: {},
+      required: [],
+    },
+    annotations: {
+      title: 'List My Proxies',
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: true,
+    },
+  },
+  {
+    name: 'virtualsms_buy_proxy',
+    title: 'Buy Proxy GB',
+    description:
+      'Purchase proxy traffic (GB) for a selected pool type. Returns proxy credentials and remaining balance.',
+    inputSchema: {
+      type: 'object' as const,
+      properties: {
+        pool_type: {
+          type: 'string',
+          description: 'Pool type: residential, residential_premium, mobile, datacenter',
+        },
+        gb: {
+          type: 'number',
+          description: 'Amount of traffic to add in GB',
+        },
+        country_code: {
+          type: 'string',
+          description: 'Optional ISO-2 country preference (e.g. us, gb)',
+        },
+        idempotency_key: {
+          type: 'string',
+          description: 'Optional key for safe retries without double charges',
+        },
+      },
+      required: ['pool_type', 'gb'],
+    },
+    annotations: {
+      title: 'Buy Proxy GB',
+      readOnlyHint: false,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: true,
+    },
+  },
+  {
+    name: 'virtualsms_rotate_proxy',
+    title: 'Rotate Proxy IP',
+    description:
+      'Request a fresh IP for an existing proxy. Useful when an endpoint flags the current exit IP.',
+    inputSchema: {
+      type: 'object' as const,
+      properties: {
+        proxy_id: {
+          type: 'string',
+          description: 'Proxy ID returned by list_proxies or buy_proxy',
+        },
+        port: {
+          type: 'number',
+          description: 'Optional proxy port. Defaults to rotating HTTP port.',
+        },
+      },
+      required: ['proxy_id'],
+    },
+    annotations: {
+      title: 'Rotate Proxy IP',
+      readOnlyHint: false,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: true,
+    },
+  },
+  {
+    name: 'virtualsms_start_manual_registration_session',
+    title: 'Start Manual Registration Session',
+    description:
+      'Start a Steel cloud-browser session for manual signup/verification. Returns debug_url for live takeover, optional order phone number, and timeline. Pair with create_order for OTP + browser in one agent flow.',
+    inputSchema: {
+      type: 'object' as const,
+      properties: {
+        service_name: { type: 'string', description: 'Service hint (telegram, whatsapp, …)' },
+        country: { type: 'string', description: 'ISO-2 country for proxy match' },
+        device_mode: { type: 'string', enum: ['desktop', 'mobile'], description: 'Viewport profile' },
+        with_proxy: { type: 'boolean', description: 'Attach matching VSMS proxy' },
+        target_url: { type: 'string', description: 'URL for generic prep' },
+        order_id: { type: 'string', description: 'Activation order UUID to attach' },
+        mode: { type: 'string', enum: ['attach', 'fresh'], description: 'Session attach mode' },
+        run_prep: { type: 'boolean', description: 'Run prep after start' },
+        prep_preset: { type: 'string', enum: ['generic', 'telegram'], description: 'Prep preset' },
+      },
+      required: [],
+    },
+    annotations: {
+      title: 'Start Manual Registration Session',
+      readOnlyHint: false,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: true,
+    },
+  },
   {
     name: 'virtualsms_list_services',
     title: 'List Available Services',
@@ -581,6 +733,97 @@ export async function handleListServices(client: VirtualSMSClient) {
       {
         type: 'text' as const,
         text: JSON.stringify(services, null, 2),
+      },
+    ],
+  };
+}
+
+export async function handleListProxyCatalog(client: VirtualSMSClient) {
+  const catalog = await client.listProxyCatalog();
+  return {
+    content: [
+      {
+        type: 'text' as const,
+        text: JSON.stringify(catalog, null, 2),
+      },
+    ],
+  };
+}
+
+export async function handleListProxies(client: VirtualSMSClient) {
+  const proxies = await client.listProxies();
+  return {
+    content: [
+      {
+        type: 'text' as const,
+        text: JSON.stringify(proxies, null, 2),
+      },
+    ],
+  };
+}
+
+export async function handleBuyProxy(
+  client: VirtualSMSClient,
+  args: z.infer<typeof BuyProxyInput>
+) {
+  const result = await client.purchaseProxy(args);
+  return {
+    content: [
+      {
+        type: 'text' as const,
+        text: JSON.stringify(result, null, 2),
+      },
+    ],
+  };
+}
+
+export async function handleRotateProxy(
+  client: VirtualSMSClient,
+  args: z.infer<typeof RotateProxyInput>
+) {
+  const result = await client.rotateProxy(args.proxy_id, args.port);
+  return {
+    content: [
+      {
+        type: 'text' as const,
+        text: JSON.stringify(result, null, 2),
+      },
+    ],
+  };
+}
+
+export async function handleStartManualRegistrationSession(
+  client: VirtualSMSClient,
+  args: z.infer<typeof StartManualRegistrationSessionInput>
+) {
+  const session = await client.startManualRegistrationSession({
+    serviceName: args.service_name,
+    country: args.country,
+    deviceMode: args.device_mode,
+    withProxy: args.with_proxy,
+    targetUrl: args.target_url,
+    orderId: args.order_id,
+    mode: args.mode,
+  });
+
+  if (args.run_prep && session.id) {
+    const preset = args.prep_preset ?? (args.service_name?.toLowerCase() === 'telegram' ? 'telegram' : 'generic');
+    const prepped = await client.prepBrowserSession(session.id, preset, args.target_url);
+    return {
+      content: [
+        {
+          type: 'text' as const,
+          text: JSON.stringify({ session: prepped, prep_preset: preset }, null, 2),
+        },
+      ],
+    };
+  }
+
+  return {
+    content: [
+      {
+        type: 'text' as const,
+        text: JSON.stringify({ session }, null, 2),
       },
     ],
   };
