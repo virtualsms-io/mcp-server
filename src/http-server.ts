@@ -39,6 +39,17 @@ import {
   BuyProxyInput,
   RotateProxyInput,
   StartManualRegistrationSessionInput,
+  RentalsAvailableInput,
+  RentalsServicesInput,
+  RentalsPriceInput,
+  CreateRentalInput,
+  ListRentalsInput,
+  GetRentalInput,
+  ExtendRentalInput,
+  CancelRentalInput,
+  ReleaseRentalInput,
+  RetryOrderInput,
+  CheckNumberInput,
   handleListProxyCatalog,
   handleListProxies,
   handleBuyProxy,
@@ -62,6 +73,18 @@ import {
   handleGetStats,
   handleGetProfile,
   handleGetTransactions,
+  handleRentalsPricing,
+  handleRentalsAvailable,
+  handleRentalsServices,
+  handleRentalsPrice,
+  handleCreateRental,
+  handleListRentals,
+  handleGetRental,
+  handleExtendRental,
+  handleCancelRental,
+  handleReleaseRental,
+  handleRetryOrder,
+  handleCheckNumber,
 } from './tools.js';
 
 import { PROMPT_DEFINITIONS, getPromptMessages } from './prompts.js';
@@ -175,6 +198,52 @@ function createMCPServer(config: ServerConfig) {
         case 'virtualsms_get_transactions': {
           const parsed = GetTransactionsInput.parse(args);
           return await handleGetTransactions(client, parsed);
+        }
+        case 'virtualsms_rentals_pricing':
+          return await handleRentalsPricing(client);
+        case 'virtualsms_rentals_available': {
+          const parsed = RentalsAvailableInput.parse(args);
+          return await handleRentalsAvailable(client, parsed);
+        }
+        case 'virtualsms_rentals_services': {
+          const parsed = RentalsServicesInput.parse(args);
+          return await handleRentalsServices(client, parsed);
+        }
+        case 'virtualsms_rentals_price': {
+          const parsed = RentalsPriceInput.parse(args);
+          return await handleRentalsPrice(client, parsed);
+        }
+        case 'virtualsms_create_rental': {
+          const parsed = CreateRentalInput.parse(args);
+          return await handleCreateRental(client, parsed);
+        }
+        case 'virtualsms_list_rentals': {
+          const parsed = ListRentalsInput.parse(args);
+          return await handleListRentals(client, parsed);
+        }
+        case 'virtualsms_get_rental': {
+          const parsed = GetRentalInput.parse(args);
+          return await handleGetRental(client, parsed);
+        }
+        case 'virtualsms_extend_rental': {
+          const parsed = ExtendRentalInput.parse(args);
+          return await handleExtendRental(client, parsed);
+        }
+        case 'virtualsms_cancel_rental': {
+          const parsed = CancelRentalInput.parse(args);
+          return await handleCancelRental(client, parsed);
+        }
+        case 'virtualsms_release_rental': {
+          const parsed = ReleaseRentalInput.parse(args);
+          return await handleReleaseRental(client, parsed);
+        }
+        case 'virtualsms_retry_order': {
+          const parsed = RetryOrderInput.parse(args);
+          return await handleRetryOrder(client, parsed);
+        }
+        case 'virtualsms_check_number': {
+          const parsed = CheckNumberInput.parse(args);
+          return await handleCheckNumber(client, parsed);
         }
         default:
           throw new McpError(ErrorCode.MethodNotFound, `Unknown tool: ${name}`);

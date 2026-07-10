@@ -156,6 +156,164 @@ export interface BrowserSessionResult {
   timeline?: Array<{ at: string; event: string; detail?: string }>;
 }
 
+// ─── Rentals ────────────────────────────────────────────────────────────────
+// Two rental tiers, reflected generically (no supplier names):
+//   "full_access" — local SIM inventory, full SMS access across any service,
+//                    no 20-minute refund countdown (early release after a
+//                    2h minimum hold instead).
+//   "platform"    — sourced via our global supplier network, locked to ONE
+//                    chosen service per number, 20-minute auto-refund window.
+
+export interface RentalPricingTier {
+  rental_type: string;
+  duration_hours: number;
+  duration_label: string;
+  base_price: number;
+  country_code: string;
+  service_id: string;
+}
+
+export interface RentalDurationPrice {
+  duration_hours: number;
+  duration_label: string;
+  price: number;
+}
+
+export interface RentalAvailabilityCountry {
+  country_code: string;
+  country_name: string;
+  flag?: string;
+  available_count: number;
+  pricing: Record<string, RentalDurationPrice[]>;
+  // Populated only for the platform tier (provider=network).
+  service_count?: number;
+  popular_services?: string[];
+  min_price_per_day?: number;
+}
+
+export interface RentalFullAccessCountry {
+  country_code: string;
+  country_name: string;
+  flag?: string;
+  available_count: number;
+  pricing: Record<string, number>; // duration_hours -> price
+}
+
+export interface RentalAvailabilityResult {
+  countries: RentalAvailabilityCountry[];
+  total_available: number;
+  full_access_countries?: RentalFullAccessCountry[];
+  provider?: string;
+}
+
+export interface RentalCatalogService {
+  service_id: string;
+  service_name: string;
+  physical_count: number;
+  our_price?: number;
+  base_price?: number;
+  popular: boolean;
+  icon_url?: string;
+}
+
+export interface RentalPriceResult {
+  price: number;
+  duration_hours: number;
+}
+
+export interface Rental {
+  id: string;
+  phone_number: string;
+  rental_type: string;
+  service_id?: string;
+  duration_hours: number;
+  started_at: string;
+  expires_at: string;
+  price: number;
+  auto_renew: boolean;
+  status: string;
+  sms_received: number;
+  sms_forwarded: number;
+  last_sms_at?: string;
+  provider: string;
+}
+
+export interface CreateRentalResult {
+  success: boolean;
+  rental_id: string;
+  phone_number: string;
+  rental_type?: string;
+  service?: string;
+  duration?: string;
+  price?: number;
+  started_at?: string;
+  expires_at: string;
+  auto_renew?: boolean;
+  status?: string;
+  retail_cost?: number;
+  currency?: string;
+}
+
+export interface RentalActionResult {
+  success: boolean;
+  rental_id: string;
+  status?: string;
+  refund?: number;
+  new_expires_at?: string;
+  price?: number;
+  hours_used?: string;
+  message?: string;
+}
+
+export interface RetryOrderResult {
+  success: boolean;
+  order_id: string;
+  message: string;
+}
+
+export interface NumberCheckResult {
+  valid: boolean;
+  e164: string;
+  national?: string;
+  country_code: string;
+  country_name: string;
+  country_prefix?: string;
+  location?: string;
+  carrier?: string;
+  line_type: string;
+  spam_risk: string;
+  cached: boolean;
+  message?: string;
+}
+
+// Internal ISO-3166 alpha-2 → platform-network numeric country ID map.
+// Required only by the platform-tier create call (the backend's create
+// endpoint takes a numeric ID; every other rentals endpoint resolves
+// country_code server-side). Server-side only in the sense that these IDs
+// carry no product/supplier meaning on their own — this is the same mapping
+// already shipped in the customer-facing frontend bundle for the same
+// purpose. Not every ISO code the platform lists is rental-capable; an
+// unmapped code means that country isn't available for platform-tier rentals.
+const PLATFORM_TIER_COUNTRY_IDS: Record<string, number> = {
+  RU: 0, UA: 1, KZ: 2, CN: 3, PH: 4, MM: 5, ID: 6, MY: 7, KE: 8, TZ: 9,
+  VN: 10, KG: 11, IL: 13, HK: 14, PL: 15, GB: 16, MG: 17, CD: 18, NG: 19,
+  MO: 20, EG: 21, IN: 22, IE: 23, KH: 24, LA: 25, HT: 26, CI: 27, GM: 28,
+  RS: 29, YE: 30, ZA: 31, RO: 32, CO: 33, EE: 34, AZ: 35, CA: 36, MA: 37,
+  GH: 38, AR: 39, UZ: 40, CM: 41, TD: 42, DE: 43, LT: 44, HR: 45, SE: 46,
+  IQ: 47, NL: 48, LV: 49, AT: 50, BY: 51, TH: 52, SA: 53, MX: 54, TW: 55,
+  ES: 56, IR: 57, DZ: 58, SI: 59, BD: 60, SN: 61, TR: 62, CZ: 63, LK: 64,
+  PE: 65, PK: 66, NZ: 67, GN: 68, ML: 69, VE: 70, ET: 71, MN: 72, BR: 73,
+  AF: 74, UG: 75, AO: 76, CY: 77, FR: 78, PG: 79, MZ: 80, NP: 81, BE: 82,
+  BG: 83, HU: 84, MD: 85, IT: 86, PY: 87, HN: 88, TN: 89, NI: 90, TL: 91,
+  BO: 92, CR: 93, GT: 94, AE: 95, ZW: 96, PR: 97, SD: 98, TG: 99, KW: 100,
+  SV: 101, LY: 102, JM: 103, TT: 104, EC: 105, SZ: 106, OM: 107, BA: 108,
+  DO: 109, SY: 110, QA: 111, PA: 112, CU: 113, MR: 114, SL: 115, JO: 116,
+  PT: 117, BB: 118, BI: 119, BJ: 120, BN: 121, BS: 122, BW: 123, CF: 125,
+  GD: 127, GE: 128, GR: 129, GW: 130, GY: 131, IS: 132, KM: 133, KN: 134,
+  LR: 135, LS: 136, MW: 137, NA: 138, NE: 139, RW: 140, SK: 141, SR: 142,
+  TJ: 143, MC: 144, BH: 145, RE: 146, ZM: 147, US: 187,
+};
+
 export class VirtualSMSClient {
   private http: AxiosInstance;
   private apiKey?: string;
@@ -475,5 +633,175 @@ export class VirtualSMSClient {
 
   getBaseUrl(): string {
     return this.baseUrl;
+  }
+
+  // ─── Rentals ──────────────────────────────────────────────────────────────
+
+  async listRentalPricing(): Promise<RentalPricingTier[]> {
+    const res = await this.http.get('/api/v1/rentals/pricing');
+    return (Array.isArray(res.data) ? res.data : []) as RentalPricingTier[];
+  }
+
+  async getRentalAvailability(params: {
+    country?: string;
+    service?: string;
+    type?: 'service' | 'full';
+    tier?: 'full_access' | 'platform';
+  } = {}): Promise<RentalAvailabilityResult> {
+    const res = await this.http.get('/api/v1/rentals/available', {
+      params: {
+        country: params.country,
+        service: params.service,
+        type: params.type,
+        // "platform" tier maps to the backend's opaque provider=network token.
+        provider: params.tier === 'platform' ? 'network' : undefined,
+      },
+    });
+    return res.data as RentalAvailabilityResult;
+  }
+
+  async listRentalServices(params: {
+    countryCode: string;
+    durationHours?: number;
+  }): Promise<RentalCatalogService[]> {
+    const res = await this.http.get('/api/v1/rentals/services', {
+      params: {
+        country_code: params.countryCode,
+        duration: params.durationHours,
+      },
+    });
+    const raw: Array<Record<string, unknown>> = Array.isArray(res.data) ? res.data : [];
+    // Explicit field allowlist — the backend response includes an internal
+    // supplier-code field we never forward (see HARD RULE 5 in this repo).
+    return raw.map((s) => ({
+      service_id: String(s.service_id ?? ''),
+      service_name: String(s.service_name ?? ''),
+      physical_count: Number(s.physical_count ?? 0),
+      our_price: s.our_price !== undefined ? Number(s.our_price) : undefined,
+      base_price: s.base_price !== undefined ? Number(s.base_price) : undefined,
+      popular: Boolean(s.popular),
+      icon_url: s.icon_url ? String(s.icon_url) : undefined,
+    }));
+  }
+
+  async getRentalPrice(params: {
+    service: string;
+    countryCode: string;
+    durationHours: number;
+  }): Promise<RentalPriceResult> {
+    const res = await this.http.get('/api/v1/rentals/price', {
+      params: {
+        service: params.service,
+        country_code: params.countryCode,
+        duration: params.durationHours,
+      },
+    });
+    return res.data as RentalPriceResult;
+  }
+
+  /** Full Access tier — local SIM inventory, any service, no refund countdown. */
+  async createFullAccessRental(params: {
+    country: string;
+    rentalType: 'service' | 'full';
+    durationHours: number;
+    service?: string;
+    autoRenew?: boolean;
+  }): Promise<CreateRentalResult> {
+    this.requireApiKey();
+    const res = await this.http.post('/api/v1/rentals', {
+      country: params.country,
+      rental_type: params.rentalType,
+      duration_hours: params.durationHours,
+      service: params.service,
+      auto_renew: params.autoRenew ?? false,
+    });
+    return res.data as CreateRentalResult;
+  }
+
+  /**
+   * Platform tier — sourced via our global supplier network, locked to one
+   * service per number, durations 1/3/7 days only, 20-minute refund window.
+   * Takes country_code (ISO) and resolves the internal numeric ID itself —
+   * callers never need to know or pass the numeric ID.
+   */
+  async createPlatformRental(params: {
+    service: string;
+    countryCode: string;
+    durationHours: number;
+  }): Promise<CreateRentalResult> {
+    this.requireApiKey();
+    const countryID = PLATFORM_TIER_COUNTRY_IDS[params.countryCode.toUpperCase()];
+    if (!countryID && countryID !== 0) {
+      throw new Error(
+        `Platform-tier rentals are not available for country_code "${params.countryCode}". ` +
+        'Use rentals_available with tier=platform to see supported countries.'
+      );
+    }
+    const res = await this.http.post('/api/v1/rentals/provider', {
+      service: params.service,
+      country: countryID,
+      duration_hours: params.durationHours,
+      provider: 'network',
+    });
+    const data = res.data as Record<string, unknown>;
+    return {
+      success: Boolean(data.success ?? true),
+      rental_id: String(data.rental_id ?? ''),
+      phone_number: String(data.phone_number ?? ''),
+      expires_at: String(data.expires_at ?? ''),
+      retail_cost: data.retail_cost !== undefined ? Number(data.retail_cost) : undefined,
+      currency: data.currency !== undefined ? String(data.currency) : undefined,
+      status: 'active',
+    };
+  }
+
+  async listRentals(status?: string): Promise<Rental[]> {
+    this.requireApiKey();
+    const res = await this.http.get('/api/v1/rentals', { params: status ? { status } : {} });
+    return (Array.isArray(res.data) ? res.data : []) as Rental[];
+  }
+
+  async getRental(rentalId: string): Promise<Rental | undefined> {
+    const all = await this.listRentals('all');
+    return all.find((r) => r.id === rentalId);
+  }
+
+  async extendRental(rentalId: string, durationHours: number): Promise<RentalActionResult> {
+    this.requireApiKey();
+    const res = await this.http.post(`/api/v1/rentals/${rentalId}/extend`, {
+      duration_hours: durationHours,
+    });
+    return res.data as RentalActionResult;
+  }
+
+  /** Full refund — only eligible within 20 minutes of purchase and 0 SMS received. Any provider. */
+  async cancelRental(rentalId: string): Promise<RentalActionResult> {
+    this.requireApiKey();
+    const res = await this.http.post(`/api/v1/rentals/${rentalId}/cancel`, {});
+    return res.data as RentalActionResult;
+  }
+
+  /** Early release with pro-rated refund — Full Access (local) tier only, after a 2h minimum hold. */
+  async releaseRental(rentalId: string): Promise<RentalActionResult> {
+    this.requireApiKey();
+    const res = await this.http.post(`/api/v1/rentals/${rentalId}/release`, {});
+    return res.data as RentalActionResult;
+  }
+
+  // ─── Orders — retry ───────────────────────────────────────────────────────
+
+  /** Ask the current provider to resend the SMS to the SAME number (not a new number — see swapNumber for that). */
+  async retryOrder(orderId: string): Promise<RetryOrderResult> {
+    this.requireApiKey();
+    const res = await this.http.post(`/api/v1/orders/${orderId}/retry`, {});
+    return res.data as RetryOrderResult;
+  }
+
+  // ─── Public tools ───────────────────────────────────────────────────────
+
+  /** Public carrier + line-type lookup for an arbitrary E.164 number. No API key required. */
+  async checkNumber(number: string): Promise<NumberCheckResult> {
+    const res = await this.http.get('/api/v1/tools/number-check', { params: { number } });
+    return res.data as NumberCheckResult;
   }
 }
