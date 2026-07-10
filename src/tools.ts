@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import WebSocket from 'ws';
-import { VirtualSMSClient } from './client.js';
+import { VirtualSMSClient, type Rental } from './client.js';
 
 // ─── Input Schemas ───────────────────────────────────────────────────────────
 
@@ -100,6 +100,68 @@ export const StartManualRegistrationSessionInput = z.object({
   mode: z.enum(['attach', 'fresh']).optional().describe('attach = reuse active session if present; fresh = new session (default fresh)'),
   run_prep: z.boolean().optional().describe('Run scripted prep immediately after start (default false)'),
   prep_preset: z.enum(['generic', 'telegram']).optional().describe('Prep preset when run_prep is true (default generic)'),
+});
+
+// ─── Rentals input schemas ────────────────────────────────────────────────────
+// Two rental tiers, reflected generically:
+//   full_access — local SIM inventory, any service, no refund countdown
+//   platform    — our global supplier network, one service per number, 20-min refund window
+
+export const RentalsPricingInput = z.object({});
+
+export const RentalsAvailableInput = z.object({
+  country: z.string().optional().describe('Optional ISO-2 country filter (e.g. "DE")'),
+  service: z.string().optional().describe('Optional service code filter (full_access tier only)'),
+  type: z.enum(['service', 'full']).optional().describe('Optional full_access sub-type filter'),
+  tier: z.enum(['full_access', 'platform']).optional().describe('Which tier to list countries for (default: full_access)'),
+});
+
+export const RentalsServicesInput = z.object({
+  country_code: z.string().describe('ISO-2 country code (e.g. "GR") — platform tier only'),
+  duration_hours: z.number().int().optional().describe('Duration in hours (default: 24)'),
+});
+
+export const RentalsPriceInput = z.object({
+  service: z.string().describe('Service code'),
+  country_code: z.string().describe('ISO-2 country code'),
+  duration_hours: z.number().int().describe('Duration in hours'),
+});
+
+export const CreateRentalInput = z.object({
+  tier: z.enum(['full_access', 'platform']).describe('full_access = local SIM, any service, no refund countdown. platform = our global supplier network, one service per number, 20-min refund window.'),
+  country: z.string().describe('ISO-2 country code (e.g. "DE")'),
+  duration_hours: z.number().int().describe('Duration in hours. full_access: whatever rentals_pricing lists (e.g. 24/168/720). platform: 24, 72, or 168 only.'),
+  service: z.string().optional().describe('Service code — required for platform tier and for full_access "service" sub-type; omit for full_access "full" (any-service) rentals'),
+  auto_renew: z.boolean().optional().describe('full_access tier only — auto-renew at expiry (default: false)'),
+});
+
+export const ListRentalsInput = z.object({
+  status: z.string().optional().describe('Optional status filter: "active", "cancelled", "completed", "expired", or "all" (default: "active")'),
+});
+
+export const GetRentalInput = z.object({
+  rental_id: z.string().describe('Rental ID to retrieve'),
+});
+
+export const ExtendRentalInput = z.object({
+  rental_id: z.string().describe('Rental ID to extend'),
+  duration_hours: z.number().int().describe('Additional duration in hours to add'),
+});
+
+export const CancelRentalInput = z.object({
+  rental_id: z.string().describe('Rental ID to cancel — full refund, only eligible within 20 minutes of purchase and before any SMS is received. Works for either tier.'),
+});
+
+export const ReleaseRentalInput = z.object({
+  rental_id: z.string().describe('Rental ID to release early — Full Access (local) tier only, pro-rated refund, requires a 2-hour minimum hold since purchase'),
+});
+
+export const RetryOrderInput = z.object({
+  order_id: z.string().describe('Order ID to request a fresh SMS resend on (same phone number — use swap_number instead for a new number)'),
+});
+
+export const CheckNumberInput = z.object({
+  number: z.string().describe('Phone number in E.164 format (e.g. "+447911123456") to look up carrier + line-type info for'),
 });
 
 // ─── Tool Definitions ────────────────────────────────────────────────────────
@@ -721,6 +783,177 @@ export const TOOL_DEFINITIONS = [
       idempotentHint: true,
       openWorldHint: true,
     },
+  },
+  {
+    name: 'virtualsms_rentals_pricing',
+    title: 'List Rental Pricing Tiers',
+    description:
+      'List all active rental pricing tiers (Full Access tier — local SIM inventory, durations and prices). ' +
+      'Use rentals_price for platform-tier (per-country, per-service) pricing instead.',
+    inputSchema: { type: 'object' as const, properties: {}, required: [] },
+    annotations: { title: 'List Rental Pricing Tiers', readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
+  },
+  {
+    name: 'virtualsms_rentals_available',
+    title: 'List Rental Country Availability',
+    description:
+      'List countries with rental stock, available counts, and pricing. tier=full_access (default) shows local-SIM ' +
+      'inventory; tier=platform shows countries available via our global supplier network (with per-country service ' +
+      'counts and popular services). Use this before creating a rental.',
+    inputSchema: {
+      type: 'object' as const,
+      properties: {
+        country: { type: 'string', description: 'Optional ISO-2 country filter' },
+        service: { type: 'string', description: 'Optional service filter (full_access tier only)' },
+        type: { type: 'string', enum: ['service', 'full'], description: 'Optional full_access sub-type filter' },
+        tier: { type: 'string', enum: ['full_access', 'platform'], description: 'Which tier to list (default: full_access)' },
+      },
+      required: [],
+    },
+    annotations: { title: 'List Rental Country Availability', readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
+  },
+  {
+    name: 'virtualsms_rentals_services',
+    title: 'List Platform-Tier Rental Services',
+    description:
+      'List services available for platform-tier rental in a given country, with physical stock counts and retail price. ' +
+      'Platform-tier rentals are locked to ONE chosen service per number — use this to pick a valid service code before creating one.',
+    inputSchema: {
+      type: 'object' as const,
+      properties: {
+        country_code: { type: 'string', description: 'ISO-2 country code (e.g. "GR")' },
+        duration_hours: { type: 'number', description: 'Duration in hours (default: 24)' },
+      },
+      required: ['country_code'],
+    },
+    annotations: { title: 'List Platform-Tier Rental Services', readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
+  },
+  {
+    name: 'virtualsms_rentals_price',
+    title: 'Get Platform-Tier Rental Price',
+    description: 'Get the catalog-driven retail price for a (service, country, duration) platform-tier rental combo.',
+    inputSchema: {
+      type: 'object' as const,
+      properties: {
+        service: { type: 'string', description: 'Service code' },
+        country_code: { type: 'string', description: 'ISO-2 country code' },
+        duration_hours: { type: 'number', description: 'Duration in hours' },
+      },
+      required: ['service', 'country_code', 'duration_hours'],
+    },
+    annotations: { title: 'Get Platform-Tier Rental Price', readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
+  },
+  {
+    name: 'virtualsms_create_rental',
+    title: 'Create Rental',
+    description:
+      'Rent a phone number for an extended period (as opposed to a one-off number via create_order). Two tiers: ' +
+      '"full_access" = local SIM inventory, works across ANY service on that number, no refund countdown (early ' +
+      'release available after a 2h minimum hold). "platform" = sourced via our global supplier network, locked to ' +
+      'ONE chosen service, durations 1/3/7 days only, with a 20-minute full-refund window. Check rentals_available ' +
+      'and rentals_price/rentals_pricing first to confirm country/service/duration and cost.',
+    inputSchema: {
+      type: 'object' as const,
+      properties: {
+        tier: { type: 'string', enum: ['full_access', 'platform'], description: 'Rental tier' },
+        country: { type: 'string', description: 'ISO-2 country code' },
+        duration_hours: { type: 'number', description: 'Duration in hours (platform tier: 24, 72, or 168 only)' },
+        service: { type: 'string', description: 'Service code — required for platform tier; optional for full_access' },
+        auto_renew: { type: 'boolean', description: 'full_access tier only — auto-renew at expiry (default: false)' },
+      },
+      required: ['tier', 'country', 'duration_hours'],
+    },
+    annotations: { title: 'Create Rental', readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
+  },
+  {
+    name: 'virtualsms_list_rentals',
+    title: 'List My Rentals',
+    description: 'List your rentals (both tiers), optionally filtered by status.',
+    inputSchema: {
+      type: 'object' as const,
+      properties: {
+        status: { type: 'string', description: 'Optional status filter: "active", "cancelled", "completed", "expired", or "all" (default: "active")' },
+      },
+      required: [],
+    },
+    annotations: { title: 'List My Rentals', readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
+  },
+  {
+    name: 'virtualsms_get_rental',
+    title: 'Get Rental Details',
+    description: 'Get the full details of a specific rental by ID.',
+    inputSchema: {
+      type: 'object' as const,
+      properties: { rental_id: { type: 'string', description: 'Rental ID to retrieve' } },
+      required: ['rental_id'],
+    },
+    annotations: { title: 'Get Rental Details', readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
+  },
+  {
+    name: 'virtualsms_extend_rental',
+    title: 'Extend Rental',
+    description: 'Extend an active rental by an additional duration. Charges your balance at the current catalog price for that duration.',
+    inputSchema: {
+      type: 'object' as const,
+      properties: {
+        rental_id: { type: 'string', description: 'Rental ID to extend' },
+        duration_hours: { type: 'number', description: 'Additional duration in hours to add' },
+      },
+      required: ['rental_id', 'duration_hours'],
+    },
+    annotations: { title: 'Extend Rental', readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
+  },
+  {
+    name: 'virtualsms_cancel_rental',
+    title: 'Cancel Rental',
+    description:
+      'Cancel a rental for a full refund. Only eligible within 20 minutes of purchase AND before any SMS has been ' +
+      'received. Works for either tier. For a Full Access rental past the 20-minute window, use release_rental instead.',
+    inputSchema: {
+      type: 'object' as const,
+      properties: { rental_id: { type: 'string', description: 'Rental ID to cancel' } },
+      required: ['rental_id'],
+    },
+    annotations: { title: 'Cancel Rental', readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: true },
+  },
+  {
+    name: 'virtualsms_release_rental',
+    title: 'Release Rental Early',
+    description:
+      'End a Full Access (local-tier) rental early for a pro-rated refund. Requires a 2-hour minimum hold since ' +
+      'purchase. NOT available for platform-tier rentals — those run to their natural expiry or must be cancelled ' +
+      'within the 20-minute window instead.',
+    inputSchema: {
+      type: 'object' as const,
+      properties: { rental_id: { type: 'string', description: 'Rental ID to release' } },
+      required: ['rental_id'],
+    },
+    annotations: { title: 'Release Rental Early', readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true },
+  },
+  {
+    name: 'virtualsms_retry_order',
+    title: 'Retry Order (Resend SMS)',
+    description:
+      'Ask the provider to resend the SMS to the SAME phone number on an existing order (order must be in ' +
+      'waiting/created status). Not all order types support this — some providers only support swap_number instead, ' +
+      'which returns a NEW number.',
+    inputSchema: {
+      type: 'object' as const,
+      properties: { order_id: { type: 'string', description: 'Order ID to retry' } },
+      required: ['order_id'],
+    },
+    annotations: { title: 'Retry Order', readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
+  },
+  {
+    name: 'virtualsms_check_number',
+    title: 'Check Phone Number',
+    description: 'Public carrier + line-type lookup for an arbitrary E.164 phone number (mobile/landline/VoIP, spam risk). No API key required.',
+    inputSchema: {
+      type: 'object' as const,
+      properties: { number: { type: 'string', description: 'Phone number in E.164 format (e.g. "+447911123456")' } },
+      required: ['number'],
+    },
+    annotations: { title: 'Check Phone Number', readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
   },
 ];
 
@@ -1769,4 +2002,126 @@ export async function handleGetTransactions(
       },
     ],
   };
+}
+
+// ─── Rentals handlers ─────────────────────────────────────────────────────────
+
+function jsonResult(payload: unknown) {
+  return {
+    content: [
+      { type: 'text' as const, text: JSON.stringify(payload, null, 2) },
+    ],
+  };
+}
+
+export async function handleRentalsPricing(client: VirtualSMSClient) {
+  return jsonResult(await client.listRentalPricing());
+}
+
+export async function handleRentalsAvailable(
+  client: VirtualSMSClient,
+  args: z.infer<typeof RentalsAvailableInput>
+) {
+  return jsonResult(await client.getRentalAvailability(args));
+}
+
+export async function handleRentalsServices(
+  client: VirtualSMSClient,
+  args: z.infer<typeof RentalsServicesInput>
+) {
+  return jsonResult(
+    await client.listRentalServices({ countryCode: args.country_code, durationHours: args.duration_hours })
+  );
+}
+
+export async function handleRentalsPrice(
+  client: VirtualSMSClient,
+  args: z.infer<typeof RentalsPriceInput>
+) {
+  return jsonResult(
+    await client.getRentalPrice({
+      service: args.service,
+      countryCode: args.country_code,
+      durationHours: args.duration_hours,
+    })
+  );
+}
+
+export async function handleCreateRental(
+  client: VirtualSMSClient,
+  args: z.infer<typeof CreateRentalInput>
+) {
+  if (args.tier === 'platform') {
+    if (!args.service) {
+      throw new Error('service is required for platform-tier rentals');
+    }
+    const result = await client.createPlatformRental({
+      service: args.service,
+      countryCode: args.country,
+      durationHours: args.duration_hours,
+    });
+    return jsonResult({ tier: 'platform', ...result });
+  }
+  const result = await client.createFullAccessRental({
+    country: args.country,
+    rentalType: args.service ? 'service' : 'full',
+    durationHours: args.duration_hours,
+    service: args.service,
+    autoRenew: args.auto_renew,
+  });
+  return jsonResult({ tier: 'full_access', ...result });
+}
+
+export async function handleListRentals(
+  client: VirtualSMSClient,
+  args: z.infer<typeof ListRentalsInput>
+) {
+  const rentals = await client.listRentals(args.status);
+  return jsonResult({ count: rentals.length, rentals });
+}
+
+export async function handleGetRental(
+  client: VirtualSMSClient,
+  args: z.infer<typeof GetRentalInput>
+) {
+  const rental: Rental | undefined = await client.getRental(args.rental_id);
+  if (!rental) {
+    return jsonResult({ error: 'not_found', message: `Rental ${args.rental_id} not found` });
+  }
+  return jsonResult(rental);
+}
+
+export async function handleExtendRental(
+  client: VirtualSMSClient,
+  args: z.infer<typeof ExtendRentalInput>
+) {
+  return jsonResult(await client.extendRental(args.rental_id, args.duration_hours));
+}
+
+export async function handleCancelRental(
+  client: VirtualSMSClient,
+  args: z.infer<typeof CancelRentalInput>
+) {
+  return jsonResult(await client.cancelRental(args.rental_id));
+}
+
+export async function handleReleaseRental(
+  client: VirtualSMSClient,
+  args: z.infer<typeof ReleaseRentalInput>
+) {
+  return jsonResult(await client.releaseRental(args.rental_id));
+}
+
+export async function handleRetryOrder(
+  client: VirtualSMSClient,
+  args: z.infer<typeof RetryOrderInput>
+) {
+  return jsonResult(await client.retryOrder(args.order_id));
+}
+
+export async function handleCheckNumber(
+  client: VirtualSMSClient,
+  args: z.infer<typeof CheckNumberInput>
+) {
+  return jsonResult(await client.checkNumber(args.number));
 }
