@@ -21,6 +21,7 @@ import {
 } from '@modelcontextprotocol/sdk/types.js';
 
 import { VirtualSMSClient } from './client.js';
+import { MockVirtualSMSClient, isSandboxEnabled } from './sandbox/mock-http.js';
 import {
   TOOL_DEFINITIONS,
   getToolDefinitions,
@@ -107,6 +108,12 @@ const DEFAULT_TIMEOUT = parseInt(process.env.VIRTUALSMS_TIMEOUT || '30', 10);
 // flag, default OFF. Truthy = "1" / "true" / "yes" (case-insensitive).
 const ENABLE_SESSIONS = /^(1|true|yes)$/i.test(process.env.VIRTUALSMS_ENABLE_SESSIONS ?? '');
 
+// Sandbox mode (VIRTUALSMS_SANDBOX=1) — zero-key, in-memory mock. Same flag
+// semantics as index.ts (stdio transport). When active, the HTTP transport's
+// H-005 "reject unauthenticated requests" gate is bypassed (see below) since
+// there's no real API key to protect and no real backend call to make.
+const SANDBOX_MODE = isSandboxEnabled(process.env);
+
 interface ServerConfig {
   apiKey: string | undefined;
   baseUrl: string;
@@ -115,7 +122,9 @@ interface ServerConfig {
 }
 
 function createMCPServer(config: ServerConfig) {
-  const client = new VirtualSMSClient(config.baseUrl, config.apiKey, config.timeout);
+  const client: VirtualSMSClient | MockVirtualSMSClient = SANDBOX_MODE
+    ? new MockVirtualSMSClient(config.baseUrl)
+    : new VirtualSMSClient(config.baseUrl, config.apiKey, config.timeout);
 
   const server = new Server(
     { name: 'virtualsms-mcp', version: '1.2.3' },
@@ -395,7 +404,9 @@ const httpServer = http.createServer(async (req, res) => {
   const apiKey = apiKeyHeader || apiKeyQuery;
 
   // H-005: reject unauthenticated requests before creating the MCP server.
-  if (!apiKey) {
+  // Sandbox mode is the one exception — there's no real key to protect and
+  // no real backend call to make, so it's safe to skip this gate.
+  if (!apiKey && !SANDBOX_MODE) {
     res.writeHead(401, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({ error: 'API key required. Provide via x-api-key header or apiKey query parameter.' }));
     return;
