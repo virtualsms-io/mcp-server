@@ -22,6 +22,7 @@ import {
 import { VirtualSMSClient } from './client.js';
 import { PROMPT_DEFINITIONS, getPromptMessages } from './prompts.js';
 import { RESOURCE_DEFINITIONS, getResourceContent } from './resources.js';
+import { SERVER_INSTRUCTIONS } from './instructions.js';
 import {
   TOOL_DEFINITIONS,
   getToolDefinitions,
@@ -119,6 +120,7 @@ const server = new Server(
       prompts: {},
       resources: {},
     },
+    instructions: SERVER_INSTRUCTIONS,
   }
 );
 
@@ -384,6 +386,7 @@ export function createSandboxServer() {
         prompts: {},
         resources: {},
       },
+      instructions: SERVER_INSTRUCTIONS,
     }
   );
 

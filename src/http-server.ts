@@ -96,6 +96,7 @@ import {
 
 import { PROMPT_DEFINITIONS, getPromptMessages } from './prompts.js';
 import { RESOURCE_DEFINITIONS, getResourceContent } from './resources.js';
+import { SERVER_INSTRUCTIONS } from './instructions.js';
 
 const PORT = parseInt(process.env.MCP_HTTP_PORT || '3456', 10);
 const DEFAULT_BASE_URL = (process.env.VIRTUALSMS_BASE_URL || 'https://virtualsms.io').replace(/\/$/, '');
@@ -118,7 +119,7 @@ function createMCPServer(config: ServerConfig) {
 
   const server = new Server(
     { name: 'virtualsms-mcp', version: '1.2.3' },
-    { capabilities: { tools: {}, prompts: {}, resources: {} } }
+    { capabilities: { tools: {}, prompts: {}, resources: {} }, instructions: SERVER_INSTRUCTIONS }
   );
 
   // ─── Tools ────────────────────────────────────────────────────────────────
