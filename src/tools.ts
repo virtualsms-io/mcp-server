@@ -102,6 +102,21 @@ export const StartManualRegistrationSessionInput = z.object({
   prep_preset: z.enum(['generic', 'telegram']).optional().describe('Prep preset when run_prep is true (default generic)'),
 });
 
+// ─── Session-drive tools (gated behind VIRTUALSMS_ENABLE_SESSIONS) ───────────
+
+export const StopSessionInput = z.object({
+  session_id: z.string().describe('Browser session ID to stop'),
+});
+
+export const NavigateSessionInput = z.object({
+  session_id: z.string().describe('Active browser session ID to navigate'),
+  url: z.string().describe('URL to navigate the session to'),
+});
+
+export const SessionViewerInput = z.object({
+  session_id: z.string().describe('Browser session ID to get the live viewer URL for'),
+});
+
 // ─── Rentals input schemas ────────────────────────────────────────────────────
 // Two rental tiers, reflected generically:
 //   full_access — local SIM inventory, any service, no refund countdown
@@ -955,7 +970,55 @@ export const TOOL_DEFINITIONS = [
     },
     annotations: { title: 'Check Phone Number', readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
   },
+  // ─── Session-drive tools — gated behind VIRTUALSMS_ENABLE_SESSIONS (default off) ───
+  {
+    name: 'virtualsms_stop_session',
+    title: 'Stop Browser Session',
+    description: 'Stop an active browser session and release it.',
+    inputSchema: {
+      type: 'object' as const,
+      properties: { session_id: { type: 'string', description: 'Browser session ID to stop' } },
+      required: ['session_id'],
+    },
+    annotations: { title: 'Stop Browser Session', readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: true },
+    requiresSessions: true,
+  },
+  {
+    name: 'virtualsms_navigate_session',
+    title: 'Navigate Browser Session',
+    description: 'Navigate an active browser session to a URL.',
+    inputSchema: {
+      type: 'object' as const,
+      properties: {
+        session_id: { type: 'string', description: 'Active browser session ID to navigate' },
+        url: { type: 'string', description: 'URL to navigate the session to' },
+      },
+      required: ['session_id', 'url'],
+    },
+    annotations: { title: 'Navigate Browser Session', readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
+    requiresSessions: true,
+  },
+  {
+    name: 'virtualsms_session_viewer',
+    title: 'Get Session Live Viewer',
+    description: 'Get the live viewer URL and current status for an active browser session.',
+    inputSchema: {
+      type: 'object' as const,
+      properties: { session_id: { type: 'string', description: 'Browser session ID to get the live viewer URL for' } },
+      required: ['session_id'],
+    },
+    annotations: { title: 'Get Session Live Viewer', readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
+    requiresSessions: true,
+  },
 ];
+
+// Marker used by index.ts / http-server.ts to gate the 3 session-drive tools
+// above behind VIRTUALSMS_ENABLE_SESSIONS (default off). Tools with no
+// `requiresSessions` marker are always served — unaffected by the flag.
+export function getToolDefinitions(enableSessions: boolean) {
+  if (enableSessions) return TOOL_DEFINITIONS;
+  return TOOL_DEFINITIONS.filter((t) => !('requiresSessions' in t) || !t.requiresSessions);
+}
 
 // ─── Tool Handlers ────────────────────────────────────────────────────────────
 
@@ -2124,4 +2187,73 @@ export async function handleCheckNumber(
   args: z.infer<typeof CheckNumberInput>
 ) {
   return jsonResult(await client.checkNumber(args.number));
+}
+
+// ─── Session-drive handlers (gated behind VIRTUALSMS_ENABLE_SESSIONS) ────────
+
+// The session-drive endpoints don't exist on every deployed VirtualSMS host
+// yet (feature-flagged server-side). Surface a clean generic message instead
+// of a raw 404/503 — never leak the upstream supplier name in the error text.
+function isSessionsUnavailableError(err: unknown): boolean {
+  const message = (err as Error)?.message ?? '';
+  return (
+    message.includes('Not found') ||
+    message.includes('404') ||
+    message.includes('server error (503)') ||
+    message.includes('not available')
+  );
+}
+
+const SESSIONS_UNAVAILABLE_MESSAGE = 'Browser sessions are not available on this endpoint.';
+
+export async function handleStopSession(
+  client: VirtualSMSClient,
+  args: z.infer<typeof StopSessionInput>
+) {
+  try {
+    const session = await client.stopBrowserSession(args.session_id);
+    return jsonResult({ session });
+  } catch (err) {
+    if (isSessionsUnavailableError(err)) {
+      return { ...jsonResult({ error: SESSIONS_UNAVAILABLE_MESSAGE }), isError: true };
+    }
+    throw err;
+  }
+}
+
+export async function handleNavigateSession(
+  client: VirtualSMSClient,
+  args: z.infer<typeof NavigateSessionInput>
+) {
+  try {
+    const result = await client.navigateBrowserSession(args.session_id, args.url);
+    return jsonResult(result);
+  } catch (err) {
+    if (isSessionsUnavailableError(err)) {
+      return { ...jsonResult({ error: SESSIONS_UNAVAILABLE_MESSAGE }), isError: true };
+    }
+    throw err;
+  }
+}
+
+export async function handleSessionViewer(
+  client: VirtualSMSClient,
+  args: z.infer<typeof SessionViewerInput>
+) {
+  try {
+    const session = await client.getBrowserSession(args.session_id);
+    if (!session.viewer_url) {
+      return jsonResult({
+        id: session.id,
+        status: session.status,
+        message: 'No live viewer is available for this session yet.',
+      });
+    }
+    return jsonResult({ id: session.id, status: session.status, viewer_url: session.viewer_url });
+  } catch (err) {
+    if (isSessionsUnavailableError(err)) {
+      return { ...jsonResult({ error: SESSIONS_UNAVAILABLE_MESSAGE }), isError: true };
+    }
+    throw err;
+  }
 }

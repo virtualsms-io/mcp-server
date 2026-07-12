@@ -23,6 +23,7 @@ import {
 import { VirtualSMSClient } from './client.js';
 import {
   TOOL_DEFINITIONS,
+  getToolDefinitions,
   CheckPriceInput,
   BuyNumberInput,
   CheckSmsInput,
@@ -39,6 +40,9 @@ import {
   BuyProxyInput,
   RotateProxyInput,
   StartManualRegistrationSessionInput,
+  StopSessionInput,
+  NavigateSessionInput,
+  SessionViewerInput,
   RentalsAvailableInput,
   RentalsServicesInput,
   RentalsPriceInput,
@@ -55,6 +59,9 @@ import {
   handleBuyProxy,
   handleRotateProxy,
   handleStartManualRegistrationSession,
+  handleStopSession,
+  handleNavigateSession,
+  handleSessionViewer,
   handleListServices,
   handleListCountries,
   handleCheckPrice,
@@ -95,6 +102,10 @@ const DEFAULT_BASE_URL = (process.env.VIRTUALSMS_BASE_URL || 'https://virtualsms
 const DEFAULT_COUNTRY = process.env.VIRTUALSMS_DEFAULT_COUNTRY || 'US';
 const DEFAULT_TIMEOUT = parseInt(process.env.VIRTUALSMS_TIMEOUT || '30', 10);
 
+// Session-drive tools (stop/navigate/session_viewer) are gated behind this
+// flag, default OFF. Truthy = "1" / "true" / "yes" (case-insensitive).
+const ENABLE_SESSIONS = /^(1|true|yes)$/i.test(process.env.VIRTUALSMS_ENABLE_SESSIONS ?? '');
+
 interface ServerConfig {
   apiKey: string | undefined;
   baseUrl: string;
@@ -113,7 +124,7 @@ function createMCPServer(config: ServerConfig) {
   // ─── Tools ────────────────────────────────────────────────────────────────
 
   server.setRequestHandler(ListToolsRequestSchema, async () => {
-    return { tools: TOOL_DEFINITIONS };
+    return { tools: getToolDefinitions(ENABLE_SESSIONS) };
   });
 
   server.setRequestHandler(CallToolRequestSchema, async (request) => {
@@ -136,6 +147,21 @@ function createMCPServer(config: ServerConfig) {
         case 'virtualsms_start_manual_registration_session': {
           const parsed = StartManualRegistrationSessionInput.parse(args);
           return await handleStartManualRegistrationSession(client, parsed);
+        }
+        case 'virtualsms_stop_session': {
+          if (!ENABLE_SESSIONS) throw new McpError(ErrorCode.MethodNotFound, `Unknown tool: ${name}`);
+          const parsed = StopSessionInput.parse(args);
+          return await handleStopSession(client, parsed);
+        }
+        case 'virtualsms_navigate_session': {
+          if (!ENABLE_SESSIONS) throw new McpError(ErrorCode.MethodNotFound, `Unknown tool: ${name}`);
+          const parsed = NavigateSessionInput.parse(args);
+          return await handleNavigateSession(client, parsed);
+        }
+        case 'virtualsms_session_viewer': {
+          if (!ENABLE_SESSIONS) throw new McpError(ErrorCode.MethodNotFound, `Unknown tool: ${name}`);
+          const parsed = SessionViewerInput.parse(args);
+          return await handleSessionViewer(client, parsed);
         }
         case 'virtualsms_list_services':
           return await handleListServices(client);

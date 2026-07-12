@@ -150,10 +150,17 @@ export interface BrowserSessionResult {
   device_mode?: string;
   with_proxy?: boolean;
   debug_url?: string;
+  viewer_url?: string;
   target_url?: string;
   order_id?: string;
   phone_number?: string;
   timeline?: Array<{ at: string; event: string; detail?: string }>;
+}
+
+export interface NavigateSessionResult {
+  ok: boolean;
+  status: string;
+  url: string;
 }
 
 // ─── Rentals ────────────────────────────────────────────────────────────────
@@ -623,6 +630,21 @@ export class VirtualSMSClient {
   async stopBrowserSession(sessionId: string): Promise<BrowserSessionResult> {
     this.requireApiKey();
     const res = await this.http.post(`/api/v1/browser-sessions/${sessionId}/stop`, {});
+    const data = res.data as { session?: BrowserSessionResult };
+    return data.session ?? (res.data as BrowserSessionResult);
+  }
+
+  /** Drive an existing (owned) session's address bar to a URL — runs async server-side, returns 202 immediately. */
+  async navigateBrowserSession(sessionId: string, url: string): Promise<NavigateSessionResult> {
+    this.requireApiKey();
+    const res = await this.http.post(`/api/v1/browser-sessions/${sessionId}/navigate`, { url });
+    return res.data as NavigateSessionResult;
+  }
+
+  /** Session detail incl. our own proxied viewer_url (never the raw upstream debug URL). */
+  async getBrowserSession(sessionId: string): Promise<BrowserSessionResult> {
+    this.requireApiKey();
+    const res = await this.http.get(`/api/v1/browser-sessions/${sessionId}`);
     const data = res.data as { session?: BrowserSessionResult };
     return data.session ?? (res.data as BrowserSessionResult);
   }
