@@ -1,4 +1,5 @@
 import axios, { AxiosInstance, AxiosError } from 'axios';
+import { randomUUID } from 'node:crypto';
 
 export interface Service {
   code: string;
@@ -321,7 +322,7 @@ const PLATFORM_TIER_COUNTRY_IDS: Record<string, number> = {
   TJ: 143, MC: 144, BH: 145, RE: 146, ZM: 147, US: 187,
 };
 
-export class VirtualSMSClient {
+export class VirtualSMSClient implements IVirtualSMSClient {
   private http: AxiosInstance;
   private apiKey?: string;
   private baseUrl: string;
@@ -343,6 +344,15 @@ export class VirtualSMSClient {
       if (this.apiKey) {
         config.headers['X-API-Key'] = this.apiKey;
       }
+      // Auto-generate a fresh X-Idempotency-Key on every mutating request
+      // (POST/PUT/PATCH/DELETE). Forward-compatible: the proxies endpoint
+      // already dedups on this header/body key; orders/rentals endpoints
+      // ignore it harmlessly until backend support lands there too. GETs
+      // never get a key — nothing to dedup on a read.
+      const method = (config.method ?? 'get').toLowerCase();
+      if (method !== 'get' && method !== 'head') {
+        config.headers['X-Idempotency-Key'] = randomUUID();
+      }
       return config;
     });
 
@@ -352,7 +362,12 @@ export class VirtualSMSClient {
       (err: AxiosError) => {
         const status = err.response?.status;
         const data = err.response?.data as Record<string, unknown> | undefined;
-        const message = data?.message || data?.error || err.message;
+        const rawMessage = data?.message || data?.error || err.message;
+        // Surface the raw backend error text when present, not just err.message,
+        // so the agent sees the actual reason instead of a generic axios string.
+        const message = typeof rawMessage === 'string' ? rawMessage : JSON.stringify(rawMessage);
+        const method = (err.config?.method ?? 'get').toLowerCase();
+        const isMutating = method !== 'get' && method !== 'head';
 
         if (status === 401) {
           throw new Error('Invalid API key. Get one at https://virtualsms.io');
@@ -363,7 +378,17 @@ export class VirtualSMSClient {
         } else if (status === 429) {
           throw new Error('Rate limit exceeded. Please slow down requests.');
         } else if (status && status >= 500) {
-          throw new Error(`VirtualSMS server error (${status}). Please try again.`);
+          // Anti-blind-retry: a 5xx on a mutating call (purchase/create/cancel/
+          // extend/etc.) does NOT mean the operation failed server-side — it
+          // may have gone through before the error was returned. Never tell
+          // the agent to just retry a money-moving call blind.
+          throw new Error(
+            isMutating
+              ? `VirtualSMS had a server error (${status}) on a request that may have made a purchase or changed state. ` +
+                `DO NOT blindly retry: first verify with a list/get tool (e.g. list_orders, list_rentals, get_order) ` +
+                `whether it actually succeeded, as you may have been charged. Details: ${message}`
+              : `VirtualSMS server error (${status}). Safe to retry this read-only request. Details: ${message}`
+          );
         }
         throw new Error(`API error: ${message}`);
       }
@@ -826,4 +851,101 @@ export class VirtualSMSClient {
     const res = await this.http.get('/api/v1/tools/number-check', { params: { number } });
     return res.data as NumberCheckResult;
   }
+}
+
+// ─── Client interface ────────────────────────────────────────────────────────
+// Structural contract shared by VirtualSMSClient (real backend) and
+// MockVirtualSMSClient (sandbox — see src/sandbox/mock-http.ts). Tool handlers
+// in tools.ts accept this interface instead of the concrete class so the same
+// handler code runs unmodified against either implementation.
+export interface IVirtualSMSClient {
+  requireApiKey(): void;
+  getApiKey(): string | undefined;
+  getBaseUrl(): string;
+
+  listServices(): Promise<Service[]>;
+  listCountries(): Promise<Country[]>;
+  checkPrice(service: string, country: string): Promise<Price>;
+  checkNumber(number: string): Promise<NumberCheckResult>;
+
+  getBalance(): Promise<Balance>;
+  getProfile(): Promise<Profile>;
+  getTransactions(params?: {
+    type?: string;
+    from?: string;
+    to?: string;
+    limit?: number;
+    offset?: number;
+  }): Promise<TransactionsPage>;
+
+  createOrder(service: string, country: string): Promise<Order>;
+  getOrder(orderId: string): Promise<Order>;
+  swapNumber(orderId: string): Promise<Order>;
+  cancelOrder(orderId: string): Promise<CancelResult>;
+  completeOrder(orderId: string): Promise<Order>;
+  listOrders(status?: string): Promise<Order[]>;
+
+  listProxyCatalog(): Promise<ProxyCatalogPoolType[]>;
+  listProxies(): Promise<ProxyListItem[]>;
+  purchaseProxy(params: {
+    pool_type: string;
+    gb: number;
+    country_code?: string;
+    idempotency_key?: string;
+  }): Promise<ProxyPurchaseResult>;
+  rotateProxy(proxyId: string, port?: number): Promise<ProxyRotateResult>;
+
+  startManualRegistrationSession(params: {
+    serviceName?: string;
+    country?: string;
+    deviceMode?: 'desktop' | 'mobile';
+    withProxy?: boolean;
+    targetUrl?: string;
+    orderId?: string;
+    mode?: 'attach' | 'fresh';
+  }): Promise<BrowserSessionResult>;
+  prepBrowserSession(
+    sessionId: string,
+    preset: 'generic' | 'telegram',
+    targetUrl?: string,
+  ): Promise<BrowserSessionResult>;
+  stopBrowserSession(sessionId: string): Promise<BrowserSessionResult>;
+  navigateBrowserSession(sessionId: string, url: string): Promise<NavigateSessionResult>;
+  getBrowserSession(sessionId: string): Promise<BrowserSessionResult>;
+
+  listRentalPricing(): Promise<RentalPricingTier[]>;
+  getRentalAvailability(params?: {
+    country?: string;
+    service?: string;
+    type?: 'service' | 'full';
+    tier?: 'full_access' | 'platform';
+  }): Promise<RentalAvailabilityResult>;
+  listRentalServices(params: {
+    countryCode: string;
+    durationHours?: number;
+  }): Promise<RentalCatalogService[]>;
+  getRentalPrice(params: {
+    service: string;
+    countryCode: string;
+    durationHours: number;
+  }): Promise<RentalPriceResult>;
+  createFullAccessRental(params: {
+    country: string;
+    rentalType: 'service' | 'full';
+    durationHours: number;
+    service?: string;
+    autoRenew?: boolean;
+  }): Promise<CreateRentalResult>;
+  createPlatformRental(params: {
+    service: string;
+    countryCode: string;
+    durationHours: number;
+  }): Promise<CreateRentalResult>;
+  listRentals(status?: string): Promise<Rental[]>;
+  getRental(rentalId: string): Promise<Rental | undefined>;
+  extendRental(rentalId: string, durationHours: number): Promise<RentalActionResult>;
+  cancelRental(rentalId: string): Promise<RentalActionResult>;
+  releaseRental(rentalId: string): Promise<RentalActionResult>;
+
+  retryOrder(orderId: string): Promise<RetryOrderResult>;
 }

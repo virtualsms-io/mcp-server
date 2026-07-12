@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import WebSocket from 'ws';
-import { VirtualSMSClient, type Rental } from './client.js';
+import { type IVirtualSMSClient, type Rental } from './client.js';
 
 // ─── Input Schemas ───────────────────────────────────────────────────────────
 
@@ -415,7 +415,8 @@ export const TOOL_DEFINITIONS = [
     description:
       'Purchase a virtual phone number for SMS verification. ' +
       'Returns order_id and phone_number. ' +
-      'Use check_sms to poll for the verification code, or use wait_for_code to do it automatically.',
+      'Codes typically arrive within ~10-60 seconds after purchase. ' +
+      'Use check_sms to poll for the verification code, or use wait_for_sms to block until it arrives.',
     inputSchema: {
       type: 'object' as const,
       properties: {
@@ -496,6 +497,8 @@ export const TOOL_DEFINITIONS = [
     title: 'Wait for SMS on Existing Order',
     description:
       'Wait (block) until the SMS arrives on an existing order_id, or until timeout. ' +
+      'Codes typically arrive within ~10-60 seconds. ' +
+      'This call BLOCKS for up to timeout_seconds (default 60, max 600) before returning. ' +
       'Uses real-time WebSocket delivery with automatic polling fallback. ' +
       'Pass an order_id from create_order. To buy AND wait in one step, call create_order then this tool.',
     inputSchema: {
@@ -1022,74 +1025,39 @@ export function getToolDefinitions(enableSessions: boolean) {
 
 // ─── Tool Handlers ────────────────────────────────────────────────────────────
 
-export async function handleListServices(client: VirtualSMSClient) {
+export async function handleListServices(client: IVirtualSMSClient) {
   const services = await client.listServices();
-  return {
-    content: [
-      {
-        type: 'text' as const,
-        text: JSON.stringify(services, null, 2),
-      },
-    ],
-  };
+  return jsonResult(services);
 }
 
-export async function handleListProxyCatalog(client: VirtualSMSClient) {
+export async function handleListProxyCatalog(client: IVirtualSMSClient) {
   const catalog = await client.listProxyCatalog();
-  return {
-    content: [
-      {
-        type: 'text' as const,
-        text: JSON.stringify(catalog, null, 2),
-      },
-    ],
-  };
+  return jsonResult(catalog);
 }
 
-export async function handleListProxies(client: VirtualSMSClient) {
+export async function handleListProxies(client: IVirtualSMSClient) {
   const proxies = await client.listProxies();
-  return {
-    content: [
-      {
-        type: 'text' as const,
-        text: JSON.stringify(proxies, null, 2),
-      },
-    ],
-  };
+  return jsonResult(proxies);
 }
 
 export async function handleBuyProxy(
-  client: VirtualSMSClient,
+  client: IVirtualSMSClient,
   args: z.infer<typeof BuyProxyInput>
 ) {
   const result = await client.purchaseProxy(args);
-  return {
-    content: [
-      {
-        type: 'text' as const,
-        text: JSON.stringify(result, null, 2),
-      },
-    ],
-  };
+  return jsonResult(result);
 }
 
 export async function handleRotateProxy(
-  client: VirtualSMSClient,
+  client: IVirtualSMSClient,
   args: z.infer<typeof RotateProxyInput>
 ) {
   const result = await client.rotateProxy(args.proxy_id, args.port);
-  return {
-    content: [
-      {
-        type: 'text' as const,
-        text: JSON.stringify(result, null, 2),
-      },
-    ],
-  };
+  return jsonResult(result);
 }
 
 export async function handleStartManualRegistrationSession(
-  client: VirtualSMSClient,
+  client: IVirtualSMSClient,
   args: z.infer<typeof StartManualRegistrationSessionInput>
 ) {
   const session = await client.startManualRegistrationSession({
@@ -1105,40 +1073,19 @@ export async function handleStartManualRegistrationSession(
   if (args.run_prep && session.id) {
     const preset = args.prep_preset ?? (args.service_name?.toLowerCase() === 'telegram' ? 'telegram' : 'generic');
     const prepped = await client.prepBrowserSession(session.id, preset, args.target_url);
-    return {
-      content: [
-        {
-          type: 'text' as const,
-          text: JSON.stringify({ session: prepped, prep_preset: preset }, null, 2),
-        },
-      ],
-    };
+    return jsonResult({ session: prepped, prep_preset: preset });
   }
 
-  return {
-    content: [
-      {
-        type: 'text' as const,
-        text: JSON.stringify({ session }, null, 2),
-      },
-    ],
-  };
+  return jsonResult({ session });
 }
 
-export async function handleListCountries(client: VirtualSMSClient) {
+export async function handleListCountries(client: IVirtualSMSClient) {
   const countries = await client.listCountries();
-  return {
-    content: [
-      {
-        type: 'text' as const,
-        text: JSON.stringify(countries, null, 2),
-      },
-    ],
-  };
+  return jsonResult(countries);
 }
 
 export async function handleCheckPrice(
-  client: VirtualSMSClient,
+  client: IVirtualSMSClient,
   args: z.infer<typeof CheckPriceInput>
 ) {
   let price;
@@ -1148,83 +1095,36 @@ export async function handleCheckPrice(
     const msg = (err as Error).message ?? '';
     // 404 or explicit unavailability → return clear user-facing message
     if (msg.includes('Not found') || msg.includes('404')) {
-      return {
-        content: [
-          {
-            type: 'text' as const,
-            text: JSON.stringify(
-              { available: false, message: 'Service/country combination not available' },
-              null,
-              2
-            ),
-          },
-        ],
-      };
+      return jsonResult({ available: false, message: 'Service/country combination not available' });
     }
     throw err;
   }
 
   // Guard: if backend says not available, don't pass through a misleading result
   if (!price.available) {
-    return {
-      content: [
-        {
-          type: 'text' as const,
-          text: JSON.stringify(
-            { available: false, message: 'Service/country combination not available' },
-            null,
-            2
-          ),
-        },
-      ],
-    };
+    return jsonResult({ available: false, message: 'Service/country combination not available' });
   }
 
-  return {
-    content: [
-      {
-        type: 'text' as const,
-        text: JSON.stringify(price, null, 2),
-      },
-    ],
-  };
+  return jsonResult(price);
 }
 
-export async function handleGetBalance(client: VirtualSMSClient) {
+export async function handleGetBalance(client: IVirtualSMSClient) {
   const balance = await client.getBalance();
-  return {
-    content: [
-      {
-        type: 'text' as const,
-        text: JSON.stringify(balance, null, 2),
-      },
-    ],
-  };
+  return jsonResult(balance);
 }
 
 export async function handleBuyNumber(
-  client: VirtualSMSClient,
+  client: IVirtualSMSClient,
   args: z.infer<typeof BuyNumberInput>
 ) {
   const order = await client.createOrder(args.service, args.country);
-  return {
-    content: [
-      {
-        type: 'text' as const,
-        text: JSON.stringify(
-          {
-            order_id: order.order_id,
-            phone_number: order.phone_number,
-            expires_at: order.expires_at,
-            status: order.status,
-            tip: 'Use check_sms to poll for the code, or cancel_order to refund.',
-          },
-          null,
-          2
-        ),
-      },
-    ],
-  };
+  return jsonResult({
+    order_id: order.order_id,
+    phone_number: order.phone_number,
+    expires_at: order.expires_at,
+    status: order.status,
+    tip: 'Codes typically arrive within ~10-60 seconds. Use check_sms to poll for the code, or wait_for_sms to block until it arrives. cancel_order to refund.',
+  });
 }
 
 // Pull the most likely numeric verification code out of an SMS body.
@@ -1236,7 +1136,7 @@ function extractCode(text: string): string | undefined {
 }
 
 export async function handleCheckSms(
-  client: VirtualSMSClient,
+  client: IVirtualSMSClient,
   args: z.infer<typeof CheckSmsInput>
 ) {
   const order = await client.getOrder(args.order_id);
@@ -1263,14 +1163,7 @@ export async function handleCheckSms(
   if (code) result.sms_code = code;
   if (firstContent) result.sms_text = firstContent;
 
-  return {
-    content: [
-      {
-        type: 'text' as const,
-        text: JSON.stringify(result, null, 2),
-      },
-    ],
-  };
+  return jsonResult(result);
 }
 
 // preCheckCooldown reads cancel_available_at / swap_available_at off an order
@@ -1281,7 +1174,7 @@ export async function handleCheckSms(
 function preCheckCooldown(
   availableAt: string | undefined,
   action: 'cancel' | 'swap'
-): { content: Array<{ type: 'text'; text: string }>; isError: boolean } | null {
+): (ReturnType<typeof jsonResult> & { isError: boolean }) | null {
   if (!availableAt) return null;
   const availableMs = Date.parse(availableAt);
   if (!Number.isFinite(availableMs)) return null;
@@ -1289,28 +1182,19 @@ function preCheckCooldown(
   if (now >= availableMs) return null;
   const waitSeconds = Math.ceil((availableMs - now) / 1000);
   return {
-    content: [
-      {
-        type: 'text' as const,
-        text: JSON.stringify(
-          {
-            error: 'cooldown_active',
-            action,
-            message: `${action === 'cancel' ? 'Cancel' : 'Swap'} cooldown active. Try again in ${waitSeconds} seconds.`,
-            retry_at: availableAt,
-            wait_seconds: waitSeconds,
-          },
-          null,
-          2
-        ),
-      },
-    ],
+    ...jsonResult({
+      error: 'cooldown_active',
+      action,
+      message: `${action === 'cancel' ? 'Cancel' : 'Swap'} cooldown active. Try again in ${waitSeconds} seconds.`,
+      retry_at: availableAt,
+      wait_seconds: waitSeconds,
+    }),
     isError: true,
   };
 }
 
 export async function handleCancelOrder(
-  client: VirtualSMSClient,
+  client: IVirtualSMSClient,
   args: z.infer<typeof CancelOrderInput>
 ) {
   // Pre-check: fetch order to see if cancel_available_at is still in the future.
@@ -1325,18 +1209,11 @@ export async function handleCancelOrder(
   }
 
   const result = await client.cancelOrder(args.order_id);
-  return {
-    content: [
-      {
-        type: 'text' as const,
-        text: JSON.stringify(result, null, 2),
-      },
-    ],
-  };
+  return jsonResult(result);
 }
 
 export async function handleSwapNumber(
-  client: VirtualSMSClient,
+  client: IVirtualSMSClient,
   args: z.infer<typeof SwapNumberInput>
 ) {
   // Pre-check: fetch order to see if swap_available_at is still in the future.
@@ -1350,14 +1227,7 @@ export async function handleSwapNumber(
   }
 
   const result = await client.swapNumber(args.order_id);
-  return {
-    content: [
-      {
-        type: 'text' as const,
-        text: JSON.stringify(result, null, 2),
-      },
-    ],
-  };
+  return jsonResult(result);
 }
 
 // ─── WebSocket + Polling for wait_for_code ────────────────────────────────────
@@ -1459,7 +1329,7 @@ function waitForSMSViaWebSocket(
 }
 
 export async function handleWaitForCode(
-  client: VirtualSMSClient,
+  client: IVirtualSMSClient,
   args: z.infer<typeof WaitForCodeInput>
 ) {
   const timeoutMs = (args.timeout_seconds ?? 60) * 1000;
@@ -1488,31 +1358,20 @@ export async function handleWaitForCode(
   ) => {
     const firstContent = messages[0]?.content || '';
     const code = extractCode(firstContent);
-    return {
-      content: [
-        {
-          type: 'text' as const,
-          text: JSON.stringify(
-            {
-              success: true,
-              order_id: orderId,
-              phone_number: phoneNumber,
-              status: 'sms_received',
-              messages,
-              code,
-              // Backward-compat aliases
-              sms_code: code,
-              sms_text: firstContent,
-              delivery_method: deliveryMethod,
-              elapsed_seconds: Math.round((Date.now() - startTime) / 1000),
-              ...(pollAttempts !== undefined ? { poll_attempts: pollAttempts } : {}),
-            },
-            null,
-            2
-          ),
-        },
-      ],
-    };
+    return jsonResult({
+      success: true,
+      order_id: orderId,
+      phone_number: phoneNumber,
+      status: 'sms_received',
+      messages,
+      code,
+      // Backward-compat aliases
+      sms_code: code,
+      sms_text: firstContent,
+      delivery_method: deliveryMethod,
+      elapsed_seconds: Math.round((Date.now() - startTime) / 1000),
+      ...(pollAttempts !== undefined ? { poll_attempts: pollAttempts } : {}),
+    });
   };
 
   // Short-circuit: SMS already delivered before we got called.
@@ -1578,25 +1437,14 @@ export async function handleWaitForCode(
   }
 
   // Timeout — return order_id for crash recovery (don't cancel automatically).
-  return {
-    content: [
-      {
-        type: 'text' as const,
-        text: JSON.stringify(
-          {
-            success: false,
-            error: 'timeout',
-            message: `No SMS received within ${args.timeout_seconds} seconds.`,
-            order_id: orderId,
-            phone_number: phoneNumber,
-            tip: 'Call get_sms with this order_id later to check, or cancel_order to refund.',
-          },
-          null,
-          2
-        ),
-      },
-    ],
-  };
+  return jsonResult({
+    success: false,
+    error: 'timeout',
+    message: `No SMS received within ${args.timeout_seconds} seconds.`,
+    order_id: orderId,
+    phone_number: phoneNumber,
+    tip: 'Call get_sms with this order_id later to check, or cancel_order to refund.',
+  });
 }
 
 function sleep(ms: number): Promise<void> {
@@ -1604,7 +1452,7 @@ function sleep(ms: number): Promise<void> {
 }
 
 export async function handleFindCheapest(
-  client: VirtualSMSClient,
+  client: IVirtualSMSClient,
   args: z.infer<typeof FindCheapestInput>
 ) {
   const limit = args.limit ?? 5;
@@ -1641,45 +1489,23 @@ export async function handleFindCheapest(
   const top = results.slice(0, limit);
 
   if (top.length === 0) {
-    return {
-      content: [
-        {
-          type: 'text' as const,
-          text: JSON.stringify(
-            {
-              service: args.service,
-              cheapest_options: [],
-              total_available_countries: 0,
-              message: `No countries available for service "${args.service}". Use search_service to verify the service code, or list_services to see all available services.`,
-            },
-            null,
-            2
-          ),
-        },
-      ],
-    };
+    return jsonResult({
+      service: args.service,
+      cheapest_options: [],
+      total_available_countries: 0,
+      message: `No countries available for service "${args.service}". Use search_service to verify the service code, or list_services to see all available services.`,
+    });
   }
 
-  return {
-    content: [
-      {
-        type: 'text' as const,
-        text: JSON.stringify(
-          {
-            service: args.service,
-            cheapest_options: top,
-            total_available_countries: results.length,
-          },
-          null,
-          2
-        ),
-      },
-    ],
-  };
+  return jsonResult({
+    service: args.service,
+    cheapest_options: top,
+    total_available_countries: results.length,
+  });
 }
 
 export async function handleSearchService(
-  client: VirtualSMSClient,
+  client: IVirtualSMSClient,
   args: z.infer<typeof SearchServiceInput>
 ) {
   const services = await client.listServices();
@@ -1719,65 +1545,45 @@ export async function handleSearchService(
     .sort((a, b) => b.match_score - a.match_score)
     .slice(0, 5);
 
-  return {
-    content: [
-      {
-        type: 'text' as const,
-        text: JSON.stringify(
-          matches.length > 0
-            ? {
-                query: args.query,
-                matches,
-                tip: `Use the "code" field as the service parameter in other tools.`,
-              }
-            : {
-                query: args.query,
-                matches: [],
-                message: 'No matching services found',
-                tip: `Try list_services to browse all available services.`,
-              },
-          null,
-          2
-        ),
-      },
-    ],
-  };
+  return jsonResult(
+    matches.length > 0
+      ? {
+          query: args.query,
+          matches,
+          tip: `Use the "code" field as the service parameter in other tools.`,
+        }
+      : {
+          query: args.query,
+          matches: [],
+          message: 'No matching services found',
+          tip: `Try list_services to browse all available services.`,
+        }
+  );
 }
 
 export async function handleActiveOrders(
-  client: VirtualSMSClient,
+  client: IVirtualSMSClient,
   args: z.infer<typeof ActiveOrdersInput>
 ) {
   const orders = await client.listOrders(args.status);
-  return {
-    content: [
-      {
-        type: 'text' as const,
-        text: JSON.stringify(
-          {
-            count: orders.length,
-            orders: orders.map((o) => ({
-              order_id: o.order_id,
-              phone_number: o.phone_number,
-              status: o.status,
-              sms_code: o.sms_code,
-              sms_text: o.sms_text,
-              expires_at: o.expires_at,
-            })),
-            tip: orders.length > 0
-              ? 'Use check_sms with any order_id to get the latest status, or cancel_order to refund pending orders.'
-              : 'No orders found.',
-          },
-          null,
-          2
-        ),
-      },
-    ],
-  };
+  return jsonResult({
+    count: orders.length,
+    orders: orders.map((o) => ({
+      order_id: o.order_id,
+      phone_number: o.phone_number,
+      status: o.status,
+      sms_code: o.sms_code,
+      sms_text: o.sms_text,
+      expires_at: o.expires_at,
+    })),
+    tip: orders.length > 0
+      ? 'Use check_sms with any order_id to get the latest status, or cancel_order to refund pending orders.'
+      : 'No orders found.',
+  });
 }
 
 export async function handleGetOrder(
-  client: VirtualSMSClient,
+  client: IVirtualSMSClient,
   args: z.infer<typeof GetOrderInput>
 ) {
   const order = await client.getOrder(args.order_id);
@@ -1804,36 +1610,18 @@ export async function handleGetOrder(
     out.sms_code = code;
   }
   if (firstContent) out.sms_text = firstContent;
-  return {
-    content: [
-      {
-        type: 'text' as const,
-        text: JSON.stringify(out, null, 2),
-      },
-    ],
-  };
+  return jsonResult(out);
 }
 
 // Statuses considered "active" (order is live and billable/cancellable).
 const ACTIVE_STATUSES = new Set(['waiting', 'pending', 'sms_received', 'created']);
 
-export async function handleCancelAllOrders(client: VirtualSMSClient) {
+export async function handleCancelAllOrders(client: IVirtualSMSClient) {
   const orders = await client.listOrders();
   const active = orders.filter((o) => ACTIVE_STATUSES.has(o.status));
 
   if (active.length === 0) {
-    return {
-      content: [
-        {
-          type: 'text' as const,
-          text: JSON.stringify(
-            { cancelled: 0, failed: 0, message: 'No active orders to cancel.' },
-            null,
-            2
-          ),
-        },
-      ],
-    };
+    return jsonResult({ cancelled: 0, failed: 0, message: 'No active orders to cancel.' });
   }
 
   const results = await Promise.allSettled(
@@ -1854,24 +1642,13 @@ export async function handleCancelAllOrders(client: VirtualSMSClient) {
     }
   });
 
-  return {
-    content: [
-      {
-        type: 'text' as const,
-        text: JSON.stringify(
-          {
-            cancelled: succeeded.length,
-            failed: failed.length,
-            total_active: active.length,
-            cancelled_orders: succeeded,
-            failures: failed,
-          },
-          null,
-          2
-        ),
-      },
-    ],
-  };
+  return jsonResult({
+    cancelled: succeeded.length,
+    failed: failed.length,
+    total_active: active.length,
+    cancelled_orders: succeeded,
+    failures: failed,
+  });
 }
 
 function parseOrderDate(value?: string): number | null {
@@ -1881,7 +1658,7 @@ function parseOrderDate(value?: string): number | null {
 }
 
 export async function handleOrderHistory(
-  client: VirtualSMSClient,
+  client: IVirtualSMSClient,
   args: z.infer<typeof OrderHistoryInput>
 ) {
   const limit = args.limit ?? 20;
@@ -1906,41 +1683,30 @@ export async function handleOrderHistory(
 
   const capped = filtered.slice(0, limit);
 
-  return {
-    content: [
-      {
-        type: 'text' as const,
-        text: JSON.stringify(
-          {
-            count: capped.length,
-            total_matched: filtered.length,
-            filters: {
-              status: args.status,
-              service: args.service,
-              country: args.country,
-              since_days: args.since_days,
-            },
-            orders: capped.map((o) => ({
-              order_id: o.order_id,
-              phone_number: o.phone_number,
-              service: o.service,
-              country: o.country,
-              price: o.price,
-              status: o.status,
-              created_at: o.created_at,
-              sms_code: o.sms_code,
-            })),
-          },
-          null,
-          2
-        ),
-      },
-    ],
-  };
+  return jsonResult({
+    count: capped.length,
+    total_matched: filtered.length,
+    filters: {
+      status: args.status,
+      service: args.service,
+      country: args.country,
+      since_days: args.since_days,
+    },
+    orders: capped.map((o) => ({
+      order_id: o.order_id,
+      phone_number: o.phone_number,
+      service: o.service,
+      country: o.country,
+      price: o.price,
+      status: o.status,
+      created_at: o.created_at,
+      sms_code: o.sms_code,
+    })),
+  });
 }
 
 export async function handleGetStats(
-  client: VirtualSMSClient,
+  client: IVirtualSMSClient,
   args: z.infer<typeof GetStatsInput>
 ) {
   const sinceDays = args.since_days ?? 30;
@@ -1986,48 +1752,30 @@ export async function handleGetStats(
       .slice(0, n)
       .map(([key, count]) => ({ key, count }));
 
-  return {
-    content: [
-      {
-        type: 'text' as const,
-        text: JSON.stringify(
-          {
-            window_days: sinceDays,
-            balance_usd: balance.balance_usd,
-            total_orders: inWindow.length,
-            successful_orders: successful,
-            success_rate: terminal > 0 ? Math.round((successful / terminal) * 1000) / 10 : null,
-            total_spend_usd: Math.round(totalSpend * 100) / 100,
-            status_breakdown: byStatus,
-            top_services: topEntries(byService),
-            top_countries: topEntries(byCountry),
-            note:
-              orders.length >= 50
-                ? 'Server caps order history at 50 rows — stats may undercount if your activity exceeds 50 orders in the window.'
-                : undefined,
-          },
-          null,
-          2
-        ),
-      },
-    ],
-  };
+  return jsonResult({
+    window_days: sinceDays,
+    balance_usd: balance.balance_usd,
+    total_orders: inWindow.length,
+    successful_orders: successful,
+    success_rate: terminal > 0 ? Math.round((successful / terminal) * 1000) / 10 : null,
+    total_spend_usd: Math.round(totalSpend * 100) / 100,
+    status_breakdown: byStatus,
+    top_services: topEntries(byService),
+    top_countries: topEntries(byCountry),
+    note:
+      orders.length >= 50
+        ? 'Server caps order history at 50 rows — stats may undercount if your activity exceeds 50 orders in the window.'
+        : undefined,
+  });
 }
 
-export async function handleGetProfile(client: VirtualSMSClient) {
+export async function handleGetProfile(client: IVirtualSMSClient) {
   const profile = await client.getProfile();
-  return {
-    content: [
-      {
-        type: 'text' as const,
-        text: JSON.stringify(profile, null, 2),
-      },
-    ],
-  };
+  return jsonResult(profile);
 }
 
 export async function handleGetTransactions(
-  client: VirtualSMSClient,
+  client: IVirtualSMSClient,
   args: z.infer<typeof GetTransactionsInput>
 ) {
   const page = await client.getTransactions({
@@ -2037,59 +1785,60 @@ export async function handleGetTransactions(
     limit: args.limit,
     offset: args.offset,
   });
-  return {
-    content: [
-      {
-        type: 'text' as const,
-        text: JSON.stringify(
-          {
-            count: page.count,
-            limit: page.limit,
-            offset: page.offset,
-            filters: {
-              type: args.type,
-              from: args.from,
-              to: args.to,
-            },
-            transactions: page.transactions,
-            tip:
-              page.transactions.length === 0
-                ? 'No transactions match the filters. Try widening the date range or removing the type filter.'
-                : page.count === page.limit
-                  ? 'Page is full — increment offset by limit to fetch the next page.'
-                  : undefined,
-          },
-          null,
-          2
-        ),
+  return jsonResult(
+    {
+      count: page.count,
+      limit: page.limit,
+      offset: page.offset,
+      filters: {
+        type: args.type,
+        from: args.from,
+        to: args.to,
       },
-    ],
-  };
+      transactions: page.transactions,
+      tip:
+        page.transactions.length === 0
+          ? 'No transactions match the filters. Try widening the date range or removing the type filter.'
+          : page.count === page.limit
+            ? 'Page is full — increment offset by limit to fetch the next page.'
+            : undefined,
+    }
+  );
 }
 
 // ─── Rentals handlers ─────────────────────────────────────────────────────────
 
+// Every tool response carries both a human-readable text block (unchanged
+// behavior — same JSON serialization as before) AND a machine-parseable
+// structuredContent object (MCP structured tool output) so clients can skip
+// re-parsing the JSON-in-text. The MCP spec requires structuredContent to be
+// an object (not a bare array/primitive) — top-level arrays get wrapped under
+// an `items` key for structuredContent only; the text block is untouched.
 function jsonResult(payload: unknown) {
+  const structured: Record<string, unknown> = Array.isArray(payload)
+    ? { items: payload }
+    : (payload as Record<string, unknown>) ?? {};
   return {
     content: [
       { type: 'text' as const, text: JSON.stringify(payload, null, 2) },
     ],
+    structuredContent: structured,
   };
 }
 
-export async function handleRentalsPricing(client: VirtualSMSClient) {
+export async function handleRentalsPricing(client: IVirtualSMSClient) {
   return jsonResult(await client.listRentalPricing());
 }
 
 export async function handleRentalsAvailable(
-  client: VirtualSMSClient,
+  client: IVirtualSMSClient,
   args: z.infer<typeof RentalsAvailableInput>
 ) {
   return jsonResult(await client.getRentalAvailability(args));
 }
 
 export async function handleRentalsServices(
-  client: VirtualSMSClient,
+  client: IVirtualSMSClient,
   args: z.infer<typeof RentalsServicesInput>
 ) {
   return jsonResult(
@@ -2098,7 +1847,7 @@ export async function handleRentalsServices(
 }
 
 export async function handleRentalsPrice(
-  client: VirtualSMSClient,
+  client: IVirtualSMSClient,
   args: z.infer<typeof RentalsPriceInput>
 ) {
   return jsonResult(
@@ -2111,7 +1860,7 @@ export async function handleRentalsPrice(
 }
 
 export async function handleCreateRental(
-  client: VirtualSMSClient,
+  client: IVirtualSMSClient,
   args: z.infer<typeof CreateRentalInput>
 ) {
   if (args.tier === 'platform') {
@@ -2136,7 +1885,7 @@ export async function handleCreateRental(
 }
 
 export async function handleListRentals(
-  client: VirtualSMSClient,
+  client: IVirtualSMSClient,
   args: z.infer<typeof ListRentalsInput>
 ) {
   const rentals = await client.listRentals(args.status);
@@ -2144,7 +1893,7 @@ export async function handleListRentals(
 }
 
 export async function handleGetRental(
-  client: VirtualSMSClient,
+  client: IVirtualSMSClient,
   args: z.infer<typeof GetRentalInput>
 ) {
   const rental: Rental | undefined = await client.getRental(args.rental_id);
@@ -2155,35 +1904,35 @@ export async function handleGetRental(
 }
 
 export async function handleExtendRental(
-  client: VirtualSMSClient,
+  client: IVirtualSMSClient,
   args: z.infer<typeof ExtendRentalInput>
 ) {
   return jsonResult(await client.extendRental(args.rental_id, args.duration_hours));
 }
 
 export async function handleCancelRental(
-  client: VirtualSMSClient,
+  client: IVirtualSMSClient,
   args: z.infer<typeof CancelRentalInput>
 ) {
   return jsonResult(await client.cancelRental(args.rental_id));
 }
 
 export async function handleReleaseRental(
-  client: VirtualSMSClient,
+  client: IVirtualSMSClient,
   args: z.infer<typeof ReleaseRentalInput>
 ) {
   return jsonResult(await client.releaseRental(args.rental_id));
 }
 
 export async function handleRetryOrder(
-  client: VirtualSMSClient,
+  client: IVirtualSMSClient,
   args: z.infer<typeof RetryOrderInput>
 ) {
   return jsonResult(await client.retryOrder(args.order_id));
 }
 
 export async function handleCheckNumber(
-  client: VirtualSMSClient,
+  client: IVirtualSMSClient,
   args: z.infer<typeof CheckNumberInput>
 ) {
   return jsonResult(await client.checkNumber(args.number));
@@ -2207,7 +1956,7 @@ function isSessionsUnavailableError(err: unknown): boolean {
 const SESSIONS_UNAVAILABLE_MESSAGE = 'Browser sessions are not available on this endpoint.';
 
 export async function handleStopSession(
-  client: VirtualSMSClient,
+  client: IVirtualSMSClient,
   args: z.infer<typeof StopSessionInput>
 ) {
   try {
@@ -2222,7 +1971,7 @@ export async function handleStopSession(
 }
 
 export async function handleNavigateSession(
-  client: VirtualSMSClient,
+  client: IVirtualSMSClient,
   args: z.infer<typeof NavigateSessionInput>
 ) {
   try {
@@ -2237,7 +1986,7 @@ export async function handleNavigateSession(
 }
 
 export async function handleSessionViewer(
-  client: VirtualSMSClient,
+  client: IVirtualSMSClient,
   args: z.infer<typeof SessionViewerInput>
 ) {
   try {

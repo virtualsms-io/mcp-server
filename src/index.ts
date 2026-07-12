@@ -20,6 +20,7 @@ import {
 } from '@modelcontextprotocol/sdk/types.js';
 
 import { VirtualSMSClient } from './client.js';
+import { MockVirtualSMSClient, isSandboxEnabled } from './sandbox/mock-http.js';
 import { PROMPT_DEFINITIONS, getPromptMessages } from './prompts.js';
 import { RESOURCE_DEFINITIONS, getResourceContent } from './resources.js';
 import { SERVER_INSTRUCTIONS } from './instructions.js';
@@ -105,7 +106,13 @@ const BASE_URL = (process.env.VIRTUALSMS_BASE_URL || 'https://virtualsms.io').re
 // flag, default OFF. Truthy = "1" / "true" / "yes" (case-insensitive).
 const ENABLE_SESSIONS = /^(1|true|yes)$/i.test(process.env.VIRTUALSMS_ENABLE_SESSIONS ?? '');
 
-const client = new VirtualSMSClient(BASE_URL, API_KEY);
+// Sandbox mode (VIRTUALSMS_SANDBOX=1) — zero-key, in-memory mock. No real
+// network calls, no real charges. Every tool still lists + executes; it just
+// talks to MockVirtualSMSClient instead of the real backend.
+const SANDBOX_MODE = isSandboxEnabled(process.env);
+const client: VirtualSMSClient | MockVirtualSMSClient = SANDBOX_MODE
+  ? new MockVirtualSMSClient(BASE_URL)
+  : new VirtualSMSClient(BASE_URL, API_KEY);
 
 // ─── MCP Server ───────────────────────────────────────────────────────────────
 
