@@ -24,6 +24,7 @@ import { PROMPT_DEFINITIONS, getPromptMessages } from './prompts.js';
 import { RESOURCE_DEFINITIONS, getResourceContent } from './resources.js';
 import {
   TOOL_DEFINITIONS,
+  getToolDefinitions,
   CheckPriceInput,
   BuyNumberInput,
   CheckSmsInput,
@@ -40,6 +41,9 @@ import {
   BuyProxyInput,
   RotateProxyInput,
   StartManualRegistrationSessionInput,
+  StopSessionInput,
+  NavigateSessionInput,
+  SessionViewerInput,
   RentalsAvailableInput,
   RentalsServicesInput,
   RentalsPriceInput,
@@ -56,6 +60,9 @@ import {
   handleBuyProxy,
   handleRotateProxy,
   handleStartManualRegistrationSession,
+  handleStopSession,
+  handleNavigateSession,
+  handleSessionViewer,
   handleListServices,
   handleListCountries,
   handleCheckPrice,
@@ -93,6 +100,10 @@ import {
 const API_KEY = process.env.VIRTUALSMS_API_KEY;
 const BASE_URL = (process.env.VIRTUALSMS_BASE_URL || 'https://virtualsms.io').replace(/\/$/, '');
 
+// Session-drive tools (stop/navigate/session_viewer) are gated behind this
+// flag, default OFF. Truthy = "1" / "true" / "yes" (case-insensitive).
+const ENABLE_SESSIONS = /^(1|true|yes)$/i.test(process.env.VIRTUALSMS_ENABLE_SESSIONS ?? '');
+
 const client = new VirtualSMSClient(BASE_URL, API_KEY);
 
 // ─── MCP Server ───────────────────────────────────────────────────────────────
@@ -113,7 +124,7 @@ const server = new Server(
 
 // List available tools
 server.setRequestHandler(ListToolsRequestSchema, async () => {
-  return { tools: TOOL_DEFINITIONS };
+  return { tools: getToolDefinitions(ENABLE_SESSIONS) };
 });
 
 // Handle tool calls
@@ -141,6 +152,24 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       case 'virtualsms_start_manual_registration_session': {
         const parsed = StartManualRegistrationSessionInput.parse(args);
         return await handleStartManualRegistrationSession(client, parsed);
+      }
+
+      case 'virtualsms_stop_session': {
+        if (!ENABLE_SESSIONS) throw new McpError(ErrorCode.MethodNotFound, `Unknown tool: ${name}`);
+        const parsed = StopSessionInput.parse(args);
+        return await handleStopSession(client, parsed);
+      }
+
+      case 'virtualsms_navigate_session': {
+        if (!ENABLE_SESSIONS) throw new McpError(ErrorCode.MethodNotFound, `Unknown tool: ${name}`);
+        const parsed = NavigateSessionInput.parse(args);
+        return await handleNavigateSession(client, parsed);
+      }
+
+      case 'virtualsms_session_viewer': {
+        if (!ENABLE_SESSIONS) throw new McpError(ErrorCode.MethodNotFound, `Unknown tool: ${name}`);
+        const parsed = SessionViewerInput.parse(args);
+        return await handleSessionViewer(client, parsed);
       }
 
       case 'virtualsms_list_services':
@@ -359,7 +388,7 @@ export function createSandboxServer() {
   );
 
   sandboxServer.setRequestHandler(ListToolsRequestSchema, async () => {
-    return { tools: TOOL_DEFINITIONS };
+    return { tools: getToolDefinitions(ENABLE_SESSIONS) };
   });
 
   sandboxServer.setRequestHandler(ListPromptsRequestSchema, async () => {
