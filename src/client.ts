@@ -19,6 +19,13 @@ export interface Price {
   available: boolean;
 }
 
+export interface CatalogCountry {
+  iso: string;
+  name: string;
+  price_usd: number;
+  count: number;
+}
+
 export interface Balance {
   balance_usd: number;
 }
@@ -431,12 +438,33 @@ export class VirtualSMSClient implements IVirtualSMSClient {
       params: { service, country },
     });
     // API returns: {price: 0.9, country: "GB", service: "wa", success: true}
+    // NOTE: /api/v1/price returns NO availability field. Fail closed — a missing
+    // field must never read as in-stock. Real stock comes from getCatalogCountries().
     const raw = res.data as Record<string, unknown>;
     return {
       price_usd: Number(raw.price ?? raw.price_usd ?? 0),
       currency: String(raw.currency ?? 'USD'),
-      available: raw.available !== undefined ? Boolean(raw.available) : true,
+      available: Boolean(raw.available),
     };
+  }
+
+  async getCatalogCountries(service: string): Promise<CatalogCountry[]> {
+    const res = await this.http.get('/api/v1/catalog/countries', {
+      params: { service },
+    });
+    // API returns: {countries: [{id:"AT", name:"Austria", price:0.27, count:9240, ...}], success:true}
+    // `count` is the real per-country stock (frontend treats count>0 as in-stock).
+    const raw: Array<Record<string, unknown>> = Array.isArray(res.data?.countries)
+      ? (res.data.countries as Array<Record<string, unknown>>)
+      : Array.isArray(res.data)
+        ? (res.data as Array<Record<string, unknown>>)
+        : [];
+    return raw.map((c) => ({
+      iso: String(c.id ?? c.iso ?? c.country ?? ''),
+      name: String(c.name ?? c.country_name ?? ''),
+      price_usd: Number(c.price ?? c.our_price ?? c.price_usd ?? 0),
+      count: Number(c.count ?? 0),
+    }));
   }
 
   async getBalance(): Promise<Balance> {

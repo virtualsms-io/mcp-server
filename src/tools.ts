@@ -1100,7 +1100,20 @@ export async function handleCheckPrice(
     throw err;
   }
 
-  // Guard: if backend says not available, don't pass through a misleading result
+  // /api/v1/price returns no availability field, so real stock is sourced from the
+  // catalog's per-country `count` (count>0 = in stock) — same source as find_cheapest
+  // and the website. Fail closed if the combo isn't in stock or the lookup fails.
+  try {
+    const catalog = await client.getCatalogCountries(args.service);
+    const row = catalog.find(
+      (c) => c.iso.toUpperCase() === args.country.toUpperCase()
+    );
+    price.available = !!row && row.count > 0;
+  } catch {
+    // Keep checkPrice's fail-closed default (false) on catalog lookup error.
+  }
+
+  // Guard: if not in stock, don't pass through a misleading result
   if (!price.available) {
     return jsonResult({ available: false, message: 'Service/country combination not available' });
   }
@@ -1457,33 +1470,21 @@ export async function handleFindCheapest(
 ) {
   const limit = args.limit ?? 5;
 
-  const countries = await client.listCountries();
+  // Stock comes from the catalog's real per-country `count` (count>0 = in stock),
+  // the same source the website uses. The old path fanned out to /api/v1/price
+  // per country, but that endpoint returns no availability field — so every priced
+  // combo was fabricated as in-stock (e.g. TikTok/Yemen showed stock:true despite
+  // count:0 and OUT OF STOCK on the site).
+  const catalog = await client.getCatalogCountries(args.service);
 
-  const results: Array<{ country: string; country_name: string; price_usd: number; stock: boolean }> = [];
-  const batchSize = 10;
-
-  for (let i = 0; i < countries.length; i += batchSize) {
-    const batch = countries.slice(i, i + batchSize);
-    const priceChecks = await Promise.allSettled(
-      batch.map(async (c) => {
-        const price = await client.checkPrice(args.service, c.iso);
-        return {
-          country: c.iso,
-          country_name: c.name,
-          price_usd: price.price_usd,
-          stock: price.available,
-        };
-      })
-    );
-
-    for (const result of priceChecks) {
-      // Skip any country where the price check failed (404, unavailable, network error, etc.)
-      if (result.status === 'fulfilled' && result.value.stock) {
-        results.push(result.value);
-      }
-      // 'rejected' entries are silently skipped — invalid service/country combos
-    }
-  }
+  const results = catalog
+    .filter((c) => c.count > 0)
+    .map((c) => ({
+      country: c.iso,
+      country_name: c.name,
+      price_usd: c.price_usd,
+      stock: true as const,
+    }));
 
   results.sort((a, b) => a.price_usd - b.price_usd);
   const top = results.slice(0, limit);
