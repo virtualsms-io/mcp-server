@@ -379,6 +379,29 @@ function createMCPServer(config: ServerConfig) {
 // ─── HTTP Server ──────────────────────────────────────────────────────────────
 
 const httpServer = http.createServer(async (req, res) => {
+  try {
+    await handleRequest(req, res);
+  } catch (err) {
+    // Tier-A hardening: an uncaught throw anywhere in handleRequest (JSON
+    // parsing, MCP server construction, transport errors) used to become an
+    // unhandled rejection that could crash the process or hang the client.
+    // Log it and always return a well-formed JSON-RPC error instead.
+    const message = err instanceof Error ? (err.stack || err.message) : String(err);
+    process.stderr.write(`[http-server] request handler error: ${message}\n`);
+    if (!res.headersSent) {
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({
+        jsonrpc: '2.0',
+        error: { code: -32603, message: 'Internal server error' },
+        id: null,
+      }));
+    } else if (!res.writableEnded) {
+      res.end();
+    }
+  }
+});
+
+async function handleRequest(req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
   const url = new URL(req.url || '/', `http://localhost:${PORT}`);
 
   // Health check
@@ -439,6 +462,16 @@ const httpServer = http.createServer(async (req, res) => {
   const apiKeyQuery = url.searchParams.get('apiKey') || undefined;
   const apiKey = apiKeyHeader || apiKeyQuery;
 
+  // Tier-A hardening: header-only auth is the supported path going forward.
+  // The ?apiKey= query param still works this release (avoids breaking
+  // existing integrators) but is deprecated — query strings land in proxy
+  // access logs, browser history, and referrer headers. Warn, don't break.
+  if (apiKeyQuery && !apiKeyHeader) {
+    res.setHeader('Deprecation', 'true');
+    res.setHeader('Warning', '299 - "apiKey query parameter is deprecated; use the x-api-key header instead"');
+    process.stderr.write('[http-server] DEPRECATED: apiKey query parameter used; prefer the x-api-key header (query-param auth will be removed in a future release)\n');
+  }
+
   // H-005: reject unauthenticated requests before creating the MCP server.
   // Sandbox mode is the one exception — there's no real key to protect and
   // no real backend call to make, so it's safe to skip this gate.
@@ -482,10 +515,27 @@ const httpServer = http.createServer(async (req, res) => {
   }
 
   await transport.handleRequest(req, res, body);
-});
+}
 
 httpServer.listen(PORT, () => {
   process.stderr.write(`VirtualSMS MCP HTTP server listening on port ${PORT}\n`);
+});
+
+// Tier-A hardening: the per-request try/catch in httpServer's request
+// listener covers request-scoped failures, but async work that escapes that
+// scope (e.g. a rejection from a timer, or a throw between event-loop ticks)
+// would otherwise be an unhandled rejection/exception — Node's default
+// behavior is to crash the process, taking down every in-flight request.
+// Each request already gets a fresh MCP server + stateless transport, so
+// there's no shared mutable state one bad request can corrupt for the next;
+// logging and staying up is the safer choice for this server's shape.
+process.on('unhandledRejection', (reason) => {
+  const message = reason instanceof Error ? (reason.stack || reason.message) : String(reason);
+  process.stderr.write(`[http-server] unhandledRejection: ${message}\n`);
+});
+
+process.on('uncaughtException', (err) => {
+  process.stderr.write(`[http-server] uncaughtException: ${err.stack || err.message}\n`);
 });
 
 process.on('SIGTERM', () => {
