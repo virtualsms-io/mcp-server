@@ -275,7 +275,7 @@ main().catch((err) => {
   process.exit(1);
 });
 
-// Smithery config schema — exported so Smithery can detect optional config fields
+// Smithery config schema: exported so Smithery can detect optional config fields
 import { z } from 'zod';
 export const configSchema = z.object({
   virtualsmsApiKey: z.string()
@@ -288,7 +288,7 @@ export const configSchema = z.object({
     .describe("Polling interval in seconds when WebSocket delivery is unavailable"),
   environment: z.enum(["production", "sandbox"])
     .default("production")
-    .describe("API environment — use sandbox for testing without real charges"),
+    .describe("API environment. Use sandbox for testing without real charges"),
   preferredCurrency: z.enum(["USD", "EUR", "GBP"])
     .default("USD")
     .describe("Preferred currency for displaying balances and prices"),

@@ -27,7 +27,7 @@ export const RESOURCE_DEFINITIONS = [
 export function getResourceContent(uri: string): string {
   switch (uri) {
     case 'virtualsms://docs/quickstart':
-      return `# VirtualSMS MCP — Quickstart Guide
+      return `# VirtualSMS MCP: Quickstart Guide
 
 ## What is VirtualSMS?
 VirtualSMS provides disposable virtual phone numbers for SMS verification. Use it to verify accounts on Telegram, WhatsApp, Google, and 2500 other services.
@@ -35,7 +35,7 @@ VirtualSMS provides disposable virtual phone numbers for SMS verification. Use i
 ## Quick Start (3 steps)
 
 ### Option A: One-step (recommended)
-Use \`wait_for_code\` — it buys a number AND waits for the SMS automatically:
+Use \`wait_for_code\`. It buys a number AND waits for the SMS automatically:
 \`\`\`
 wait_for_code(service="telegram", country="RU")
 \`\`\`
@@ -43,7 +43,7 @@ wait_for_code(service="telegram", country="RU")
 ### Option B: Manual flow
 1. **Check price**: \`check_price(service="telegram", country="RU")\`
 2. **Buy number**: \`buy_number(service="telegram", country="RU")\` → returns \`order_id\` + \`phone_number\`
-3. **Wait for SMS**: \`check_sms(order_id="...")\` — poll every 5-10 seconds
+3. **Wait for SMS**: \`check_sms(order_id="...")\` (poll every 5-10 seconds)
 
 ## Common Service Codes
 | Service | Code |
@@ -134,11 +134,11 @@ Returns all countries sorted by price with stock levels.
 
 ### 2. Best Value Countries (General)
 These countries typically offer the lowest prices:
-- **Russia (RU)** — Often cheapest for Russian/European services
-- **Kazakhstan (KZ)** — Good cheap alternative
-- **India (IN)** — Good for Indian and some global services
-- **Indonesia (ID)** — Budget option for Asian services
-- **Ukraine (UA)** — Good prices for EU-facing services
+- **Russia (RU)**: Often cheapest for Russian/European services
+- **Kazakhstan (KZ)**: Good cheap alternative
+- **India (IN)**: Good for Indian and some global services
+- **Indonesia (ID)**: Budget option for Asian services
+- **Ukraine (UA)**: Good prices for EU-facing services
 
 ### 3. Check Stock Before Buying
 A country might be cheap but have 0 stock. Always check the \`count\` field in \`find_cheapest\` results.
