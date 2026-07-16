@@ -17,6 +17,7 @@ import type {
   Service,
   Country,
   Price,
+  CatalogCountry,
   Balance,
   Profile,
   Transaction,
@@ -27,6 +28,12 @@ import type {
   ProxyListItem,
   ProxyPurchaseResult,
   ProxyRotateResult,
+  ProxyUsage,
+  ProxyUsageHistoryResult,
+  ProxyTargetingResult,
+  ProxyTestResult,
+  ProxyLocationItem,
+  ProxyEndpointResult,
   BrowserSessionResult,
   NavigateSessionResult,
   RentalPricingTier,
@@ -39,6 +46,7 @@ import type {
   RetryOrderResult,
   NumberCheckResult,
 } from '../client.js';
+import { buildProxyEndpointResult } from '../client.js';
 
 const SANDBOX_VIEWER_URL = 'https://virtualsms.io/sandbox/session-viewer-placeholder';
 
@@ -129,6 +137,15 @@ export class MockVirtualSMSClient implements IVirtualSMSClient {
       currency: 'USD',
       available: known,
     };
+  }
+
+  async getCatalogCountries(_service: string): Promise<CatalogCountry[]> {
+    return MOCK_COUNTRIES.map((c) => ({
+      iso: c.iso,
+      name: c.name,
+      price_usd: MOCK_PRICE_TABLE[c.iso] ?? 0.5,
+      count: 10,
+    }));
   }
 
   async checkNumber(number: string): Promise<NumberCheckResult> {
@@ -355,6 +372,102 @@ export class MockVirtualSMSClient implements IVirtualSMSClient {
       port: port ?? proxy.proxy_port,
       message: 'Sandbox proxy IP rotated (fake ack, no real proxy exists).',
     };
+  }
+
+  async getProxyUsage(proxyId: string): Promise<ProxyUsage> {
+    const proxy = this.proxies.get(proxyId);
+    if (!proxy) throw new Error(`Not found: sandbox proxy ${proxyId} does not exist`);
+    return {
+      gb_used: proxy.gb_used,
+      gb_remaining: proxy.gb_remaining,
+      requests: 1337,
+      updated_at: new Date().toISOString(),
+    };
+  }
+
+  async getProxyUsageHistory(proxyId: string, range?: '7d' | '30d'): Promise<ProxyUsageHistoryResult> {
+    const proxy = this.proxies.get(proxyId);
+    if (!proxy) throw new Error(`Not found: sandbox proxy ${proxyId} does not exist`);
+    const days = range === '30d' ? 30 : 7;
+    const series = Array.from({ length: days }, (_, i) => ({
+      date: new Date(Date.now() - (days - 1 - i) * 86400000).toISOString().slice(0, 10),
+      gb: Math.round(Math.random() * 100) / 100,
+      requests: Math.floor(Math.random() * 500),
+    }));
+    return {
+      series,
+      totals: {
+        gb: Math.round(series.reduce((s, p) => s + p.gb, 0) * 100) / 100,
+        requests: series.reduce((s, p) => s + p.requests, 0),
+      },
+    };
+  }
+
+  async setProxyTargeting(proxyId: string, params: {
+    countryCode: string;
+    cities?: string[];
+    asns?: number[];
+  }): Promise<ProxyTargetingResult> {
+    const proxy = this.proxies.get(proxyId);
+    if (!proxy) throw new Error(`Not found: sandbox proxy ${proxyId} does not exist`);
+    const premium2x = ((params.cities?.length ?? 0) > 0 || (params.asns?.length ?? 0) > 0)
+      && proxy.pool_type !== 'residential_premium';
+    proxy.country_code = params.countryCode.toUpperCase();
+    return { ok: true, country_code: params.countryCode, premium_2x: premium2x };
+  }
+
+  async testProxy(proxyId: string, params: {
+    country: string;
+    session?: 'rotating' | 'sticky';
+    protocol?: 'http' | 'socks5';
+  }): Promise<ProxyTestResult> {
+    const proxy = this.proxies.get(proxyId);
+    if (!proxy) throw new Error(`Not found: sandbox proxy ${proxyId} does not exist`);
+    const cc = params.country.toUpperCase();
+    return {
+      ok: true,
+      exit_ip: '198.51.100.42',
+      country_code: cc,
+      country_name: MOCK_COUNTRIES.find((c) => c.iso === cc)?.name ?? cc,
+      city: 'Sandbox City',
+      region: 'Sandbox Region',
+      isp: 'Sandbox Network',
+      asn: 'AS64512',
+      latency_ms: 120,
+    };
+  }
+
+  async listProxyLocations(params: {
+    poolType: 'residential' | 'mobile' | 'datacenter';
+    country: string;
+    kind: 'cities' | 'states' | 'asns' | 'zipcodes';
+  }): Promise<ProxyLocationItem[]> {
+    const base: Record<string, string> = {
+      cities: 'City',
+      states: 'State',
+      asns: 'AS64512',
+      zipcodes: '10001',
+    };
+    return [
+      { code: base[params.kind] ?? 'x1', name: `Sandbox ${params.kind} 1`, count: 500 },
+      { code: `${base[params.kind] ?? 'x2'}-2`, name: `Sandbox ${params.kind} 2`, count: 120 },
+    ];
+  }
+
+  async generateProxyEndpoint(params: {
+    proxyId: string;
+    countryCode: string;
+    targetBy?: 'country' | 'state' | 'city' | 'zip' | 'asn';
+    locationCode?: string;
+    session?: 'rotating' | 'sticky';
+    stickyTtlMinutes?: number;
+    count?: number;
+    protocol?: 'HTTP' | 'SOCKS5';
+    format?: 'host:port:user:pass' | 'user:pass@host:port' | 'curl';
+  }): Promise<ProxyEndpointResult> {
+    const proxy = this.proxies.get(params.proxyId);
+    if (!proxy) throw new Error(`Not found: sandbox proxy ${params.proxyId} does not exist`);
+    return buildProxyEndpointResult(proxy, params);
   }
 
   // ─── Browser sessions ───────────────────────────────────────────────────

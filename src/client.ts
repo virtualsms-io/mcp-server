@@ -150,6 +150,68 @@ export interface ProxyRotateResult {
   message: string;
 }
 
+export interface ProxyUsage {
+  gb_used: number;
+  gb_remaining: number;
+  requests: number;
+  updated_at?: string;
+}
+
+export interface ProxyUsageHistoryPoint {
+  date: string;
+  gb: number;
+  requests: number;
+}
+
+export interface ProxyUsageHistoryResult {
+  series: ProxyUsageHistoryPoint[];
+  totals: { gb: number; requests: number };
+}
+
+export interface ProxyTargetingResult {
+  ok: boolean;
+  country_code: string;
+  // true when city/state/zip/asn targeting was requested on a non-premium
+  // pool — the sub-country refinement burns the customer's own funded GB
+  // 2x faster (see Vault/Operations/proxy-system.md §2). Free on
+  // residential_premium.
+  premium_2x: boolean;
+}
+
+export interface ProxyTestResult {
+  ok: boolean;
+  exit_ip?: string;
+  country_code?: string;
+  country_name?: string;
+  city?: string;
+  region?: string;
+  isp?: string;
+  asn?: string;
+  latency_ms?: number;
+  error?: string;
+}
+
+export interface ProxyLocationItem {
+  code: string;
+  name: string;
+  count: number;
+}
+
+export interface ProxyEndpointResult {
+  proxy_id: string;
+  pool_type: string;
+  host: string;
+  port: number;
+  protocol: 'HTTP' | 'SOCKS5';
+  session: 'rotating' | 'sticky';
+  sticky_ttl_minutes?: number;
+  country_code: string;
+  target_by: 'country' | 'state' | 'city' | 'zip' | 'asn';
+  location_code?: string;
+  premium_2x: boolean;
+  endpoints: string[];
+}
+
 export interface BrowserSessionResult {
   id: string;
   status: string;
@@ -328,6 +390,106 @@ const PLATFORM_TIER_COUNTRY_IDS: Record<string, number> = {
   LR: 135, LS: 136, MW: 137, NA: 138, NE: 139, RW: 140, SK: 141, SR: 142,
   TJ: 143, MC: 144, BH: 145, RE: 146, ZM: 147, US: 187,
 };
+
+// ─── Proxy endpoint composition (pure, no network call) ──────────────────────
+// Mirrors frontend/src/components/my-numbers-v2/ProxyEndpointGenerator.tsx
+// buildUsername()/buildEndpoint() exactly, so an agent gets the same
+// connection string a customer would copy from the dashboard. Shared by
+// VirtualSMSClient.generateProxyEndpoint() and the sandbox mock so both
+// paths produce identical output shapes.
+
+function buildProxyUsername(
+  login: string,
+  countryCode: string,
+  targetBy: 'country' | 'state' | 'city' | 'zip' | 'asn',
+  locationCode: string | undefined,
+  stickyIndex?: number,
+  stickyMinutes?: number,
+): string {
+  let u = `${login}__cr.${countryCode.toLowerCase()}`;
+  const loc = (locationCode ?? '').trim();
+  if (loc && targetBy !== 'country') {
+    if (targetBy === 'state') u += `;state.${loc.toLowerCase()}`;
+    else if (targetBy === 'city') u += `;city.${loc.toLowerCase()}`;
+    else if (targetBy === 'zip') u += `;zip.${loc}`;
+    else if (targetBy === 'asn') u += `;asn.${loc}`;
+  }
+  if (stickyIndex !== undefined) {
+    u += `;sessid.s${stickyIndex};sessttl.${stickyMinutes ?? 10}`;
+  }
+  return u;
+}
+
+// Fixed gateway ports (frontend/src/components/my-numbers-v2/ProxyEndpointGenerator.tsx
+// HTTP_PORT/SOCKS5_PORT) — rotating vs. sticky is encoded entirely in the
+// username's sessid/sessttl params, NOT by port selection.
+const PROXY_HTTP_PORT = 823;
+const PROXY_SOCKS5_PORT = 824;
+
+function buildProxyEndpointString(
+  host: string,
+  port: number,
+  user: string,
+  pass: string,
+  format: 'host:port:user:pass' | 'user:pass@host:port' | 'curl',
+  protocol: 'HTTP' | 'SOCKS5',
+): string {
+  if (format === 'host:port:user:pass') return `${host}:${port}:${user}:${pass}`;
+  if (format === 'user:pass@host:port') return `${user}:${pass}@${host}:${port}`;
+  const scheme = protocol === 'SOCKS5' ? 'socks5h' : 'http';
+  return `curl -x "${scheme}://${user}:${pass}@${host}:${port}" https://api.ipify.org`;
+}
+
+export function buildProxyEndpointResult(
+  proxy: ProxyListItem,
+  params: {
+    countryCode: string;
+    targetBy?: 'country' | 'state' | 'city' | 'zip' | 'asn';
+    locationCode?: string;
+    session?: 'rotating' | 'sticky';
+    stickyTtlMinutes?: number;
+    count?: number;
+    protocol?: 'HTTP' | 'SOCKS5';
+    format?: 'host:port:user:pass' | 'user:pass@host:port' | 'curl';
+  },
+): ProxyEndpointResult {
+  const targetBy = params.targetBy ?? 'country';
+  const session = params.session ?? 'rotating';
+  const protocol = params.protocol ?? 'HTTP';
+  const format = params.format ?? 'host:port:user:pass';
+  const ttl = params.stickyTtlMinutes ?? 10;
+  const count = Math.max(1, Math.min(100, Math.floor(params.count ?? 1)));
+  const port = protocol === 'SOCKS5' ? PROXY_SOCKS5_PORT : PROXY_HTTP_PORT;
+
+  const premium2x = targetBy !== 'country' && !!(params.locationCode ?? '').trim() && proxy.pool_type !== 'residential_premium';
+
+  let endpoints: string[];
+  if (session === 'rotating') {
+    const user = buildProxyUsername(proxy.proxy_login, params.countryCode, targetBy, params.locationCode);
+    const ep = buildProxyEndpointString(proxy.proxy_host, port, user, proxy.proxy_password, format, protocol);
+    endpoints = Array.from({ length: count }, () => ep);
+  } else {
+    endpoints = Array.from({ length: count }, (_, i) => {
+      const user = buildProxyUsername(proxy.proxy_login, params.countryCode, targetBy, params.locationCode, i + 1, ttl);
+      return buildProxyEndpointString(proxy.proxy_host, port, user, proxy.proxy_password, format, protocol);
+    });
+  }
+
+  return {
+    proxy_id: proxy.proxy_id,
+    pool_type: proxy.pool_type,
+    host: proxy.proxy_host,
+    port,
+    protocol,
+    session,
+    sticky_ttl_minutes: session === 'sticky' ? ttl : undefined,
+    country_code: params.countryCode,
+    target_by: targetBy,
+    location_code: params.locationCode,
+    premium_2x: premium2x,
+    endpoints,
+  };
+}
 
 export class VirtualSMSClient implements IVirtualSMSClient {
   private http: AxiosInstance;
@@ -642,6 +804,154 @@ export class VirtualSMSClient implements IVirtualSMSClient {
     return res.data as ProxyRotateResult;
   }
 
+  async getProxyUsage(proxyId: string): Promise<ProxyUsage> {
+    this.requireApiKey();
+    const res = await this.http.get(`/api/v1/proxies/${proxyId}/usage`);
+    const d = (res.data ?? {}) as Record<string, unknown>;
+    return {
+      gb_used: Number(d.gb_used ?? 0),
+      gb_remaining: Number(d.gb_remaining ?? 0),
+      requests: Number(d.requests ?? 0),
+      updated_at: d.updated_at ? String(d.updated_at) : undefined,
+    };
+  }
+
+  async getProxyUsageHistory(proxyId: string, range?: '7d' | '30d'): Promise<ProxyUsageHistoryResult> {
+    this.requireApiKey();
+    const res = await this.http.get(`/api/v1/proxies/${proxyId}/usage-history`, {
+      params: range ? { range } : undefined,
+    });
+    const d = (res.data ?? {}) as Record<string, unknown>;
+    const series = Array.isArray(d.series) ? (d.series as Array<Record<string, unknown>>) : [];
+    const totals = (d.totals ?? {}) as Record<string, unknown>;
+    return {
+      series: series.map((p) => ({
+        date: String(p.date ?? ''),
+        gb: Number(p.gb ?? 0),
+        requests: Number(p.requests ?? 0),
+      })),
+      totals: {
+        gb: Number(totals.gb ?? 0),
+        requests: Number(totals.requests ?? 0),
+      },
+    };
+  }
+
+  /**
+   * SetTargeting updates the sub-user's DEFAULT geo-targeting via the
+   * reseller API (persisted server-side, applies to future connections that
+   * don't override it). Country-only is free; cities/asns bill the
+   * customer's own funded GB at 2x on non-premium pools (backend response
+   * carries premium_2x so the caller can warn). Matches
+   * ws-gateway/handlers/proxies.go SetTargeting exactly — note the backend
+   * does NOT accept state/zip here (only country_code + cities + asns);
+   * state/zip refinement is a per-connection username param only — see
+   * generateProxyEndpoint.
+   */
+  async setProxyTargeting(proxyId: string, params: {
+    countryCode: string;
+    cities?: string[];
+    asns?: number[];
+  }): Promise<ProxyTargetingResult> {
+    this.requireApiKey();
+    const res = await this.http.post(`/api/v1/proxies/${proxyId}/targeting`, {
+      country_code: params.countryCode,
+      cities: params.cities,
+      asns: params.asns,
+    });
+    const d = (res.data ?? {}) as Record<string, unknown>;
+    return {
+      ok: Boolean(d.ok),
+      country_code: String(d.country_code ?? params.countryCode),
+      premium_2x: Boolean(d.premium_2x),
+    };
+  }
+
+  /**
+   * TestProxy dials out through the proxy and reports the exit IP/country —
+   * the only backend-supported use of a per-request `session` param
+   * (rotating|sticky). Matches ws-gateway/handlers/proxies.go TestProxy.
+   * Server-side cooldown (~20s) applies; a 429 surfaces as a thrown Error
+   * via the response interceptor.
+   */
+  async testProxy(proxyId: string, params: {
+    country: string;
+    session?: 'rotating' | 'sticky';
+    protocol?: 'http' | 'socks5';
+  }): Promise<ProxyTestResult> {
+    this.requireApiKey();
+    const res = await this.http.post(`/api/v1/proxies/${proxyId}/test`, {
+      country: params.country,
+      session: params.session,
+      protocol: params.protocol,
+    });
+    const d = (res.data ?? {}) as Record<string, unknown>;
+    return {
+      ok: Boolean(d.ok),
+      exit_ip: d.exit_ip ? String(d.exit_ip) : undefined,
+      country_code: d.country_code ? String(d.country_code) : undefined,
+      country_name: d.country_name ? String(d.country_name) : undefined,
+      city: d.city ? String(d.city) : undefined,
+      region: d.region ? String(d.region) : undefined,
+      isp: d.isp ? String(d.isp) : undefined,
+      asn: d.asn ? String(d.asn) : undefined,
+      latency_ms: typeof d.latency_ms === 'number' ? d.latency_ms : undefined,
+      error: d.error ? String(d.error) : undefined,
+    };
+  }
+
+  /**
+   * GetLocations — public inventory endpoint (no auth, no FEATURE_PROXIES
+   * gate). Backend excludes residential_premium from pool_type here (its
+   * locations API doesn't support it) — see
+   * ws-gateway/handlers/proxies.go GetLocations validLocPoolTypes.
+   */
+  async listProxyLocations(params: {
+    poolType: 'residential' | 'mobile' | 'datacenter';
+    country: string;
+    kind: 'cities' | 'states' | 'asns' | 'zipcodes';
+  }): Promise<ProxyLocationItem[]> {
+    const res = await this.http.get('/api/v1/proxies/locations', {
+      params: { pool_type: params.poolType, country: params.country, kind: params.kind },
+    });
+    const items = Array.isArray(res.data?.items) ? (res.data.items as Array<Record<string, unknown>>) : [];
+    return items.map((it) => ({
+      code: String(it.code ?? ''),
+      name: String(it.name ?? ''),
+      count: Number(it.count ?? 0),
+    }));
+  }
+
+  /**
+   * generateProxyEndpoint composes ready-to-use connection string(s) — no
+   * backend call. Mirrors the frontend's ProxyEndpointGenerator
+   * (frontend/src/components/my-numbers-v2/ProxyEndpointGenerator.tsx)
+   * buildUsername()/buildEndpoint() exactly: targeting is encoded in the
+   * username at connection time per the per-connection convention in
+   * Vault/Operations/proxy-system.md §2 — one credential serves every
+   * country/refinement, nothing is purchased or persisted here. Looks up
+   * the proxy's login/password/host/port via listProxies() first.
+   */
+  async generateProxyEndpoint(params: {
+    proxyId: string;
+    countryCode: string;
+    targetBy?: 'country' | 'state' | 'city' | 'zip' | 'asn';
+    locationCode?: string;
+    session?: 'rotating' | 'sticky';
+    stickyTtlMinutes?: number;
+    count?: number;
+    protocol?: 'HTTP' | 'SOCKS5';
+    format?: 'host:port:user:pass' | 'user:pass@host:port' | 'curl';
+  }): Promise<ProxyEndpointResult> {
+    this.requireApiKey();
+    const proxies = await this.listProxies();
+    const proxy = proxies.find((p) => p.proxy_id === params.proxyId);
+    if (!proxy) {
+      throw new Error(`Not found: proxy ${params.proxyId} does not exist on this account`);
+    }
+    return buildProxyEndpointResult(proxy, params);
+  }
+
   async startManualRegistrationSession(params: {
     serviceName?: string;
     country?: string;
@@ -894,6 +1204,7 @@ export interface IVirtualSMSClient {
   listServices(): Promise<Service[]>;
   listCountries(): Promise<Country[]>;
   checkPrice(service: string, country: string): Promise<Price>;
+  getCatalogCountries(service: string): Promise<CatalogCountry[]>;
   checkNumber(number: string): Promise<NumberCheckResult>;
 
   getBalance(): Promise<Balance>;
@@ -922,6 +1233,34 @@ export interface IVirtualSMSClient {
     idempotency_key?: string;
   }): Promise<ProxyPurchaseResult>;
   rotateProxy(proxyId: string, port?: number): Promise<ProxyRotateResult>;
+  getProxyUsage(proxyId: string): Promise<ProxyUsage>;
+  getProxyUsageHistory(proxyId: string, range?: '7d' | '30d'): Promise<ProxyUsageHistoryResult>;
+  setProxyTargeting(proxyId: string, params: {
+    countryCode: string;
+    cities?: string[];
+    asns?: number[];
+  }): Promise<ProxyTargetingResult>;
+  testProxy(proxyId: string, params: {
+    country: string;
+    session?: 'rotating' | 'sticky';
+    protocol?: 'http' | 'socks5';
+  }): Promise<ProxyTestResult>;
+  listProxyLocations(params: {
+    poolType: 'residential' | 'mobile' | 'datacenter';
+    country: string;
+    kind: 'cities' | 'states' | 'asns' | 'zipcodes';
+  }): Promise<ProxyLocationItem[]>;
+  generateProxyEndpoint(params: {
+    proxyId: string;
+    countryCode: string;
+    targetBy?: 'country' | 'state' | 'city' | 'zip' | 'asn';
+    locationCode?: string;
+    session?: 'rotating' | 'sticky';
+    stickyTtlMinutes?: number;
+    count?: number;
+    protocol?: 'HTTP' | 'SOCKS5';
+    format?: 'host:port:user:pass' | 'user:pass@host:port' | 'curl';
+  }): Promise<ProxyEndpointResult>;
 
   startManualRegistrationSession(params: {
     serviceName?: string;
