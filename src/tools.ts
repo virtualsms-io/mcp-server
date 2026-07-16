@@ -90,6 +90,47 @@ export const RotateProxyInput = z.object({
   port: z.number().int().positive().optional().describe('Optional proxy port (defaults to rotating HTTP port)'),
 });
 
+export const GetProxyUsageInput = z.object({
+  proxy_id: z.string().describe('Proxy ID returned by list_proxies or buy_proxy'),
+});
+
+export const GetProxyUsageHistoryInput = z.object({
+  proxy_id: z.string().describe('Proxy ID returned by list_proxies or buy_proxy'),
+  range: z.enum(['7d', '30d']).optional().describe('History window (default: 7d)'),
+});
+
+export const SetProxyTargetingInput = z.object({
+  proxy_id: z.string().describe('Proxy ID returned by list_proxies or buy_proxy'),
+  country_code: z.string().describe('ISO-2 country code (required — sets the default targeting country)'),
+  cities: z.array(z.string()).optional().describe('Optional city slugs to persist as default targeting. Triggers 2x GB billing on non-premium pools (free on residential_premium).'),
+  asns: z.array(z.number().int()).optional().describe('Optional ASN numbers to persist as default targeting. Triggers 2x GB billing on non-premium pools (free on residential_premium).'),
+});
+
+export const TestProxyInput = z.object({
+  proxy_id: z.string().describe('Proxy ID returned by list_proxies or buy_proxy'),
+  country: z.string().describe('ISO-2 country code to test the exit IP through (e.g. "us", "gb")'),
+  session: z.enum(['rotating', 'sticky']).optional().describe('Connection session type (default: rotating). Sticky holds one exit IP for ~30 min.'),
+  protocol: z.enum(['http', 'socks5']).optional().describe('Protocol to test (default: http)'),
+});
+
+export const ListProxyLocationsInput = z.object({
+  pool_type: z.enum(['residential', 'mobile', 'datacenter']).describe('Pool type (residential_premium is not supported by this endpoint)'),
+  country: z.string().describe('ISO-2 country code (e.g. "US", "DE")'),
+  kind: z.enum(['cities', 'states', 'asns', 'zipcodes']).describe('Which location dimension to list'),
+});
+
+export const GenerateProxyEndpointInput = z.object({
+  proxy_id: z.string().describe('Proxy ID returned by list_proxies or buy_proxy — its login/password/host are reused, nothing new is purchased'),
+  country_code: z.string().describe('ISO-2 country to target (e.g. "us", "gb") — required before any sub-country refinement'),
+  target_by: z.enum(['country', 'state', 'city', 'zip', 'asn']).optional().describe('Refinement level (default: country). state/city/zip/asn trigger 2x GB billing on non-premium pools — free on residential_premium.'),
+  location_code: z.string().optional().describe('Location value matching target_by (e.g. a city slug, state slug, ZIP, or ASN number) — required when target_by is not "country"'),
+  session: z.enum(['rotating', 'sticky']).optional().describe('rotating = new IP per connection (default). sticky = holds one IP per generated endpoint for sticky_ttl_minutes.'),
+  sticky_ttl_minutes: z.number().int().min(1).max(120).optional().describe('How long a sticky session holds its IP, in minutes (default: 10, only used when session=sticky)'),
+  count: z.number().int().min(1).max(100).optional().describe('How many endpoint strings to generate (default: 1). For sticky sessions each gets a distinct IP.'),
+  protocol: z.enum(['HTTP', 'SOCKS5']).optional().describe('Proxy protocol (default: HTTP)'),
+  format: z.enum(['host:port:user:pass', 'user:pass@host:port', 'curl']).optional().describe('Output string format (default: host:port:user:pass)'),
+});
+
 export const StartManualRegistrationSessionInput = z.object({
   service_name: z.string().optional().describe('Friendly service name (e.g. telegram, whatsapp) — influences default device profile'),
   country: z.string().optional().describe('ISO-2 country code when attaching a matching proxy (e.g. id, de)'),
@@ -223,7 +264,10 @@ export const TOOL_DEFINITIONS = [
     name: 'virtualsms_buy_proxy',
     title: 'Buy Proxy GB',
     description:
-      'Purchase proxy traffic (GB) for a selected pool type. Returns proxy credentials and remaining balance.',
+      'Purchase proxy traffic (GB) for a selected pool type. Returns proxy credentials and remaining balance. ' +
+      'country_code here is only a soft preference for provisioning — for actual per-connection targeting ' +
+      '(country/state/city/zip/asn) or a ready-to-use connection string, use virtualsms_generate_proxy_endpoint ' +
+      'after buying. To persist a default targeting on the sub-user, use virtualsms_set_proxy_targeting.',
     inputSchema: {
       type: 'object' as const,
       properties: {
@@ -279,6 +323,155 @@ export const TOOL_DEFINITIONS = [
       destructiveHint: false,
       idempotentHint: false,
       openWorldHint: true,
+    },
+  },
+  {
+    name: 'virtualsms_get_proxy_usage',
+    title: 'Get Proxy Usage',
+    description:
+      'Get cached GB used/remaining and request count for one proxy. Cheap, no upstream call — reads a cached value refreshed every ~5 minutes.',
+    inputSchema: {
+      type: 'object' as const,
+      properties: {
+        proxy_id: { type: 'string', description: 'Proxy ID returned by list_proxies or buy_proxy' },
+      },
+      required: ['proxy_id'],
+    },
+    annotations: {
+      title: 'Get Proxy Usage',
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: true,
+    },
+  },
+  {
+    name: 'virtualsms_get_proxy_usage_history',
+    title: 'Get Proxy Usage History',
+    description:
+      'Get a per-day traffic (GB) and request-count series for one proxy over the last 7 or 30 days.',
+    inputSchema: {
+      type: 'object' as const,
+      properties: {
+        proxy_id: { type: 'string', description: 'Proxy ID returned by list_proxies or buy_proxy' },
+        range: { type: 'string', enum: ['7d', '30d'], description: 'History window (default: 7d)' },
+      },
+      required: ['proxy_id'],
+    },
+    annotations: {
+      title: 'Get Proxy Usage History',
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: true,
+    },
+  },
+  {
+    name: 'virtualsms_set_proxy_targeting',
+    title: 'Set Proxy Default Targeting',
+    description:
+      'Persist a default geo-targeting (country, and optionally cities/ASNs) on an existing proxy sub-user. ' +
+      'Country-only is free. Adding cities or ASNs bills the GB on your OWN allocation at 2x (not on ' +
+      'residential_premium, where refined targeting is included free). This changes the STORED default — for a ' +
+      'one-off connection string with any targeting (including state/zip), use virtualsms_generate_proxy_endpoint instead.',
+    inputSchema: {
+      type: 'object' as const,
+      properties: {
+        proxy_id: { type: 'string', description: 'Proxy ID returned by list_proxies or buy_proxy' },
+        country_code: { type: 'string', description: 'ISO-2 country code (required)' },
+        cities: { type: 'array', items: { type: 'string' }, description: 'Optional city slugs — triggers 2x billing on non-premium pools' },
+        asns: { type: 'array', items: { type: 'number' }, description: 'Optional ASN numbers — triggers 2x billing on non-premium pools' },
+      },
+      required: ['proxy_id', 'country_code'],
+    },
+    annotations: {
+      title: 'Set Proxy Default Targeting',
+      readOnlyHint: false,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: true,
+    },
+  },
+  {
+    name: 'virtualsms_test_proxy',
+    title: 'Test Proxy Connectivity',
+    description:
+      'Make one request through a proxy and report the exit IP, country, city, ISP, and latency — proves the proxy ' +
+      'works and which country it exits from. Consumes a small amount of the proxy\'s GB allocation. ' +
+      'Rate-limited to about once per 20 seconds per proxy.',
+    inputSchema: {
+      type: 'object' as const,
+      properties: {
+        proxy_id: { type: 'string', description: 'Proxy ID returned by list_proxies or buy_proxy' },
+        country: { type: 'string', description: 'ISO-2 country to test the exit IP through (e.g. "us", "gb")' },
+        session: { type: 'string', enum: ['rotating', 'sticky'], description: 'Connection session type (default: rotating)' },
+        protocol: { type: 'string', enum: ['http', 'socks5'], description: 'Protocol to test (default: http)' },
+      },
+      required: ['proxy_id', 'country'],
+    },
+    annotations: {
+      title: 'Test Proxy Connectivity',
+      readOnlyHint: false,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: true,
+    },
+  },
+  {
+    name: 'virtualsms_list_proxy_locations',
+    title: 'List Proxy Locations',
+    description:
+      'List available cities, states, ASNs, or ZIP codes for a pool type + country — use this to discover valid ' +
+      'location_code values before calling virtualsms_generate_proxy_endpoint or virtualsms_set_proxy_targeting ' +
+      'with sub-country targeting. Public endpoint, no purchase required. Not available for residential_premium ' +
+      '(only residential, mobile, datacenter).',
+    inputSchema: {
+      type: 'object' as const,
+      properties: {
+        pool_type: { type: 'string', enum: ['residential', 'mobile', 'datacenter'], description: 'Pool type' },
+        country: { type: 'string', description: 'ISO-2 country code (e.g. "US", "DE")' },
+        kind: { type: 'string', enum: ['cities', 'states', 'asns', 'zipcodes'], description: 'Which location dimension to list' },
+      },
+      required: ['pool_type', 'country', 'kind'],
+    },
+    annotations: {
+      title: 'List Proxy Locations',
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: true,
+    },
+  },
+  {
+    name: 'virtualsms_generate_proxy_endpoint',
+    title: 'Generate Proxy Connection Endpoint',
+    description:
+      'Build ready-to-use proxy connection string(s) for an owned proxy — country/state/city/zip/asn targeting, ' +
+      'rotating or sticky session, HTTP or SOCKS5, in host:port:user:pass / user:pass@host:port / curl format. ' +
+      'Nothing is purchased or changed server-side — this only composes a connection string from the proxy\'s ' +
+      'existing credentials (same convention as the VirtualSMS dashboard\'s endpoint generator). Sub-country ' +
+      'targeting (state/city/zip/asn) bills the proxy\'s own GB at 2x on non-premium pools, free on residential_premium.',
+    inputSchema: {
+      type: 'object' as const,
+      properties: {
+        proxy_id: { type: 'string', description: 'Proxy ID returned by list_proxies or buy_proxy' },
+        country_code: { type: 'string', description: 'ISO-2 country to target (e.g. "us", "gb")' },
+        target_by: { type: 'string', enum: ['country', 'state', 'city', 'zip', 'asn'], description: 'Refinement level (default: country)' },
+        location_code: { type: 'string', description: 'Location value matching target_by — required when target_by is not "country"' },
+        session: { type: 'string', enum: ['rotating', 'sticky'], description: 'rotating = new IP per connection (default). sticky = holds one IP per generated endpoint.' },
+        sticky_ttl_minutes: { type: 'number', description: 'How long a sticky session holds its IP, in minutes (default: 10)' },
+        count: { type: 'number', description: 'How many endpoint strings to generate (default: 1)' },
+        protocol: { type: 'string', enum: ['HTTP', 'SOCKS5'], description: 'Proxy protocol (default: HTTP)' },
+        format: { type: 'string', enum: ['host:port:user:pass', 'user:pass@host:port', 'curl'], description: 'Output string format (default: host:port:user:pass)' },
+      },
+      required: ['proxy_id', 'country_code'],
+    },
+    annotations: {
+      title: 'Generate Proxy Connection Endpoint',
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: false,
     },
   },
   {
@@ -1053,6 +1246,79 @@ export async function handleRotateProxy(
   args: z.infer<typeof RotateProxyInput>
 ) {
   const result = await client.rotateProxy(args.proxy_id, args.port);
+  return jsonResult(result);
+}
+
+export async function handleGetProxyUsage(
+  client: IVirtualSMSClient,
+  args: z.infer<typeof GetProxyUsageInput>
+) {
+  const result = await client.getProxyUsage(args.proxy_id);
+  return jsonResult(result);
+}
+
+export async function handleGetProxyUsageHistory(
+  client: IVirtualSMSClient,
+  args: z.infer<typeof GetProxyUsageHistoryInput>
+) {
+  const result = await client.getProxyUsageHistory(args.proxy_id, args.range);
+  return jsonResult(result);
+}
+
+export async function handleSetProxyTargeting(
+  client: IVirtualSMSClient,
+  args: z.infer<typeof SetProxyTargetingInput>
+) {
+  const result = await client.setProxyTargeting(args.proxy_id, {
+    countryCode: args.country_code,
+    cities: args.cities,
+    asns: args.asns,
+  });
+  return jsonResult(result);
+}
+
+export async function handleTestProxy(
+  client: IVirtualSMSClient,
+  args: z.infer<typeof TestProxyInput>
+) {
+  const result = await client.testProxy(args.proxy_id, {
+    country: args.country,
+    session: args.session,
+    protocol: args.protocol,
+  });
+  return jsonResult(result);
+}
+
+export async function handleListProxyLocations(
+  client: IVirtualSMSClient,
+  args: z.infer<typeof ListProxyLocationsInput>
+) {
+  const result = await client.listProxyLocations({
+    poolType: args.pool_type,
+    country: args.country,
+    kind: args.kind,
+  });
+  return jsonResult(result);
+}
+
+export async function handleGenerateProxyEndpoint(
+  client: IVirtualSMSClient,
+  args: z.infer<typeof GenerateProxyEndpointInput>
+) {
+  if (args.target_by && args.target_by !== 'country' && !args.location_code?.trim()) {
+    throw new Error(`location_code is required when target_by is "${args.target_by}"`);
+  }
+  const result = await client.generateProxyEndpoint({
+    proxyId: args.proxy_id,
+    countryCode: args.country_code,
+    targetBy: args.target_by,
+    locationCode: args.location_code,
+    session: args.session,
+    stickyTtlMinutes: args.sticky_ttl_minutes,
+    count: args.count,
+    protocol: args.protocol,
+    format: args.format,
+  });
   return jsonResult(result);
 }
 

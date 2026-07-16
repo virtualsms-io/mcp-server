@@ -42,6 +42,12 @@ import {
   GetTransactionsInput,
   BuyProxyInput,
   RotateProxyInput,
+  GetProxyUsageInput,
+  GetProxyUsageHistoryInput,
+  SetProxyTargetingInput,
+  TestProxyInput,
+  ListProxyLocationsInput,
+  GenerateProxyEndpointInput,
   StartManualRegistrationSessionInput,
   StopSessionInput,
   NavigateSessionInput,
@@ -61,6 +67,12 @@ import {
   handleListProxies,
   handleBuyProxy,
   handleRotateProxy,
+  handleGetProxyUsage,
+  handleGetProxyUsageHistory,
+  handleSetProxyTargeting,
+  handleTestProxy,
+  handleListProxyLocations,
+  handleGenerateProxyEndpoint,
   handleStartManualRegistrationSession,
   handleStopSession,
   handleNavigateSession,
@@ -156,6 +168,36 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       case 'virtualsms_rotate_proxy': {
         const parsed = RotateProxyInput.parse(args);
         return await handleRotateProxy(client, parsed);
+      }
+
+      case 'virtualsms_get_proxy_usage': {
+        const parsed = GetProxyUsageInput.parse(args);
+        return await handleGetProxyUsage(client, parsed);
+      }
+
+      case 'virtualsms_get_proxy_usage_history': {
+        const parsed = GetProxyUsageHistoryInput.parse(args);
+        return await handleGetProxyUsageHistory(client, parsed);
+      }
+
+      case 'virtualsms_set_proxy_targeting': {
+        const parsed = SetProxyTargetingInput.parse(args);
+        return await handleSetProxyTargeting(client, parsed);
+      }
+
+      case 'virtualsms_test_proxy': {
+        const parsed = TestProxyInput.parse(args);
+        return await handleTestProxy(client, parsed);
+      }
+
+      case 'virtualsms_list_proxy_locations': {
+        const parsed = ListProxyLocationsInput.parse(args);
+        return await handleListProxyLocations(client, parsed);
+      }
+
+      case 'virtualsms_generate_proxy_endpoint': {
+        const parsed = GenerateProxyEndpointInput.parse(args);
+        return await handleGenerateProxyEndpoint(client, parsed);
       }
 
       case 'virtualsms_start_manual_registration_session': {
