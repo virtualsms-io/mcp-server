@@ -101,10 +101,10 @@ full lifecycle:
 
 Carrier-lookup APIs (Twilio Lookup, NumVerify, etc.) flag VoIP and
 eSIM ranges. Services that care (WhatsApp, Tinder, Discord, OnlyFans,
-banking apps) silently reject the verification. Real carrier-issued
-mobile numbers survive these checks because they look exactly like
-consumer numbers. VirtualSMS covers 2500+ services across 145+
-countries with real carrier mobile numbers, not VoIP.
+banking apps) silently reject the verification. Real physical SIM cards
+survive these checks because they look exactly like consumer numbers.
+VirtualSMS covers 2500+ services across 145+ countries with real
+physical SIMs, not VoIP.
 
 ## Reference
 
