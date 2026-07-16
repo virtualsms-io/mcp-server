@@ -23,11 +23,11 @@ export const CancelOrderInput = z.object({
 });
 
 export const SwapNumberInput = z.object({
-  order_id: z.string().describe('Order ID to swap — must be in waiting/created status with no SMS received'),
+  order_id: z.string().describe('Order ID to swap. Must be in waiting/created status with no SMS received'),
 });
 
 export const WaitForCodeInput = z.object({
-  order_id: z.string().describe('Existing order ID returned from create_order — the tool waits for SMS on this order.'),
+  order_id: z.string().describe('Existing order ID returned from create_order. The tool waits for SMS on this order.'),
   timeout_seconds: z.number()
     .int()
     .min(5)
@@ -71,8 +71,8 @@ export const GetProfileInput = z.object({});
 
 export const GetTransactionsInput = z.object({
   type: z.enum(['deposit', 'purchase', 'refund', 'admin_credit']).optional().describe('Filter by transaction type'),
-  from: z.string().optional().describe('Lower bound on created_at — RFC3339 timestamp or YYYY-MM-DD'),
-  to: z.string().optional().describe('Upper bound on created_at — RFC3339 timestamp or YYYY-MM-DD'),
+  from: z.string().optional().describe('Lower bound on created_at: RFC3339 timestamp or YYYY-MM-DD'),
+  to: z.string().optional().describe('Upper bound on created_at: RFC3339 timestamp or YYYY-MM-DD'),
   limit: z.number().int().min(1).max(200).default(50).describe('Max transactions to return (1-200, default: 50)'),
   offset: z.number().int().min(0).default(0).describe('Pagination offset (default: 0)'),
 });
@@ -101,7 +101,7 @@ export const GetProxyUsageHistoryInput = z.object({
 
 export const SetProxyTargetingInput = z.object({
   proxy_id: z.string().describe('Proxy ID returned by list_proxies or buy_proxy'),
-  country_code: z.string().describe('ISO-2 country code (required — sets the default targeting country)'),
+  country_code: z.string().describe('ISO-2 country code (required: sets the default targeting country)'),
   cities: z.array(z.string()).optional().describe('Optional city slugs to persist as default targeting. Triggers 2x GB billing on non-premium pools (free on residential_premium).'),
   asns: z.array(z.number().int()).optional().describe('Optional ASN numbers to persist as default targeting. Triggers 2x GB billing on non-premium pools (free on residential_premium).'),
 });
@@ -120,10 +120,10 @@ export const ListProxyLocationsInput = z.object({
 });
 
 export const GenerateProxyEndpointInput = z.object({
-  proxy_id: z.string().describe('Proxy ID returned by list_proxies or buy_proxy — its login/password/host are reused, nothing new is purchased'),
-  country_code: z.string().describe('ISO-2 country to target (e.g. "us", "gb") — required before any sub-country refinement'),
-  target_by: z.enum(['country', 'state', 'city', 'zip', 'asn']).optional().describe('Refinement level (default: country). state/city/zip/asn trigger 2x GB billing on non-premium pools — free on residential_premium.'),
-  location_code: z.string().optional().describe('Location value matching target_by (e.g. a city slug, state slug, ZIP, or ASN number) — required when target_by is not "country"'),
+  proxy_id: z.string().describe('Proxy ID returned by list_proxies or buy_proxy. Its login/password/host are reused, nothing new is purchased'),
+  country_code: z.string().describe('ISO-2 country to target (e.g. "us", "gb"). Required before any sub-country refinement'),
+  target_by: z.enum(['country', 'state', 'city', 'zip', 'asn']).optional().describe('Refinement level (default: country). state/city/zip/asn trigger 2x GB billing on non-premium pools, free on residential_premium.'),
+  location_code: z.string().optional().describe('Location value matching target_by (e.g. a city slug, state slug, ZIP, or ASN number). Required when target_by is not "country"'),
   session: z.enum(['rotating', 'sticky']).optional().describe('rotating = new IP per connection (default). sticky = holds one IP per generated endpoint for sticky_ttl_minutes.'),
   sticky_ttl_minutes: z.number().int().min(1).max(120).optional().describe('How long a sticky session holds its IP, in minutes (default: 10, only used when session=sticky)'),
   count: z.number().int().min(1).max(100).optional().describe('How many endpoint strings to generate (default: 1). For sticky sessions each gets a distinct IP.'),
@@ -132,7 +132,7 @@ export const GenerateProxyEndpointInput = z.object({
 });
 
 export const StartManualRegistrationSessionInput = z.object({
-  service_name: z.string().optional().describe('Friendly service name (e.g. telegram, whatsapp) — influences default device profile'),
+  service_name: z.string().optional().describe('Friendly service name (e.g. telegram, whatsapp). Influences default device profile'),
   country: z.string().optional().describe('ISO-2 country code when attaching a matching proxy (e.g. id, de)'),
   device_mode: z.enum(['desktop', 'mobile']).optional().describe('Browser viewport profile (auto-picked from service when omitted)'),
   with_proxy: z.boolean().optional().describe('Attach matching VSMS proxy (default: true when country is set)'),
@@ -160,8 +160,8 @@ export const SessionViewerInput = z.object({
 
 // ─── Rentals input schemas ────────────────────────────────────────────────────
 // Two rental tiers, reflected generically:
-//   full_access — local SIM inventory, any service, no refund countdown
-//   platform    — our global supplier network, one service per number, 20-min refund window
+//   full_access: local SIM inventory, any service, no refund countdown
+//   platform:    our global supplier network, one service per number, 20-min refund window
 
 export const RentalsPricingInput = z.object({});
 
@@ -173,7 +173,7 @@ export const RentalsAvailableInput = z.object({
 });
 
 export const RentalsServicesInput = z.object({
-  country_code: z.string().describe('ISO-2 country code (e.g. "GR") — platform tier only'),
+  country_code: z.string().describe('ISO-2 country code (e.g. "GR"). Platform tier only'),
   duration_hours: z.number().int().optional().describe('Duration in hours (default: 24)'),
 });
 
@@ -187,8 +187,8 @@ export const CreateRentalInput = z.object({
   tier: z.enum(['full_access', 'platform']).describe('full_access = local SIM, any service, no refund countdown. platform = our global supplier network, one service per number, 20-min refund window.'),
   country: z.string().describe('ISO-2 country code (e.g. "DE")'),
   duration_hours: z.number().int().describe('Duration in hours. full_access: whatever rentals_pricing lists (e.g. 24/168/720). platform: 24, 72, or 168 only.'),
-  service: z.string().optional().describe('Service code — required for platform tier and for full_access "service" sub-type; omit for full_access "full" (any-service) rentals'),
-  auto_renew: z.boolean().optional().describe('full_access tier only — auto-renew at expiry (default: false)'),
+  service: z.string().optional().describe('Service code. Required for platform tier and for full_access "service" sub-type; omit for full_access "full" (any-service) rentals'),
+  auto_renew: z.boolean().optional().describe('full_access tier only. Auto-renew at expiry (default: false)'),
 });
 
 export const ListRentalsInput = z.object({
@@ -205,15 +205,15 @@ export const ExtendRentalInput = z.object({
 });
 
 export const CancelRentalInput = z.object({
-  rental_id: z.string().describe('Rental ID to cancel — full refund, only eligible within 20 minutes of purchase and before any SMS is received. Works for either tier.'),
+  rental_id: z.string().describe('Rental ID to cancel. Full refund, only eligible within 20 minutes of purchase and before any SMS is received. Works for either tier.'),
 });
 
 export const ReleaseRentalInput = z.object({
-  rental_id: z.string().describe('Rental ID to release early — Full Access (local) tier only, pro-rated refund, requires a 2-hour minimum hold since purchase'),
+  rental_id: z.string().describe('Rental ID to release early. Full Access (local) tier only, pro-rated refund, requires a 2-hour minimum hold since purchase'),
 });
 
 export const RetryOrderInput = z.object({
-  order_id: z.string().describe('Order ID to request a fresh SMS resend on (same phone number — use swap_number instead for a new number)'),
+  order_id: z.string().describe('Order ID to request a fresh SMS resend on (same phone number; use swap_number instead for a new number)'),
 });
 
 export const CheckNumberInput = z.object({
@@ -246,7 +246,8 @@ export const TOOL_DEFINITIONS = [
     name: 'virtualsms_list_proxies',
     title: 'List My Proxies',
     description:
-      'List all proxies on your account with remaining GB and login credentials.',
+      'List all proxies on your account with remaining GB and login credentials. Returns proxy_id values for use ' +
+      'with get_proxy_usage, rotate_proxy, set_proxy_targeting, and generate_proxy_endpoint.',
     inputSchema: {
       type: 'object' as const,
       properties: {},
@@ -265,7 +266,7 @@ export const TOOL_DEFINITIONS = [
     title: 'Buy Proxy GB',
     description:
       'Purchase proxy traffic (GB) for a selected pool type. Returns proxy credentials and remaining balance. ' +
-      'country_code here is only a soft preference for provisioning — for actual per-connection targeting ' +
+      'country_code here is only a soft preference for provisioning. For actual per-connection targeting ' +
       '(country/state/city/zip/asn) or a ready-to-use connection string, use virtualsms_generate_proxy_endpoint ' +
       'after buying. To persist a default targeting on the sub-user, use virtualsms_set_proxy_targeting.',
     inputSchema: {
@@ -329,7 +330,7 @@ export const TOOL_DEFINITIONS = [
     name: 'virtualsms_get_proxy_usage',
     title: 'Get Proxy Usage',
     description:
-      'Get cached GB used/remaining and request count for one proxy. Cheap, no upstream call — reads a cached value refreshed every ~5 minutes.',
+      'Get cached GB used/remaining and request count for one proxy. Cheap, no upstream call. Reads a cached value refreshed every ~5 minutes.',
     inputSchema: {
       type: 'object' as const,
       properties: {
@@ -372,15 +373,15 @@ export const TOOL_DEFINITIONS = [
     description:
       'Persist a default geo-targeting (country, and optionally cities/ASNs) on an existing proxy sub-user. ' +
       'Country-only is free. Adding cities or ASNs bills the GB on your OWN allocation at 2x (not on ' +
-      'residential_premium, where refined targeting is included free). This changes the STORED default — for a ' +
+      'residential_premium, where refined targeting is included free). This changes the STORED default. For a ' +
       'one-off connection string with any targeting (including state/zip), use virtualsms_generate_proxy_endpoint instead.',
     inputSchema: {
       type: 'object' as const,
       properties: {
         proxy_id: { type: 'string', description: 'Proxy ID returned by list_proxies or buy_proxy' },
         country_code: { type: 'string', description: 'ISO-2 country code (required)' },
-        cities: { type: 'array', items: { type: 'string' }, description: 'Optional city slugs — triggers 2x billing on non-premium pools' },
-        asns: { type: 'array', items: { type: 'number' }, description: 'Optional ASN numbers — triggers 2x billing on non-premium pools' },
+        cities: { type: 'array', items: { type: 'string' }, description: 'Optional city slugs. Triggers 2x billing on non-premium pools' },
+        asns: { type: 'array', items: { type: 'number' }, description: 'Optional ASN numbers. Triggers 2x billing on non-premium pools' },
       },
       required: ['proxy_id', 'country_code'],
     },
@@ -396,7 +397,7 @@ export const TOOL_DEFINITIONS = [
     name: 'virtualsms_test_proxy',
     title: 'Test Proxy Connectivity',
     description:
-      'Make one request through a proxy and report the exit IP, country, city, ISP, and latency — proves the proxy ' +
+      'Make one request through a proxy and report the exit IP, country, city, ISP, and latency. Proves the proxy ' +
       'works and which country it exits from. Consumes a small amount of the proxy\'s GB allocation. ' +
       'Rate-limited to about once per 20 seconds per proxy.',
     inputSchema: {
@@ -421,7 +422,7 @@ export const TOOL_DEFINITIONS = [
     name: 'virtualsms_list_proxy_locations',
     title: 'List Proxy Locations',
     description:
-      'List available cities, states, ASNs, or ZIP codes for a pool type + country — use this to discover valid ' +
+      'List available cities, states, ASNs, or ZIP codes for a pool type + country. Use this to discover valid ' +
       'location_code values before calling virtualsms_generate_proxy_endpoint or virtualsms_set_proxy_targeting ' +
       'with sub-country targeting. Public endpoint, no purchase required. Not available for residential_premium ' +
       '(only residential, mobile, datacenter).',
@@ -446,9 +447,9 @@ export const TOOL_DEFINITIONS = [
     name: 'virtualsms_generate_proxy_endpoint',
     title: 'Generate Proxy Connection Endpoint',
     description:
-      'Build ready-to-use proxy connection string(s) for an owned proxy — country/state/city/zip/asn targeting, ' +
+      'Build ready-to-use proxy connection string(s) for an owned proxy: country/state/city/zip/asn targeting, ' +
       'rotating or sticky session, HTTP or SOCKS5, in host:port:user:pass / user:pass@host:port / curl format. ' +
-      'Nothing is purchased or changed server-side — this only composes a connection string from the proxy\'s ' +
+      'Nothing is purchased or changed server-side. This only composes a connection string from the proxy\'s ' +
       'existing credentials (same convention as the VirtualSMS dashboard\'s endpoint generator). Sub-country ' +
       'targeting (state/city/zip/asn) bills the proxy\'s own GB at 2x on non-premium pools, free on residential_premium.',
     inputSchema: {
@@ -457,7 +458,7 @@ export const TOOL_DEFINITIONS = [
         proxy_id: { type: 'string', description: 'Proxy ID returned by list_proxies or buy_proxy' },
         country_code: { type: 'string', description: 'ISO-2 country to target (e.g. "us", "gb")' },
         target_by: { type: 'string', enum: ['country', 'state', 'city', 'zip', 'asn'], description: 'Refinement level (default: country)' },
-        location_code: { type: 'string', description: 'Location value matching target_by — required when target_by is not "country"' },
+        location_code: { type: 'string', description: 'Location value matching target_by. Required when target_by is not "country"' },
         session: { type: 'string', enum: ['rotating', 'sticky'], description: 'rotating = new IP per connection (default). sticky = holds one IP per generated endpoint.' },
         sticky_ttl_minutes: { type: 'number', description: 'How long a sticky session holds its IP, in minutes (default: 10)' },
         count: { type: 'number', description: 'How many endpoint strings to generate (default: 1)' },
@@ -787,7 +788,7 @@ export const TOOL_DEFINITIONS = [
       properties: {
         order_id: {
           type: 'string',
-          description: 'Order ID to swap — must be in waiting/created status with no SMS received',
+          description: 'Order ID to swap. Must be in waiting/created status with no SMS received',
         },
       },
       required: ['order_id'],
@@ -804,7 +805,7 @@ export const TOOL_DEFINITIONS = [
     name: 'virtualsms_list_orders',
     title: 'List Active Orders',
     description:
-      'List your active orders. Essential for crash recovery — if your session was interrupted, ' +
+      'List your active orders. Essential for crash recovery. If your session was interrupted, ' +
       'use this to find pending orders and their phone numbers, then use check_sms to retrieve codes.',
     inputSchema: {
       type: 'object' as const,
@@ -968,11 +969,11 @@ export const TOOL_DEFINITIONS = [
         },
         from: {
           type: 'string',
-          description: 'Lower bound on created_at — RFC3339 or YYYY-MM-DD',
+          description: 'Lower bound on created_at: RFC3339 or YYYY-MM-DD',
         },
         to: {
           type: 'string',
-          description: 'Upper bound on created_at — RFC3339 or YYYY-MM-DD',
+          description: 'Upper bound on created_at: RFC3339 or YYYY-MM-DD',
         },
         limit: {
           type: 'number',
@@ -999,7 +1000,7 @@ export const TOOL_DEFINITIONS = [
     name: 'virtualsms_rentals_pricing',
     title: 'List Rental Pricing Tiers',
     description:
-      'List all active rental pricing tiers (Full Access tier — local SIM inventory, durations and prices). ' +
+      'List all active rental pricing tiers (Full Access tier: local SIM inventory, durations and prices). ' +
       'Use rentals_price for platform-tier (per-country, per-service) pricing instead.',
     inputSchema: { type: 'object' as const, properties: {}, required: [] },
     annotations: { title: 'List Rental Pricing Tiers', readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
@@ -1028,7 +1029,7 @@ export const TOOL_DEFINITIONS = [
     title: 'List Platform-Tier Rental Services',
     description:
       'List services available for platform-tier rental in a given country, with physical stock counts and retail price. ' +
-      'Platform-tier rentals are locked to ONE chosen service per number — use this to pick a valid service code before creating one.',
+      'Platform-tier rentals are locked to ONE chosen service per number. Use this to pick a valid service code before creating one.',
     inputSchema: {
       type: 'object' as const,
       properties: {
@@ -1069,8 +1070,8 @@ export const TOOL_DEFINITIONS = [
         tier: { type: 'string', enum: ['full_access', 'platform'], description: 'Rental tier' },
         country: { type: 'string', description: 'ISO-2 country code' },
         duration_hours: { type: 'number', description: 'Duration in hours (platform tier: 24, 72, or 168 only)' },
-        service: { type: 'string', description: 'Service code — required for platform tier; optional for full_access' },
-        auto_renew: { type: 'boolean', description: 'full_access tier only — auto-renew at expiry (default: false)' },
+        service: { type: 'string', description: 'Service code. Required for platform tier; optional for full_access' },
+        auto_renew: { type: 'boolean', description: 'full_access tier only. Auto-renew at expiry (default: false)' },
       },
       required: ['tier', 'country', 'duration_hours'],
     },
@@ -1079,7 +1080,9 @@ export const TOOL_DEFINITIONS = [
   {
     name: 'virtualsms_list_rentals',
     title: 'List My Rentals',
-    description: 'List your rentals (both tiers), optionally filtered by status.',
+    description:
+      'List your rentals across both tiers, optionally filtered by status. Returns rental_id, tier, country, ' +
+      'phone number, status, and expiry for each. Use get_rental for full detail on one.',
     inputSchema: {
       type: 'object' as const,
       properties: {
@@ -1092,7 +1095,9 @@ export const TOOL_DEFINITIONS = [
   {
     name: 'virtualsms_get_rental',
     title: 'Get Rental Details',
-    description: 'Get the full details of a specific rental by ID.',
+    description:
+      'Get the full details of a specific rental by ID, including tier, phone number, country, service lock, ' +
+      'status, expiry, and any received SMS. Use list_rentals first if you do not have the rental_id.',
     inputSchema: {
       type: 'object' as const,
       properties: { rental_id: { type: 'string', description: 'Rental ID to retrieve' } },
@@ -1132,7 +1137,7 @@ export const TOOL_DEFINITIONS = [
     title: 'Release Rental Early',
     description:
       'End a Full Access (local-tier) rental early for a pro-rated refund. Requires a 2-hour minimum hold since ' +
-      'purchase. NOT available for platform-tier rentals — those run to their natural expiry or must be cancelled ' +
+      'purchase. NOT available for platform-tier rentals. Those run to their natural expiry or must be cancelled ' +
       'within the 20-minute window instead.',
     inputSchema: {
       type: 'object' as const,
@@ -1146,7 +1151,7 @@ export const TOOL_DEFINITIONS = [
     title: 'Retry Order (Resend SMS)',
     description:
       'Ask the provider to resend the SMS to the SAME phone number on an existing order (order must be in ' +
-      'waiting/created status). Not all order types support this — some providers only support swap_number instead, ' +
+      'waiting/created status). Not all order types support this. Some providers only support swap_number instead, ' +
       'which returns a NEW number.',
     inputSchema: {
       type: 'object' as const,
@@ -1166,7 +1171,7 @@ export const TOOL_DEFINITIONS = [
     },
     annotations: { title: 'Check Phone Number', readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
   },
-  // ─── Session-drive tools — gated behind VIRTUALSMS_ENABLE_SESSIONS (default off) ───
+  // ─── Session-drive tools: gated behind VIRTUALSMS_ENABLE_SESSIONS (default off) ───
   {
     name: 'virtualsms_stop_session',
     title: 'Stop Browser Session',
@@ -1210,7 +1215,7 @@ export const TOOL_DEFINITIONS = [
 
 // Marker used by index.ts / http-server.ts to gate the 3 session-drive tools
 // above behind VIRTUALSMS_ENABLE_SESSIONS (default off). Tools with no
-// `requiresSessions` marker are always served — unaffected by the flag.
+// `requiresSessions` marker are always served. Unaffected by the flag.
 export function getToolDefinitions(enableSessions: boolean) {
   if (enableSessions) return TOOL_DEFINITIONS;
   return TOOL_DEFINITIONS.filter((t) => !('requiresSessions' in t) || !t.requiresSessions);
@@ -1367,7 +1372,7 @@ export async function handleCheckPrice(
   }
 
   // /api/v1/price returns no availability field, so real stock is sourced from the
-  // catalog's per-country `count` (count>0 = in stock) — same source as find_cheapest
+  // catalog's per-country `count` (count>0 = in stock), same source as find_cheapest
   // and the website. Fail closed if the combo isn't in stock or the lookup fails.
   try {
     const catalog = await client.getCatalogCountries(args.service);
@@ -1438,7 +1443,7 @@ export async function handleCheckSms(
   };
   if (messages.length > 0) result.messages = messages;
   if (code) result.code = code;
-  // Backward-compat aliases — older consumers read these.
+  // Backward-compat aliases: older consumers read these.
   if (code) result.sms_code = code;
   if (firstContent) result.sms_text = firstContent;
 
@@ -1477,14 +1482,14 @@ export async function handleCancelOrder(
   args: z.infer<typeof CancelOrderInput>
 ) {
   // Pre-check: fetch order to see if cancel_available_at is still in the future.
-  // This is best-effort — if the lookup fails we still call the backend (which
+  // This is best-effort: if the lookup fails we still call the backend (which
   // enforces the cooldown anyway).
   try {
     const order = await client.getOrder(args.order_id);
     const blocked = preCheckCooldown(order.cancel_available_at, 'cancel');
     if (blocked) return blocked;
   } catch {
-    // Lookup failed — let the backend handle it.
+    // Lookup failed. Let the backend handle it.
   }
 
   const result = await client.cancelOrder(args.order_id);
@@ -1502,7 +1507,7 @@ export async function handleSwapNumber(
     const blocked = preCheckCooldown(order.swap_available_at, 'swap');
     if (blocked) return blocked;
   } catch {
-    // Lookup failed — let the backend handle it.
+    // Lookup failed. Let the backend handle it.
   }
 
   const result = await client.swapNumber(args.order_id);
@@ -1664,7 +1669,7 @@ export async function handleWaitForCode(
     );
   }
 
-  // WebSocket path (if we have an API key) — race against timeout.
+  // WebSocket path (if we have an API key): race against timeout.
   if (apiKey) {
     const remainingMs = timeoutMs - (Date.now() - startTime);
     if (remainingMs > 0) {
@@ -1675,7 +1680,7 @@ export async function handleWaitForCode(
           'websocket'
         );
       }
-      // WS timed out or failed — fall through to polling for any remaining time.
+      // WS timed out or failed. Fall through to polling for any remaining time.
     }
   }
 
@@ -1715,7 +1720,7 @@ export async function handleWaitForCode(
     await sleep(Math.min(pollIntervalMs, remaining));
   }
 
-  // Timeout — return order_id for crash recovery (don't cancel automatically).
+  // Timeout: return order_id for crash recovery (don't cancel automatically).
   return jsonResult({
     success: false,
     error: 'timeout',
@@ -1738,7 +1743,7 @@ export async function handleFindCheapest(
 
   // Stock comes from the catalog's real per-country `count` (count>0 = in stock),
   // the same source the website uses. The old path fanned out to /api/v1/price
-  // per country, but that endpoint returns no availability field — so every priced
+  // per country, but that endpoint returns no availability field, so every priced
   // combo was fabricated as in-stock (e.g. TikTok/Yemen showed stock:true despite
   // count:0 and OUT OF STOCK on the site).
   const catalog = await client.getCatalogCountries(args.service);
@@ -2031,7 +2036,7 @@ export async function handleGetStats(
     top_countries: topEntries(byCountry),
     note:
       orders.length >= 50
-        ? 'Server caps order history at 50 rows — stats may undercount if your activity exceeds 50 orders in the window.'
+        ? 'Server caps order history at 50 rows. Stats may undercount if your activity exceeds 50 orders in the window.'
         : undefined,
   });
 }
@@ -2067,7 +2072,7 @@ export async function handleGetTransactions(
         page.transactions.length === 0
           ? 'No transactions match the filters. Try widening the date range or removing the type filter.'
           : page.count === page.limit
-            ? 'Page is full — increment offset by limit to fetch the next page.'
+            ? 'Page is full. Increment offset by limit to fetch the next page.'
             : undefined,
     }
   );
@@ -2076,10 +2081,10 @@ export async function handleGetTransactions(
 // ─── Rentals handlers ─────────────────────────────────────────────────────────
 
 // Every tool response carries both a human-readable text block (unchanged
-// behavior — same JSON serialization as before) AND a machine-parseable
+// behavior: same JSON serialization as before) AND a machine-parseable
 // structuredContent object (MCP structured tool output) so clients can skip
 // re-parsing the JSON-in-text. The MCP spec requires structuredContent to be
-// an object (not a bare array/primitive) — top-level arrays get wrapped under
+// an object (not a bare array/primitive). Top-level arrays get wrapped under
 // an `items` key for structuredContent only; the text block is untouched.
 function jsonResult(payload: unknown) {
   const structured: Record<string, unknown> = Array.isArray(payload)
@@ -2209,7 +2214,7 @@ export async function handleCheckNumber(
 
 // The session-drive endpoints don't exist on every deployed VirtualSMS host
 // yet (feature-flagged server-side). Surface a clean generic message instead
-// of a raw 404/503 — never leak the upstream supplier name in the error text.
+// of a raw 404/503. Never leak the upstream supplier name in the error text.
 function isSessionsUnavailableError(err: unknown): boolean {
   const message = (err as Error)?.message ?? '';
   return (

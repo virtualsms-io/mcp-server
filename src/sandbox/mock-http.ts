@@ -1,12 +1,12 @@
 /**
- * Sandbox mock client — stands in for VirtualSMSClient when VIRTUALSMS_SANDBOX
+ * Sandbox mock client: stands in for VirtualSMSClient when VIRTUALSMS_SANDBOX
  * is active. No real network calls, no API key required. Returns realistic
  * FAKE data so an agent (or a registry scanner) can exercise every tool
  * end-to-end without touching production or spending real money.
  *
  * Structural contract: this class implements the same public method surface
  * as VirtualSMSClient (same names, params, return shapes) so tools.ts handlers
- * work unmodified against either — TypeScript structural typing does the rest.
+ * work unmodified against either. TypeScript structural typing does the rest.
  * It does NOT extend VirtualSMSClient (no real axios instance, no real base
  * URL requirement) to keep it fully offline.
  */
@@ -54,7 +54,7 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-// Small canned catalog — enough variety to exercise search/find_cheapest/list flows.
+// Small canned catalog: enough variety to exercise search/find_cheapest/list flows.
 const MOCK_SERVICES: Service[] = [
   { code: 'telegram', name: 'Telegram' },
   { code: 'whatsapp', name: 'WhatsApp' },
@@ -105,7 +105,7 @@ export class MockVirtualSMSClient implements IVirtualSMSClient {
     );
   }
 
-  // requireApiKey is a no-op in sandbox — every tool works with zero key.
+  // requireApiKey is a no-op in sandbox: every tool works with zero key.
   requireApiKey(): void {
     return;
   }
@@ -235,7 +235,7 @@ export class MockVirtualSMSClient implements IVirtualSMSClient {
       cancel_available_at: new Date(now + 120 * 1000).toISOString(),
       swap_available_at: new Date(now + 120 * 1000).toISOString(),
       _createdAtMs: now,
-      // Fake SMS "arrives" ~3s after purchase — fast enough for a demo/test
+      // Fake SMS "arrives" ~3s after purchase, fast enough for a demo/test
       // flow, but still exercises the wait/poll path.
       _smsAtMs: now + 3000,
     };
@@ -490,7 +490,7 @@ export class MockVirtualSMSClient implements IVirtualSMSClient {
       country_code: params.country,
       device_mode: params.deviceMode ?? 'desktop',
       with_proxy: params.withProxy ?? Boolean(params.country),
-      // Placeholder — NOT a real cloud-browser session. Static sandbox page.
+      // Placeholder: NOT a real cloud-browser session. Static sandbox page.
       viewer_url: SANDBOX_VIEWER_URL,
       target_url: params.targetUrl,
       order_id: params.orderId,
@@ -687,7 +687,7 @@ export class MockVirtualSMSClient implements IVirtualSMSClient {
     return { success: true, rental_id: rentalId, status: 'completed', refund: proratedRefund, hours_used: '2h' };
   }
 
-  // ─── Orders — retry ─────────────────────────────────────────────────────
+  // ─── Orders: retry ──────────────────────────────────────────────────────
 
   async retryOrder(orderId: string): Promise<RetryOrderResult> {
     const order = this.orders.get(orderId);

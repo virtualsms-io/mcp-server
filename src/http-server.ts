@@ -121,18 +121,18 @@ const DEFAULT_TIMEOUT = parseInt(process.env.VIRTUALSMS_TIMEOUT || '30', 10);
 // flag, default OFF. Truthy = "1" / "true" / "yes" (case-insensitive).
 const ENABLE_SESSIONS = /^(1|true|yes)$/i.test(process.env.VIRTUALSMS_ENABLE_SESSIONS ?? '');
 
-// Sandbox mode (VIRTUALSMS_SANDBOX=1) — zero-key, in-memory mock. Same flag
+// Sandbox mode (VIRTUALSMS_SANDBOX=1): zero-key, in-memory mock. Same flag
 // semantics as index.ts (stdio transport). When active, the HTTP transport's
 // H-005 "reject unauthenticated requests" gate is bypassed (see below) since
 // there's no real API key to protect and no real backend call to make.
 const SANDBOX_MODE = isSandboxEnabled(process.env);
 
 // ─── Rate limiting (Tier-A hardening) ────────────────────────────────────────
-// Simple in-memory token bucket, keyed per-API-key AND per-IP — a request
+// Simple in-memory token bucket, keyed per-API-key AND per-IP. A request
 // must have a token available in BOTH buckets to proceed. In-memory is fine
 // for this server's shape: single process, stateless per-request MCP
 // server/transport, no external cache dependency worth adding just for this.
-// Buckets reset on restart — this is abuse-throttling, not a hard security
+// Buckets reset on restart: this is abuse-throttling, not a hard security
 // boundary (that's the API-key check below).
 interface TokenBucket {
   tokens: number;
@@ -168,7 +168,7 @@ export function takeToken(
   return { allowed: false, retryAfterSeconds };
 }
 
-// Test-only escape hatch — lets the rate-limit test suite start each case
+// Test-only escape hatch: lets the rate-limit test suite start each case
 // from a clean slate without needing to reach into module internals.
 export function __resetRateLimitForTests(): void {
   rateLimitBuckets.clear();
@@ -515,14 +515,14 @@ async function handleRequest(req: http.IncomingMessage, res: http.ServerResponse
   }
 
   // Extract config from headers and query params (x-from mappings).
-  // H-005: no env-var fallback for apiKey — caller must provide their own key.
+  // H-005: no env-var fallback for apiKey. Caller must provide their own key.
   const apiKeyHeader = req.headers['x-api-key'] as string | undefined;
   const apiKeyQuery = url.searchParams.get('apiKey') || undefined;
   const apiKey = apiKeyHeader || apiKeyQuery;
 
   // Tier-A hardening: header-only auth is the supported path going forward.
   // The ?apiKey= query param still works this release (avoids breaking
-  // existing integrators) but is deprecated — query strings land in proxy
+  // existing integrators) but is deprecated: query strings land in proxy
   // access logs, browser history, and referrer headers. Warn, don't break.
   if (apiKeyQuery && !apiKeyHeader) {
     res.setHeader('Deprecation', 'true');
@@ -531,7 +531,7 @@ async function handleRequest(req: http.IncomingMessage, res: http.ServerResponse
   }
 
   // H-005: reject unauthenticated requests before creating the MCP server.
-  // Sandbox mode is the one exception — there's no real key to protect and
+  // Sandbox mode is the one exception: there's no real key to protect and
   // no real backend call to make, so it's safe to skip this gate.
   if (!apiKey && !SANDBOX_MODE) {
     res.writeHead(401, { 'Content-Type': 'application/json' });
@@ -539,7 +539,7 @@ async function handleRequest(req: http.IncomingMessage, res: http.ServerResponse
     return;
   }
 
-  // Tier-A hardening: rate limit BOTH by IP and by API key — a request needs
+  // Tier-A hardening: rate limit BOTH by IP and by API key. A request needs
   // a token in each bucket. IP-based catches pre-auth/invalid-key abuse;
   // key-based catches one leaked/shared key hammering the backend. Applied
   // after the 401 gate's early-exit isn't needed since a missing key still
@@ -558,7 +558,7 @@ async function handleRequest(req: http.IncomingMessage, res: http.ServerResponse
     return;
   }
 
-  // H-005: baseUrl is always the hardcoded DEFAULT_BASE_URL — never accept
+  // H-005: baseUrl is always the hardcoded DEFAULT_BASE_URL. Never accept
   // caller-controlled baseUrl (prevents API key exfiltration to attacker servers).
   const baseUrl = DEFAULT_BASE_URL;
   const defaultCountry = url.searchParams.get('defaultCountry') || DEFAULT_COUNTRY;
@@ -595,7 +595,7 @@ async function handleRequest(req: http.IncomingMessage, res: http.ServerResponse
 }
 
 // Only auto-listen when this file is the process entry point (`node
-// dist/http-server.js`) — NOT when it's imported as a module, e.g. by the
+// dist/http-server.js`), NOT when it's imported as a module, e.g. by the
 // sandbox integration test suite, which imports createMCPServer() directly
 // and drives it over an in-memory transport. Without this guard, importing
 // http-server.ts anywhere (a test file, a future re-export) would silently
@@ -613,7 +613,7 @@ if (isMainModule) {
 // Tier-A hardening: the per-request try/catch in httpServer's request
 // listener covers request-scoped failures, but async work that escapes that
 // scope (e.g. a rejection from a timer, or a throw between event-loop ticks)
-// would otherwise be an unhandled rejection/exception — Node's default
+// would otherwise be an unhandled rejection/exception. Node's default
 // behavior is to crash the process, taking down every in-flight request.
 // Each request already gets a fresh MCP server + stateless transport, so
 // there's no shared mutable state one bad request can corrupt for the next;
