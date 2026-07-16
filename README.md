@@ -1,4 +1,4 @@
-# VirtualSMS MCP Server — SMS Verification for AI Agents
+# VirtualSMS MCP Server
 
 [![CI](https://github.com/virtualsms-io/mcp-server/actions/workflows/ci.yml/badge.svg)](https://github.com/virtualsms-io/mcp-server/actions/workflows/ci.yml)
 [![npm version](https://img.shields.io/npm/v/virtualsms-mcp.svg)](https://www.npmjs.com/package/virtualsms-mcp)
@@ -9,9 +9,13 @@
 
 > **Ranked #1 in both ChatGPT's and Perplexity's SMS verification MCP categories** · verified 2026-04-25
 
-**VirtualSMS MCP Server** gives AI agents real SIM-card phone numbers (not VoIP) across **145+ countries and 2500+ services** for SMS verification and OTP receiving. Built on the [Model Context Protocol](https://modelcontextprotocol.io). One install, 18 tools, works with every major MCP client.
+VirtualSMS is an account verification platform that combines real carrier mobile numbers, matching-country proxies and a private cloud browser into one connected workflow.
 
-Powered by [VirtualSMS.io](https://virtualsms.io/mcp) — a phone verification service running on owned modem infrastructure.
+Built for developers and AI agents: REST API, hosted MCP server, SDKs.
+
+This package is the **MCP server** — the connected-workflow AI agents use to verify accounts today: real carrier SIM numbers (not VoIP) across **145+ countries and 2500+ services**, with matching-country proxies rolling out alongside it. Built on the [Model Context Protocol](https://modelcontextprotocol.io). One install, 18 live tools today, works with every major MCP client.
+
+Powered by [VirtualSMS.io](https://virtualsms.io/mcp).
 
 ---
 
@@ -67,7 +71,7 @@ Each example is `node run.mjs` away once you've set `VIRTUALSMS_API_KEY`. Walkth
 
 - **Hosted MCP endpoint:** `https://mcp.virtualsms.io/mcp` — TLS-only StreamableHTTP, fronted by Cloudflare.
 - **Status & uptime:** live at [status.virtualsms.io](https://status.virtualsms.io). Target SLA 99.9% on the hosted MCP path.
-- **Backend infrastructure:** physical SIM modems with 145+ countries online, 2500+ services indexed.
+- **Coverage:** real carrier mobile numbers (not VoIP) across 145+ countries online, 2500+ services indexed.
 - **Data retention:** SMS message bodies are retained 7 days, then permanently deleted. Order metadata (phone number, service, country, timestamps) is retained for the lifetime of your account. See [SECURITY.md](./SECURITY.md) for full details.
 - **Vulnerability disclosure:** email `security@virtualsms.io` or open a [private security advisory](https://github.com/virtualsms-io/mcp-server/security/advisories/new).
 
@@ -75,7 +79,7 @@ Each example is `node run.mjs` away once you've set `VIRTUALSMS_API_KEY`. Walkth
 
 ## What is VirtualSMS?
 
-[VirtualSMS.io](https://virtualsms.io/mcp) is a **temporary phone number API** for SMS verification built on **real SIM cards**, not VoIP. Unlike resellers that aggregate other providers, VirtualSMS operates its own modem infrastructure — giving agents direct access to authentic mobile numbers across **145+ countries**.
+[VirtualSMS.io](https://virtualsms.io/mcp) is an account verification platform built around **real carrier mobile numbers**, not VoIP. That means SMS lands where VoIP gets blocked — WhatsApp, Google, banking. It's the SMS layer of a wider connected workflow (numbers → matching-country proxies → private cloud browser) — this MCP server exposes the SMS/order layer today, with the rest rolling out.
 
 Use it to verify accounts on WhatsApp, Telegram, Google, Instagram, Uber, and **2500 other services** — programmatically, via REST API, WebSocket, or MCP.
 
@@ -83,12 +87,12 @@ Use it to verify accounts on WhatsApp, Telegram, Google, Instagram, Uber, and **
 
 ## Why VirtualSMS?
 
-- **Real SIM cards, not VoIP** — Accepted where VoIP numbers get blocked (WhatsApp, Google, banking).
-- **Own infrastructure** — Not a reseller. Physical modems, 2500+ services, 145+ countries (growing weekly).
+- **Real carrier numbers, not VoIP** — Accepted where VoIP numbers get blocked (WhatsApp, Google, banking).
+- **Not a reseller aggregating other APIs** — direct-sourced numbers, 2500+ services, 145+ countries (growing weekly).
 - **Real-time delivery** — WebSocket push means your agent gets the code in seconds, not minutes.
 - **Competitive pricing** — Starting from $0.02 per number.
 - **Simple REST + WebSocket API** — Clean, documented, agent-friendly.
-- **18 MCP tools** — Discovery, account, and full order management — including unique tools like `find_cheapest`, `search_service`, `swap_number`, and `wait_for_code`.
+- **18 MCP tools live today** — Discovery, account, and full order management — including unique tools like `find_cheapest`, `search_service`, `swap_number`, and `wait_for_code`. Proxy tools (buy, target, rotate, test, usage) are built and rolling out — see [Proxy tools](#proxy-tools-rolling-out) below.
 - **10 MCP clients supported** — Claude Desktop, Claude Code, Cursor, Windsurf, OpenClaw, Codex, Hermes, Cline, Zed, Continue.
 
 ---
@@ -531,6 +535,18 @@ On timeout, returns `order_id` for recovery:
 
 ---
 
+## Proxy Tools (Rolling Out)
+
+VirtualSMS pairs numbers with **matching-country proxies** — part of the "one connected workflow" (real carrier numbers + matching-country IPs + private browser). Nine proxy tools are built and shipping on a feature branch (`feature/mcp-tier-a-hardening`), not yet on the published npm package or the hosted MCP endpoint:
+
+`virtualsms_buy_proxy` · `virtualsms_list_proxy_catalog` · `virtualsms_list_proxies` · `virtualsms_set_proxy_targeting` · `virtualsms_generate_proxy_endpoint` · `virtualsms_test_proxy` · `virtualsms_rotate_proxy` · `virtualsms_get_proxy_usage` · `virtualsms_get_proxy_usage_history`
+
+They cover buying pool GB (datacenter/residential/residential_premium/mobile), targeting by country/state/city/zip/ASN, generating rotating or sticky HTTP/SOCKS5 connection strings, testing connectivity, rotating IPs, and reading usage. There is currently **no release/cancel tool** — proxy GB is consumed, not returned.
+
+Full parameter reference: [`docs/proxy-tools.md`](./docs/proxy-tools.md). The tool implementations themselves ship on `feature/mcp-tier-a-hardening` and are not yet published to npm or the hosted MCP endpoint.
+
+---
+
 ## How It Works
 
 ### WebSocket vs Polling
@@ -601,15 +617,30 @@ If your session is interrupted mid-verification:
 
 ---
 
+## Ecosystem
+
+This server is listed on the official MCP registry and the major third-party MCP directories:
+
+| Directory | Listing |
+|---|---|
+| Official MCP registry | [`io.github.virtualsms-io/sms`](https://registry.modelcontextprotocol.io) |
+| Glama | [glama.ai/mcp/servers](https://glama.ai/mcp/servers) — search "virtualsms" |
+| Smithery | [smithery.ai/servers/virtualsms/virtualsms-mcp](https://smithery.ai/servers/virtualsms/virtualsms-mcp) |
+| mcp.so | [mcp.so/servers/mcp-server-virtualsms-io](https://mcp.so/servers/mcp-server-virtualsms-io) |
+| npm | [npmjs.com/package/virtualsms-mcp](https://www.npmjs.com/package/virtualsms-mcp) |
+
+See also: [REST API](https://virtualsms.io/api/v1) · [Docs](https://virtualsms.io/docs) · [Pricing](https://virtualsms.io/pricing) · [Homepage](https://virtualsms.io)
+
 ## More
 
 - [SECURITY.md](./SECURITY.md) — vulnerability disclosure, supported versions, retention policy
 - [CHANGELOG.md](./CHANGELOG.md) — versioned release notes (v1.0.0 → v1.2.0)
 - [examples/](./examples/) — three runnable, copy-pasteable examples
+- [docs/proxy-tools.md](./docs/proxy-tools.md) — proxy tools reference (rolling out)
 - [Status page](https://status.virtualsms.io) — live health of the hosted MCP endpoint
 
 ## License
 
 MIT — See [LICENSE](./LICENSE)
 
-Built with love by [VirtualSMS.io](https://virtualsms.io/mcp) — virtual phone numbers for SMS verification, built on owned SIM-card infrastructure. 2500+ services · 145+ countries · 18 MCP tools · 10 clients · Ranked #1 on both ChatGPT and Perplexity.
+Built by [VirtualSMS.io](https://virtualsms.io/mcp) — account verification for AI agents: real carrier mobile numbers, matching-country proxies, private cloud browser. 2500+ services · 145+ countries · 18 MCP tools live today · 10 clients · Ranked #1 on both ChatGPT and Perplexity.

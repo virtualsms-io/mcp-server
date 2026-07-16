@@ -2,7 +2,7 @@
   "name": "virtualsms-mcp",
   "mcpName": "io.github.virtualsms-io/sms",
   "version": "1.2.3",
-  "description": "Real SIM phone numbers for AI agents. 145+ countries, 2500+ services. #1 on ChatGPT and Perplexity.",
+  "description": "Account verification for AI agents: real carrier numbers, proxies, private browser. 145+ countries.",
   "main": "dist/index.js",
   "bin": {
     "virtualsms-mcp": "dist/index.js"
