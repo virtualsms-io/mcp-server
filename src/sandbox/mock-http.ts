@@ -490,7 +490,7 @@ export class MockVirtualSMSClient implements IVirtualSMSClient {
       country_code: params.country,
       device_mode: params.deviceMode ?? 'desktop',
       with_proxy: params.withProxy ?? Boolean(params.country),
-      // Placeholder — NOT a real Steel browser session. Static sandbox page.
+      // Placeholder — NOT a real cloud-browser session. Static sandbox page.
       viewer_url: SANDBOX_VIEWER_URL,
       target_url: params.targetUrl,
       order_id: params.orderId,

@@ -478,7 +478,7 @@ export const TOOL_DEFINITIONS = [
     name: 'virtualsms_start_manual_registration_session',
     title: 'Start Manual Registration Session',
     description:
-      'Start a Steel cloud-browser session for manual signup/verification. Returns debug_url for live takeover, optional order phone number, and timeline. Pair with create_order for OTP + browser in one agent flow.',
+      'Start a private cloud-browser session for manual signup/verification. Returns debug_url for live takeover, optional order phone number, and timeline. Pair with create_order for OTP + browser in one agent flow.',
     inputSchema: {
       type: 'object' as const,
       properties: {
