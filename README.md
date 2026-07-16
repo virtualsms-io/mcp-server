@@ -60,7 +60,7 @@ Get your API key at [virtualsms.io](https://virtualsms.io).
 Want to see this working end-to-end before you wire it up? Three runnable examples are checked into this repo:
 
 - **[`examples/01-quick-balance-check/`](./examples/01-quick-balance-check/)** — 5-second hosted MCP smoke test (`get_balance`).
-- **[`examples/02-buy-sms-and-wait-for-code/`](./examples/02-buy-sms-and-wait-for-code/)** — full SMS verification flow: `find_cheapest` → `wait_for_code` → cancel-on-timeout. The canonical agentic pattern.
+- **[`examples/02-buy-sms-and-wait-for-code/`](./examples/02-buy-sms-and-wait-for-code/)** — full SMS verification flow: `find_cheapest` → `wait_for_code` → cancel-on-timeout. The canonical AI agent pattern.
 - **[`examples/03-claude-desktop-config/`](./examples/03-claude-desktop-config/)** — drop-in Claude Desktop config plus a transcript of "ask Claude what's my balance" working over StreamableHTTP.
 
 Each example is `node run.mjs` away once you've set `VIRTUALSMS_API_KEY`. Walkthroughs and expected output are in each example's README.
