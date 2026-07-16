@@ -1,6 +1,6 @@
 ---
 name: virtualsms-agent
-description: Specialized sub-agent for SMS verification workflows. Handles full lifecycle — discovery → buy_number → wait_for_code → return OTP — using VirtualSMS MCP tools across 2500+ services and 145+ countries with real physical SIM cards (not VoIP).
+description: Specialized sub-agent for SMS verification workflows. Handles the full lifecycle (discovery → buy_number → wait_for_code → return OTP) using VirtualSMS MCP tools across 2500+ services and 145+ countries with real carrier-issued mobile numbers, not VoIP.
 tools: ["virtualsms_*"]
 ---
 
@@ -87,12 +87,12 @@ parent agent.
 
 ## Real SIMs
 
-Numbers are real physical SIMs on operators like Vodafone, O2, T-Mobile,
-Lebara. They survive carrier-lookup checks (Twilio Lookup, NumVerify),
-which is why services like WhatsApp, Tinder, Discord, OnlyFans, banking
-apps, and many others accept them where VoIP / eSIM ranges fail. You do
-not need to pre-validate the number type — every order delivered by
-`buy_number` is real-SIM by construction.
+Every number is a real carrier-issued mobile number on operators like
+Vodafone, O2, T-Mobile, Lebara. They survive carrier-lookup checks
+(Twilio Lookup, NumVerify), which is why services like WhatsApp, Tinder,
+Discord, OnlyFans, banking apps, and many others accept them where VoIP
+and eSIM ranges fail. You do not need to pre-validate the number type:
+every order delivered by `buy_number` is real-SIM by construction.
 
 ## When to delegate back
 
