@@ -23,11 +23,11 @@ export const CancelOrderInput = z.object({
 });
 
 export const SwapNumberInput = z.object({
-  order_id: z.string().describe('Order ID to swap — must be in waiting/created status with no SMS received'),
+  order_id: z.string().describe('Order ID to swap. Must be in waiting/created status with no SMS received'),
 });
 
 export const WaitForCodeInput = z.object({
-  order_id: z.string().describe('Existing order ID returned from create_order — the tool waits for SMS on this order.'),
+  order_id: z.string().describe('Existing order ID returned from create_order. The tool waits for SMS on this order.'),
   timeout_seconds: z.number()
     .int()
     .min(5)
@@ -71,8 +71,8 @@ export const GetProfileInput = z.object({});
 
 export const GetTransactionsInput = z.object({
   type: z.enum(['deposit', 'purchase', 'refund', 'admin_credit']).optional().describe('Filter by transaction type'),
-  from: z.string().optional().describe('Lower bound on created_at — RFC3339 timestamp or YYYY-MM-DD'),
-  to: z.string().optional().describe('Upper bound on created_at — RFC3339 timestamp or YYYY-MM-DD'),
+  from: z.string().optional().describe('Lower bound on created_at: RFC3339 timestamp or YYYY-MM-DD'),
+  to: z.string().optional().describe('Upper bound on created_at: RFC3339 timestamp or YYYY-MM-DD'),
   limit: z.number().int().min(1).max(200).default(50).describe('Max transactions to return (1-200, default: 50)'),
   offset: z.number().int().min(0).default(0).describe('Pagination offset (default: 0)'),
 });
@@ -362,7 +362,7 @@ export const TOOL_DEFINITIONS = [
       properties: {
         order_id: {
           type: 'string',
-          description: 'Order ID to swap — must be in waiting/created status with no SMS received',
+          description: 'Order ID to swap. Must be in waiting/created status with no SMS received',
         },
       },
       required: ['order_id'],
@@ -379,7 +379,7 @@ export const TOOL_DEFINITIONS = [
     name: 'virtualsms_list_orders',
     title: 'List Active Orders',
     description:
-      'List your active orders. Essential for crash recovery — if your session was interrupted, ' +
+      'List your active orders. Essential for crash recovery. If your session was interrupted, ' +
       'use this to find pending orders and their phone numbers, then use check_sms to retrieve codes.',
     inputSchema: {
       type: 'object' as const,
@@ -543,11 +543,11 @@ export const TOOL_DEFINITIONS = [
         },
         from: {
           type: 'string',
-          description: 'Lower bound on created_at — RFC3339 or YYYY-MM-DD',
+          description: 'Lower bound on created_at: RFC3339 or YYYY-MM-DD',
         },
         to: {
           type: 'string',
-          description: 'Upper bound on created_at — RFC3339 or YYYY-MM-DD',
+          description: 'Upper bound on created_at: RFC3339 or YYYY-MM-DD',
         },
         limit: {
           type: 'number',
@@ -720,7 +720,7 @@ export async function handleCheckSms(
   };
   if (messages.length > 0) result.messages = messages;
   if (code) result.code = code;
-  // Backward-compat aliases — older consumers read these.
+  // Backward-compat aliases: older consumers read these.
   if (code) result.sms_code = code;
   if (firstContent) result.sms_text = firstContent;
 
@@ -775,14 +775,14 @@ export async function handleCancelOrder(
   args: z.infer<typeof CancelOrderInput>
 ) {
   // Pre-check: fetch order to see if cancel_available_at is still in the future.
-  // This is best-effort — if the lookup fails we still call the backend (which
+  // This is best-effort: if the lookup fails we still call the backend (which
   // enforces the cooldown anyway).
   try {
     const order = await client.getOrder(args.order_id);
     const blocked = preCheckCooldown(order.cancel_available_at, 'cancel');
     if (blocked) return blocked;
   } catch {
-    // Lookup failed — let the backend handle it.
+    // Lookup failed. Let the backend handle it.
   }
 
   const result = await client.cancelOrder(args.order_id);
@@ -807,7 +807,7 @@ export async function handleSwapNumber(
     const blocked = preCheckCooldown(order.swap_available_at, 'swap');
     if (blocked) return blocked;
   } catch {
-    // Lookup failed — let the backend handle it.
+    // Lookup failed. Let the backend handle it.
   }
 
   const result = await client.swapNumber(args.order_id);
@@ -987,7 +987,7 @@ export async function handleWaitForCode(
     );
   }
 
-  // WebSocket path (if we have an API key) — race against timeout.
+  // WebSocket path (if we have an API key): race against timeout.
   if (apiKey) {
     const remainingMs = timeoutMs - (Date.now() - startTime);
     if (remainingMs > 0) {
@@ -998,7 +998,7 @@ export async function handleWaitForCode(
           'websocket'
         );
       }
-      // WS timed out or failed — fall through to polling for any remaining time.
+      // WS timed out or failed. Fall through to polling for any remaining time.
     }
   }
 
@@ -1038,7 +1038,7 @@ export async function handleWaitForCode(
     await sleep(Math.min(pollIntervalMs, remaining));
   }
 
-  // Timeout — return order_id for crash recovery (don't cancel automatically).
+  // Timeout: return order_id for crash recovery (don't cancel automatically).
   return {
     content: [
       {
@@ -1094,7 +1094,7 @@ export async function handleFindCheapest(
       if (result.status === 'fulfilled' && result.value.stock) {
         results.push(result.value);
       }
-      // 'rejected' entries are silently skipped — invalid service/country combos
+      // 'rejected' entries are silently skipped: invalid service/country combos
     }
   }
 
@@ -1464,7 +1464,7 @@ export async function handleGetStats(
             top_countries: topEntries(byCountry),
             note:
               orders.length >= 50
-                ? 'Server caps order history at 50 rows — stats may undercount if your activity exceeds 50 orders in the window.'
+                ? 'Server caps order history at 50 rows. Stats may undercount if your activity exceeds 50 orders in the window.'
                 : undefined,
           },
           null,
@@ -1517,7 +1517,7 @@ export async function handleGetTransactions(
               page.transactions.length === 0
                 ? 'No transactions match the filters. Try widening the date range or removing the type filter.'
                 : page.count === page.limit
-                  ? 'Page is full — increment offset by limit to fetch the next page.'
+                  ? 'Page is full. Increment offset by limit to fetch the next page.'
                   : undefined,
           },
           null,

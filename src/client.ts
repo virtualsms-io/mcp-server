@@ -68,13 +68,13 @@ export interface Order {
   created_at?: string;
   expires_at?: string;
   status: string;
-  // Legacy fields — kept for backward compat with older API responses.
+  // Legacy fields: kept for backward compat with older API responses.
   sms_code?: string;
   sms_text?: string;
-  // Canonical SMS payload — server returns one entry per inbound message.
+  // Canonical SMS payload: server returns one entry per inbound message.
   messages?: SmsMessage[];
   sms_received?: boolean;
-  // Cooldown timestamps (added v1.2.3) — RFC3339 wallclock when cancel/swap
+  // Cooldown timestamps (added v1.2.3): RFC3339 wallclock when cancel/swap
   // become available. Lets MCP pre-validate without a 4xx round-trip. Backend
   // always sets these; consumers fall back gracefully if missing on legacy
   // payloads.
@@ -267,7 +267,7 @@ export class VirtualSMSClient {
 
   async completeOrder(orderId: string): Promise<Order> {
     this.requireApiKey();
-    // No separate "complete" endpoint — just return the current order status
+    // No separate "complete" endpoint. Just return the current order status
     return this.getOrder(orderId);
   }
 
@@ -293,7 +293,7 @@ export class VirtualSMSClient {
         sms_text: o.sms_text ? String(o.sms_text) : undefined,
       })) as Order[];
     } catch (err) {
-      // Endpoint may not exist yet — return empty list gracefully
+      // Endpoint may not exist yet. Return empty list gracefully
       const message = (err as Error).message;
       if (message.includes('Not found') || message.includes('404')) {
         return [];
