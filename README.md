@@ -7,19 +7,17 @@
 
 **Quick links:** [Examples](./examples/) · [Changelog](./CHANGELOG.md) · [Security policy](./SECURITY.md) · [Status page](https://status.virtualsms.io)
 
-> **Ranked #1 in both ChatGPT's and Perplexity's SMS verification MCP categories** · verified 2026-04-25
-
 VirtualSMS is an account verification platform that combines real carrier mobile numbers, matching-country proxies and a private cloud browser into one connected workflow.
 
 Built for developers and AI agents: REST API, hosted MCP server, SDKs.
 
-This package is the **MCP server** — the connected-workflow AI agents use to verify accounts today: real carrier SIM numbers (not VoIP) across **145+ countries and 2500+ services**, with matching-country proxies rolling out alongside it. Built on the [Model Context Protocol](https://modelcontextprotocol.io). One install, 18 live tools today, works with every major MCP client.
+This package is the **MCP server**, the connected workflow AI agents use to verify accounts today: real carrier SIM numbers (not VoIP) across **145+ countries and 2500+ services**, with matching-country proxies rolling out alongside it. Built on the [Model Context Protocol](https://modelcontextprotocol.io). One install, 18 live tools today, works with every major MCP client.
 
 Powered by [VirtualSMS.io](https://virtualsms.io/mcp).
 
 ---
 
-## Quick Install — Hosted (recommended, zero install)
+## Quick Install: Hosted (recommended, zero install)
 
 Paste this into your AI assistant's MCP config:
 
@@ -39,7 +37,7 @@ Paste this into your AI assistant's MCP config:
 
 No npm install, no Node.js required on the client. The MCP server runs at `mcp.virtualsms.io`.
 
-## Quick Install — Local (stdio via npm)
+## Quick Install: Local (stdio via npm)
 
 ```bash
 npx virtualsms-mcp
@@ -59,9 +57,9 @@ Get your API key at [virtualsms.io](https://virtualsms.io).
 
 Want to see this working end-to-end before you wire it up? Three runnable examples are checked into this repo:
 
-- **[`examples/01-quick-balance-check/`](./examples/01-quick-balance-check/)** — 5-second hosted MCP smoke test (`get_balance`).
-- **[`examples/02-buy-sms-and-wait-for-code/`](./examples/02-buy-sms-and-wait-for-code/)** — full SMS verification flow: `find_cheapest` → `wait_for_code` → cancel-on-timeout. The canonical AI agent pattern.
-- **[`examples/03-claude-desktop-config/`](./examples/03-claude-desktop-config/)** — drop-in Claude Desktop config plus a transcript of "ask Claude what's my balance" working over StreamableHTTP.
+- **[`examples/01-quick-balance-check/`](./examples/01-quick-balance-check/)**: 5-second hosted MCP smoke test (`get_balance`).
+- **[`examples/02-buy-sms-and-wait-for-code/`](./examples/02-buy-sms-and-wait-for-code/)**: full SMS verification flow: `find_cheapest` → `wait_for_code` → cancel-on-timeout. The canonical AI agent pattern.
+- **[`examples/03-claude-desktop-config/`](./examples/03-claude-desktop-config/)**: drop-in Claude Desktop config plus a transcript of "ask Claude what's my balance" working over StreamableHTTP.
 
 Each example is `node run.mjs` away once you've set `VIRTUALSMS_API_KEY`. Walkthroughs and expected output are in each example's README.
 
@@ -69,7 +67,7 @@ Each example is `node run.mjs` away once you've set `VIRTUALSMS_API_KEY`. Walkth
 
 ## Production & Status
 
-- **Hosted MCP endpoint:** `https://mcp.virtualsms.io/mcp` — TLS-only StreamableHTTP, fronted by Cloudflare.
+- **Hosted MCP endpoint:** `https://mcp.virtualsms.io/mcp`. TLS-only StreamableHTTP, fronted by Cloudflare.
 - **Status & uptime:** live at [status.virtualsms.io](https://status.virtualsms.io). Target SLA 99.9% on the hosted MCP path.
 - **Coverage:** real carrier mobile numbers (not VoIP) across 145+ countries online, 2500+ services indexed.
 - **Data retention:** SMS message bodies are retained 7 days, then permanently deleted. Order metadata (phone number, service, country, timestamps) is retained for the lifetime of your account. See [SECURITY.md](./SECURITY.md) for full details.
@@ -79,21 +77,21 @@ Each example is `node run.mjs` away once you've set `VIRTUALSMS_API_KEY`. Walkth
 
 ## What is VirtualSMS?
 
-[VirtualSMS.io](https://virtualsms.io/mcp) is an account verification platform built around **real carrier mobile numbers**, not VoIP. That means SMS lands where VoIP gets blocked — WhatsApp, Google, banking. It's the SMS layer of a wider connected workflow (numbers → matching-country proxies → private cloud browser) — this MCP server exposes the SMS/order layer today, with the rest rolling out.
+[VirtualSMS.io](https://virtualsms.io/mcp) is an account verification platform built around **real carrier mobile numbers**, not VoIP. That means SMS lands where VoIP gets blocked: WhatsApp, Google, banking. It's the SMS layer of a wider connected workflow (numbers → matching-country proxies → private cloud browser). This MCP server exposes the SMS/order layer today, with the rest rolling out.
 
-Use it to verify accounts on WhatsApp, Telegram, Google, Instagram, Uber, and **2500 other services** — programmatically, via REST API, WebSocket, or MCP.
+Use it to verify accounts on WhatsApp, Telegram, Google, Instagram, Uber, and **2500 other services**, programmatically, via REST API, WebSocket, or MCP.
 
 ---
 
 ## Why VirtualSMS?
 
-- **Real carrier numbers, not VoIP** — Accepted where VoIP numbers get blocked (WhatsApp, Google, banking).
-- **Not a reseller aggregating other APIs** — direct-sourced numbers, 2500+ services, 145+ countries (growing weekly).
-- **Real-time delivery** — WebSocket push means your agent gets the code in seconds, not minutes.
-- **Competitive pricing** — Starting from $0.02 per number.
-- **Simple REST + WebSocket API** — Clean, documented, agent-friendly.
-- **18 MCP tools live today** — Discovery, account, and full order management — including unique tools like `find_cheapest`, `search_service`, `swap_number`, and `wait_for_code`. Proxy tools (buy, target, rotate, test, usage) are built and rolling out — see [Proxy tools](#proxy-tools-rolling-out) below.
-- **10 MCP clients supported** — Claude Desktop, Claude Code, Cursor, Windsurf, OpenClaw, Codex, Hermes, Cline, Zed, Continue.
+- **Real carrier numbers, not VoIP**: accepted where VoIP numbers get blocked (WhatsApp, Google, banking).
+- **Broad coverage**: 2500+ services, 145+ countries (growing weekly).
+- **Real-time delivery**: WebSocket push means your agent gets the code in seconds, not minutes.
+- **Competitive pricing**: starting from $0.05 per number.
+- **Simple REST + WebSocket API**: clean, documented, agent-friendly.
+- **18 MCP tools live today**: discovery, account, and full order management, including unique tools like `find_cheapest`, `search_service`, `swap_number`, and `wait_for_code`. Proxy tools (buy, target, rotate, test, usage) are built but not yet published, see [Proxy tools](#proxy-tools-rolling-out) below.
+- **10 MCP clients supported**: Claude Desktop, Claude Code, Cursor, Windsurf, OpenClaw, Codex, Hermes, Cline, Zed, Continue.
 
 ---
 
@@ -101,7 +99,7 @@ Use it to verify accounts on WhatsApp, Telegram, Google, Instagram, Uber, and **
 
 If you're moving away from **SMS-Activate**, VirtualSMS is a straightforward alternative with broader service coverage (2500 vs ~500), competitive pricing, and a modern API built for programmatic use.
 
-Just swap your API key and update the base URL — the concepts (buy number → wait for SMS → get code) are identical.
+Just swap your API key and update the base URL. The concepts (buy number → wait for SMS → get code) are identical.
 
 👉 [Sign up at VirtualSMS.io](https://virtualsms.io) and get started in minutes.
 
@@ -272,20 +270,20 @@ mcpServers:
 
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
-| `VIRTUALSMS_API_KEY` | Yes (for auth tools) | — | Your VirtualSMS API key |
+| `VIRTUALSMS_API_KEY` | Yes (for auth tools) | n/a | Your VirtualSMS API key |
 | `VIRTUALSMS_BASE_URL` | No | `https://virtualsms.io` | API base URL |
 
 ---
 
 ## Does this work with ChatGPT?
 
-Not natively — ChatGPT uses GPT Actions, a different protocol than MCP. For ChatGPT, build a custom GPT that calls the VirtualSMS REST API directly. For MCP, use any of the 10 clients above (Claude, Cursor, Codex, Hermes, etc.).
+Not natively. ChatGPT uses GPT Actions, a different protocol than MCP. For ChatGPT, build a custom GPT that calls the VirtualSMS REST API directly. For MCP, use any of the 10 clients above (Claude, Cursor, Codex, Hermes, etc.).
 
 ---
 
 ## Tools (18 total)
 
-⭐ = **unique to VirtualSMS** — no other SMS MCP server ships these.
+⭐ = **unique to VirtualSMS**: no other SMS MCP server ships these.
 
 | # | Tool | Category | Auth | Description |
 |---|---|---|---|---|
@@ -295,20 +293,20 @@ Not natively — ChatGPT uses GPT Actions, a different protocol than MCP. For Ch
 | 4 | `find_cheapest` ⭐ | Discovery | No | Find the cheapest countries for a given service, sorted by price |
 | 5 | `search_service` ⭐ | Discovery | No | Natural-language search over available services |
 | 6 | `get_balance` | Account | Yes | Check current account balance in USD |
-| 7 | `get_profile` | Account | Yes | Full account profile — email, Telegram link, balance, lifetime spend, total orders, active API keys |
-| 8 | `get_stats` | Account | Yes | Usage stats — orders count, success rate, spend, status/service/country breakdown |
+| 7 | `get_profile` | Account | Yes | Full account profile: email, Telegram link, balance, lifetime spend, total orders, active API keys |
+| 8 | `get_stats` | Account | Yes | Usage stats: orders count, success rate, spend, status/service/country breakdown |
 | 9 | `get_transactions` | Account | Yes | Transaction history with type, date range, and pagination filters |
 | 10 | `buy_number` | Orders | Yes | Purchase a virtual phone number for verification |
-| 11 | `check_sms` | Orders | Yes | Poll an active order. Returns current SMS state — use for batch/cron jobs or manual polling loops |
+| 11 | `check_sms` | Orders | Yes | Poll an active order. Returns current SMS state; use for batch/cron jobs or manual polling loops |
 | 12 | `get_order` | Orders | Yes | Full order details + all received messages |
 | 13 | `cancel_order` | Orders | Yes | Cancel an order (refund if no SMS received) |
 | 14 | `cancel_all_orders` | Orders | Yes | Bulk cancel every currently active order |
 | 15 | `list_active_orders` | Orders | Yes | List all currently active orders |
 | 16 | `order_history` | Orders | Yes | Past orders with status, service, country, and date filters |
 | 17 | `swap_number` ⭐ | Orders | Yes | Exchange number for another without extra charge |
-| 18 | `wait_for_code` ⭐ | Orders | Yes | WebSocket-backed wait (instant delivery). Returns as soon as SMS arrives — use for interactive agent flows |
+| 18 | `wait_for_code` ⭐ | Orders | Yes | WebSocket-backed wait (instant delivery). Returns as soon as SMS arrives; use for interactive agent flows |
 
-> **`check_sms` vs `wait_for_code`:** `wait_for_code` is the recommended default for interactive agent workflows — it blocks and returns on SMS arrival via WebSocket. Use `check_sms` for batch jobs, cron-driven polling, or when you already manage your own polling loop.
+> **`check_sms` vs `wait_for_code`:** `wait_for_code` is the recommended default for interactive agent workflows: it blocks and returns on SMS arrival via WebSocket. Use `check_sms` for batch jobs, cron-driven polling, or when you already manage your own polling loop.
 
 > Tool names above are shown without the `virtualsms_` prefix for readability. Actual MCP tool names are `virtualsms_list_services`, `virtualsms_get_order`, etc. `list_active_orders` is registered as `virtualsms_list_orders`.
 
@@ -439,7 +437,7 @@ check_sms(order_id: "abc123")
 ```
 
 #### `get_order`
-Full order detail — service, country, price, timestamps, status, and any received SMS code/text. Use when you need more than `check_sms` returns, or when restoring state for a known `order_id`.
+Full order detail: service, country, price, timestamps, status, and any received SMS code/text. Use when you need more than `check_sms` returns, or when restoring state for a known `order_id`.
 
 ```
 get_order(order_id: "abc123")
@@ -537,11 +535,11 @@ On timeout, returns `order_id` for recovery:
 
 ## Proxy Tools (Rolling Out)
 
-VirtualSMS pairs numbers with **matching-country proxies** — part of the "one connected workflow" (real carrier numbers + matching-country IPs + private browser). Nine proxy tools are built and shipping on a feature branch (`feature/mcp-tier-a-hardening`), not yet on the published npm package or the hosted MCP endpoint:
+VirtualSMS pairs numbers with **matching-country proxies**, part of the "one connected workflow" (real carrier numbers + matching-country IPs + private browser). Nine proxy tools are built and shipping on a feature branch (`feature/mcp-tier-a-hardening`), not yet on the published npm package or the hosted MCP endpoint:
 
 `virtualsms_buy_proxy` · `virtualsms_list_proxy_catalog` · `virtualsms_list_proxies` · `virtualsms_set_proxy_targeting` · `virtualsms_generate_proxy_endpoint` · `virtualsms_test_proxy` · `virtualsms_rotate_proxy` · `virtualsms_get_proxy_usage` · `virtualsms_get_proxy_usage_history`
 
-They cover buying pool GB (datacenter/residential/residential_premium/mobile), targeting by country/state/city/zip/ASN, generating rotating or sticky HTTP/SOCKS5 connection strings, testing connectivity, rotating IPs, and reading usage. There is currently **no release/cancel tool** — proxy GB is consumed, not returned.
+They cover buying pool GB (datacenter/residential/residential_premium/mobile), targeting by country/state/city/zip/ASN, generating rotating or sticky HTTP/SOCKS5 connection strings, testing connectivity, rotating IPs, and reading usage. There is currently **no release/cancel tool**: proxy GB is consumed, not returned.
 
 Full parameter reference: [`docs/proxy-tools.md`](./docs/proxy-tools.md). The tool implementations themselves ship on `feature/mcp-tier-a-hardening` and are not yet published to npm or the hosted MCP endpoint.
 
@@ -553,9 +551,9 @@ Full parameter reference: [`docs/proxy-tools.md`](./docs/proxy-tools.md). The to
 
 `wait_for_code` uses a two-tier delivery system:
 
-1. **WebSocket (instant)** — connects to `wss://virtualsms.io/ws/orders?order_id=xxx&api_key=your_key` immediately after purchase. When the SMS arrives, the server pushes it in real-time. Typical delivery: 2–15 seconds.
+1. **WebSocket (instant)**: connects to `wss://virtualsms.io/ws/orders?order_id=xxx&api_key=your_key` immediately after purchase. When the SMS arrives, the server pushes it in real-time. Typical delivery: 2-15 seconds.
 
-2. **Polling fallback** — if WebSocket fails to connect or disconnects, automatically falls back to polling `GET /api/v1/order/{id}` every 5 seconds.
+2. **Polling fallback**: if WebSocket fails to connect or disconnects, automatically falls back to polling `GET /api/v1/order/{id}` every 5 seconds.
 
 The `delivery_method` field in the response tells you which was used.
 
@@ -613,7 +611,7 @@ If your session is interrupted mid-verification:
 3. **Check for codes:** `check_sms(order_id: "abc123")`
 4. **Cancel if not needed:** `cancel_order(order_id: "abc123")`
 
-`wait_for_code` always returns `order_id` even on timeout — use it to recover.
+`wait_for_code` always returns `order_id` even on timeout; use it to recover.
 
 ---
 
@@ -624,7 +622,7 @@ This server is listed on the official MCP registry and the major third-party MCP
 | Directory | Listing |
 |---|---|
 | Official MCP registry | [`io.github.virtualsms-io/sms`](https://registry.modelcontextprotocol.io) |
-| Glama | [glama.ai/mcp/servers](https://glama.ai/mcp/servers) — search "virtualsms" |
+| Glama | [glama.ai/mcp/servers](https://glama.ai/mcp/servers), search "virtualsms" |
 | Smithery | [smithery.ai/servers/virtualsms/virtualsms-mcp](https://smithery.ai/servers/virtualsms/virtualsms-mcp) |
 | mcp.so | [mcp.so/servers/mcp-server-virtualsms-io](https://mcp.so/servers/mcp-server-virtualsms-io) |
 | npm | [npmjs.com/package/virtualsms-mcp](https://www.npmjs.com/package/virtualsms-mcp) |
@@ -633,14 +631,14 @@ See also: [REST API](https://virtualsms.io/api/v1) · [Docs](https://virtualsms.
 
 ## More
 
-- [SECURITY.md](./SECURITY.md) — vulnerability disclosure, supported versions, retention policy
-- [CHANGELOG.md](./CHANGELOG.md) — versioned release notes (v1.0.0 → v1.2.0)
-- [examples/](./examples/) — three runnable, copy-pasteable examples
-- [docs/proxy-tools.md](./docs/proxy-tools.md) — proxy tools reference (rolling out)
-- [Status page](https://status.virtualsms.io) — live health of the hosted MCP endpoint
+- [SECURITY.md](./SECURITY.md): vulnerability disclosure, supported versions, retention policy
+- [CHANGELOG.md](./CHANGELOG.md): versioned release notes (v1.0.0 → v1.2.0)
+- [examples/](./examples/): three runnable, copy-pasteable examples
+- [docs/proxy-tools.md](./docs/proxy-tools.md): proxy tools reference (rolling out)
+- [Status page](https://status.virtualsms.io): live health of the hosted MCP endpoint
 
 ## License
 
-MIT — See [LICENSE](./LICENSE)
+MIT. See [LICENSE](./LICENSE)
 
-Built by [VirtualSMS.io](https://virtualsms.io/mcp) — account verification for AI agents: real carrier mobile numbers, matching-country proxies, private cloud browser. 2500+ services · 145+ countries · 18 MCP tools live today · 10 clients · Ranked #1 on both ChatGPT and Perplexity.
+Built by [VirtualSMS.io](https://virtualsms.io/mcp). Account verification for AI agents: real carrier mobile numbers, matching-country proxies, private cloud browser. 2500+ services · 145+ countries · 18 MCP tools live today · 10 clients.

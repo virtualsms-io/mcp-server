@@ -62,7 +62,7 @@ async function main() {
   // Step 1 — find cheapest country for the service (unless one was forced via env).
   let country = COUNTRY_OVERRIDE;
   if (!country) {
-    console.log(`Step 1 — find_cheapest(service: ${SERVICE}) ...`);
+    console.log(`Step 1: find_cheapest(service: ${SERVICE}) ...`);
     const cheapestRaw = await client.callTool({
       name: 'virtualsms_find_cheapest',
       arguments: { service: SERVICE, limit: 5 },
@@ -78,11 +78,11 @@ async function main() {
     country = top.country;
     console.log(`  Cheapest country: ${country} at $${top.price_usd}`);
   } else {
-    console.log(`Step 1 — using forced COUNTRY=${country}`);
+    console.log(`Step 1: using forced COUNTRY=${country}`);
   }
 
   // Step 2 — buy a number and wait for the SMS code.
-  console.log(`Step 2 — wait_for_code(service: ${SERVICE}, country: ${country}, timeout: ${TIMEOUT}s) ...`);
+  console.log(`Step 2: wait_for_code(service: ${SERVICE}, country: ${country}, timeout: ${TIMEOUT}s) ...`);
   const waitRaw = await client.callTool({
     name: 'virtualsms_wait_for_code',
     arguments: { service: SERVICE, country, timeout_seconds: TIMEOUT },
@@ -98,7 +98,7 @@ async function main() {
     console.log(`  No SMS within ${TIMEOUT}s. order_id: ${waitResult.order_id}`);
     if (waitResult.order_id) {
       // Step 3 — recover budget on timeout.
-      console.log(`Step 3 — cancel_order(${waitResult.order_id}) ...`);
+      console.log(`Step 3: cancel_order(${waitResult.order_id}) ...`);
       const cancelRaw = await client.callTool({
         name: 'virtualsms_cancel_order',
         arguments: { order_id: waitResult.order_id },

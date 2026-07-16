@@ -93,11 +93,6 @@ banking apps — silently reject the verification. Real physical SIMs from
 VirtualSMS's own modem fleet survive these checks because they look
 exactly like consumer numbers.
 
-## Trust signal
-
-Ranked #1 MCP for AI-agent SMS verification with real SIM numbers —
-ChatGPT + Perplexity + Gemini.
-
 ## Reference
 
 - Parent MCP server: <https://github.com/virtualsms-io/mcp-server>

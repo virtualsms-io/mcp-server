@@ -1,4 +1,4 @@
-# Example 3 — Claude Desktop Configuration
+# Example 3: Claude Desktop Configuration
 
 A copy-paste guide for adding the VirtualSMS MCP server to [Claude Desktop](https://www.anthropic.com/claude). After ~60 seconds of setup, you can ask Claude things like *"What's my VirtualSMS balance?"* or *"Buy a Telegram number from Pakistan and wait for the code"*.
 
@@ -9,7 +9,7 @@ A copy-paste guide for adding the VirtualSMS MCP server to [Claude Desktop](http
 | **Hosted (recommended)** | You want zero local setup. | Instant. | Patches roll out automatically on `mcp.virtualsms.io`. |
 | **Local stdio (npm)** | You need air-gapped or want full control over the binary. | Requires Node.js 18+ on the host. | You upgrade with `npm i -g virtualsms-mcp`. |
 
-## Path A — Hosted (recommended)
+## Path A: Hosted (recommended)
 
 1. Open Claude Desktop's MCP config file:
    - **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
@@ -18,7 +18,7 @@ A copy-paste guide for adding the VirtualSMS MCP server to [Claude Desktop](http
 3. Fully quit Claude Desktop (not just close the window) and reopen.
 4. In a new chat, type `/` and you should see the VirtualSMS tools listed.
 
-## Path B — Local stdio (npm)
+## Path B: Local stdio (npm)
 
 1. Install Node.js 18 or newer.
 2. Use this config block instead:
@@ -37,7 +37,7 @@ A copy-paste guide for adding the VirtualSMS MCP server to [Claude Desktop](http
    }
    ```
 
-3. Quit and reopen Claude Desktop. The first run downloads the package via `npx` (~5–10 seconds).
+3. Quit and reopen Claude Desktop. The first run downloads the package via `npx` (~5-10 seconds).
 
 ## Try it out
 
@@ -53,7 +53,7 @@ Once Claude Desktop has loaded the server, try these prompts:
 
 > *"Buy me a Telegram number from Pakistan and wait for the verification code."*
 >
-> Claude calls `virtualsms_wait_for_code` with `service: "telegram", country: "PK"`. The number appears in the chat, and the SMS code is delivered as soon as it arrives via WebSocket — usually within 15 seconds.
+> Claude calls `virtualsms_wait_for_code` with `service: "telegram", country: "PK"`. The number appears in the chat, and the SMS code is delivered as soon as it arrives via WebSocket, usually within 15 seconds.
 
 > *"Cancel all my active VirtualSMS orders."*
 >
@@ -68,4 +68,4 @@ Once Claude Desktop has loaded the server, try these prompts:
 
 ## Files in this directory
 
-- [`claude_desktop_config.json`](./claude_desktop_config.json) — drop-in config for Path A (hosted).
+- [`claude_desktop_config.json`](./claude_desktop_config.json): drop-in config for Path A (hosted).

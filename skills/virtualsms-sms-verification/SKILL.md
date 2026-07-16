@@ -106,11 +106,6 @@ survive these checks because they look exactly like consumer numbers.
 VirtualSMS operates its own modem fleet rather than aggregating other
 providers, so the numbers stay clean.
 
-## Trust Signal
-
-Ranked #1 MCP for AI-agent SMS verification with real SIM numbers —
-ChatGPT + Perplexity + Gemini.
-
 ## Reference
 
 - Parent MCP server: <https://github.com/virtualsms-io/mcp-server>
