@@ -1,6 +1,41 @@
 import axios, { AxiosInstance, AxiosError } from 'axios';
 import { randomUUID } from 'node:crypto';
 
+// ─── GET-only retry policy (Tier-A hardening) ──────────────────────────────
+// Mutating calls (POST purchase/cancel/swap/rotate/extend/etc.) are NEVER
+// retried here — a 5xx (or a dropped connection) on a mutating request does
+// NOT mean the operation failed server-side, it may have gone through right
+// before the error was returned. Blindly retrying risks a double purchase,
+// double cancel, or double proxy rotation. Only idempotent reads (GET/HEAD)
+// get this safety net, and only for failures that are plausibly transient.
+export const GET_RETRY_MAX_ATTEMPTS = 3; // 1 initial try + up to 2 retries
+const GET_RETRY_BASE_DELAY_MS = 300;
+
+/**
+ * Whether a failed request should be retried, given the method that was
+ * used and how the request failed. GET/HEAD only. Retries on network
+ * errors (no response at all — timeout, connection reset, DNS failure) and
+ * 5xx server errors. Never retries 4xx: 401/402/404 are not transient, and
+ * 429 retried blindly would actively fight the server's own rate limiter.
+ */
+export function shouldRetryGet(params: {
+  method: string;
+  status: number | undefined;
+  hasResponse: boolean;
+  attemptsSoFar: number; // total attempts made so far, including the one that just failed
+}): boolean {
+  const method = params.method.toLowerCase();
+  if (method !== 'get' && method !== 'head') return false;
+  if (params.attemptsSoFar >= GET_RETRY_MAX_ATTEMPTS) return false;
+  if (!params.hasResponse) return true;
+  return typeof params.status === 'number' && params.status >= 500;
+}
+
+/** Exponential backoff delay before retry attempt number `attemptNumber` (1-indexed). */
+export function getRetryDelayMs(attemptNumber: number): number {
+  return GET_RETRY_BASE_DELAY_MS * 2 ** (attemptNumber - 1);
+}
+
 export interface Service {
   code: string;
   name: string;
@@ -528,7 +563,22 @@ export class VirtualSMSClient implements IVirtualSMSClient {
     // Handle errors gracefully
     this.http.interceptors.response.use(
       (res) => res,
-      (err: AxiosError) => {
+      async (err: AxiosError) => {
+        // GET-only bounded retry — see shouldRetryGet()/getRetryDelayMs()
+        // above for the safety rationale. Runs before the status-code
+        // mapping below so a transient failure never surfaces to the
+        // caller at all if a retry succeeds.
+        const retryConfig = err.config as (NonNullable<AxiosError['config']> & { __retryCount?: number }) | undefined;
+        if (retryConfig) {
+          const method = (retryConfig.method ?? 'get').toLowerCase();
+          const attemptsSoFar = (retryConfig.__retryCount ?? 0) + 1;
+          if (shouldRetryGet({ method, status: err.response?.status, hasResponse: !!err.response, attemptsSoFar })) {
+            retryConfig.__retryCount = attemptsSoFar;
+            await new Promise((resolve) => setTimeout(resolve, getRetryDelayMs(attemptsSoFar)));
+            return this.http.request(retryConfig);
+          }
+        }
+
         const status = err.response?.status;
         const data = err.response?.data as Record<string, unknown> | undefined;
         const rawMessage = data?.message || data?.error || err.message;

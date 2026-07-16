@@ -110,6 +110,7 @@ import {
 import { PROMPT_DEFINITIONS, getPromptMessages } from './prompts.js';
 import { RESOURCE_DEFINITIONS, getResourceContent } from './resources.js';
 import { SERVER_INSTRUCTIONS } from './instructions.js';
+import { mapToolCallError } from './error-utils.js';
 
 const PORT = parseInt(process.env.MCP_HTTP_PORT || '3456', 10);
 const DEFAULT_BASE_URL = (process.env.VIRTUALSMS_BASE_URL || 'https://virtualsms.io').replace(/\/$/, '');
@@ -126,6 +127,71 @@ const ENABLE_SESSIONS = /^(1|true|yes)$/i.test(process.env.VIRTUALSMS_ENABLE_SES
 // there's no real API key to protect and no real backend call to make.
 const SANDBOX_MODE = isSandboxEnabled(process.env);
 
+// ─── Rate limiting (Tier-A hardening) ────────────────────────────────────────
+// Simple in-memory token bucket, keyed per-API-key AND per-IP — a request
+// must have a token available in BOTH buckets to proceed. In-memory is fine
+// for this server's shape: single process, stateless per-request MCP
+// server/transport, no external cache dependency worth adding just for this.
+// Buckets reset on restart — this is abuse-throttling, not a hard security
+// boundary (that's the API-key check below).
+interface TokenBucket {
+  tokens: number;
+  lastRefillMs: number;
+}
+
+export const RATE_LIMIT_CAPACITY = parseInt(process.env.VIRTUALSMS_RATE_LIMIT_CAPACITY || '30', 10);
+export const RATE_LIMIT_REFILL_PER_SEC = parseFloat(process.env.VIRTUALSMS_RATE_LIMIT_REFILL_PER_SEC || '1');
+
+const rateLimitBuckets = new Map<string, TokenBucket>();
+
+export function takeToken(
+  key: string,
+  capacity: number = RATE_LIMIT_CAPACITY,
+  refillPerSec: number = RATE_LIMIT_REFILL_PER_SEC,
+): { allowed: boolean; retryAfterSeconds: number } {
+  const now = Date.now();
+  let bucket = rateLimitBuckets.get(key);
+  if (!bucket) {
+    bucket = { tokens: capacity, lastRefillMs: now };
+    rateLimitBuckets.set(key, bucket);
+  }
+  const elapsedSec = Math.max(0, (now - bucket.lastRefillMs) / 1000);
+  bucket.tokens = Math.min(capacity, bucket.tokens + elapsedSec * refillPerSec);
+  bucket.lastRefillMs = now;
+
+  if (bucket.tokens >= 1) {
+    bucket.tokens -= 1;
+    return { allowed: true, retryAfterSeconds: 0 };
+  }
+  const deficitTokens = 1 - bucket.tokens;
+  const retryAfterSeconds = Math.max(1, Math.ceil(deficitTokens / refillPerSec));
+  return { allowed: false, retryAfterSeconds };
+}
+
+// Test-only escape hatch — lets the rate-limit test suite start each case
+// from a clean slate without needing to reach into module internals.
+export function __resetRateLimitForTests(): void {
+  rateLimitBuckets.clear();
+}
+
+// Forget idle buckets periodically so this Map can't grow unbounded under a
+// slow-drip distributed scan (one bucket per distinct API key / IP ever
+// seen). .unref() so this timer never keeps the process (or a test runner)
+// alive on its own.
+const RATE_LIMIT_BUCKET_TTL_MS = 10 * 60 * 1000;
+setInterval(() => {
+  const cutoff = Date.now() - RATE_LIMIT_BUCKET_TTL_MS;
+  for (const [key, bucket] of rateLimitBuckets) {
+    if (bucket.lastRefillMs < cutoff) rateLimitBuckets.delete(key);
+  }
+}, RATE_LIMIT_BUCKET_TTL_MS).unref();
+
+function clientIp(req: http.IncomingMessage): string {
+  const xff = req.headers['x-forwarded-for'];
+  if (typeof xff === 'string' && xff.length > 0) return xff.split(',')[0].trim();
+  return req.socket.remoteAddress || 'unknown';
+}
+
 interface ServerConfig {
   apiKey: string | undefined;
   baseUrl: string;
@@ -133,7 +199,7 @@ interface ServerConfig {
   timeout: number;
 }
 
-function createMCPServer(config: ServerConfig) {
+export function createMCPServer(config: ServerConfig) {
   const client: VirtualSMSClient | MockVirtualSMSClient = SANDBOX_MODE
     ? new MockVirtualSMSClient(config.baseUrl)
     : new VirtualSMSClient(config.baseUrl, config.apiKey, config.timeout);
@@ -321,15 +387,7 @@ function createMCPServer(config: ServerConfig) {
           throw new McpError(ErrorCode.MethodNotFound, `Unknown tool: ${name}`);
       }
     } catch (err) {
-      if (err instanceof McpError) throw err;
-      const message = err instanceof Error ? err.message : String(err);
-      if (message.includes('ZodError') || (err as { name?: string }).name === 'ZodError') {
-        throw new McpError(ErrorCode.InvalidParams, `Invalid parameters: ${message}`);
-      }
-      if (message.includes('API key') || message.includes('VIRTUALSMS_API_KEY')) {
-        throw new McpError(ErrorCode.InvalidRequest, message);
-      }
-      throw new McpError(ErrorCode.InternalError, message);
+      throw mapToolCallError(err);
     }
   });
 
@@ -378,7 +436,7 @@ function createMCPServer(config: ServerConfig) {
 
 // ─── HTTP Server ──────────────────────────────────────────────────────────────
 
-const httpServer = http.createServer(async (req, res) => {
+export const httpServer = http.createServer(async (req, res) => {
   try {
     await handleRequest(req, res);
   } catch (err) {
@@ -481,6 +539,25 @@ async function handleRequest(req: http.IncomingMessage, res: http.ServerResponse
     return;
   }
 
+  // Tier-A hardening: rate limit BOTH by IP and by API key — a request needs
+  // a token in each bucket. IP-based catches pre-auth/invalid-key abuse;
+  // key-based catches one leaked/shared key hammering the backend. Applied
+  // after the 401 gate's early-exit isn't needed since a missing key still
+  // gets IP-limited; keyed limiting simply has nothing to check without one.
+  const ip = clientIp(req);
+  const ipCheck = takeToken(`ip:${ip}`);
+  const keyCheck = apiKey ? takeToken(`key:${apiKey}`) : { allowed: true, retryAfterSeconds: 0 };
+  if (!ipCheck.allowed || !keyCheck.allowed) {
+    const retryAfterSeconds = Math.max(ipCheck.retryAfterSeconds, keyCheck.retryAfterSeconds);
+    res.setHeader('Retry-After', String(retryAfterSeconds));
+    res.writeHead(429, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({
+      error: 'Too many requests. Please slow down.',
+      retry_after_seconds: retryAfterSeconds,
+    }));
+    return;
+  }
+
   // H-005: baseUrl is always the hardcoded DEFAULT_BASE_URL — never accept
   // caller-controlled baseUrl (prevents API key exfiltration to attacker servers).
   const baseUrl = DEFAULT_BASE_URL;
@@ -517,9 +594,21 @@ async function handleRequest(req: http.IncomingMessage, res: http.ServerResponse
   await transport.handleRequest(req, res, body);
 }
 
-httpServer.listen(PORT, () => {
-  process.stderr.write(`VirtualSMS MCP HTTP server listening on port ${PORT}\n`);
-});
+// Only auto-listen when this file is the process entry point (`node
+// dist/http-server.js`) — NOT when it's imported as a module, e.g. by the
+// sandbox integration test suite, which imports createMCPServer() directly
+// and drives it over an in-memory transport. Without this guard, importing
+// http-server.ts anywhere (a test file, a future re-export) would silently
+// bind a real TCP port as a side effect.
+const isMainModule = process.argv[1]
+  ? import.meta.url === new URL(process.argv[1], 'file:').href
+  : false;
+
+if (isMainModule) {
+  httpServer.listen(PORT, () => {
+    process.stderr.write(`VirtualSMS MCP HTTP server listening on port ${PORT}\n`);
+  });
+}
 
 // Tier-A hardening: the per-request try/catch in httpServer's request
 // listener covers request-scoped failures, but async work that escapes that
