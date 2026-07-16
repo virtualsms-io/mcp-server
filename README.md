@@ -77,7 +77,7 @@ Each example is `node run.mjs` away once you've set `VIRTUALSMS_API_KEY`. Walkth
 
 ## What is VirtualSMS?
 
-[VirtualSMS.io](https://virtualsms.io/mcp) is an account verification platform built around **real carrier mobile numbers**, not VoIP. That means SMS lands where VoIP gets blocked: WhatsApp, Google, banking. It's the SMS layer of a wider connected workflow (numbers → matching-country proxies → private cloud browser). This MCP server exposes the SMS/order layer today, with the rest rolling out.
+[VirtualSMS.io](https://virtualsms.io/mcp) is an account verification platform built around **real carrier mobile numbers**, not VoIP. That means SMS lands where VoIP gets blocked: WhatsApp, Google, banking. It's the SMS layer of a wider connected workflow (numbers → matching-country proxies → private cloud browser). This MCP server exposes the SMS/order layer today; proxy tools are rolling out (see [Proxy Tools](./docs/proxy-tools.md)); the private cloud browser is planned, coming soon, not yet available on any surface.
 
 Use it to verify accounts on WhatsApp, Telegram, Google, Instagram, Uber, and **2500 other services**, programmatically, via REST API, WebSocket, or MCP.
 
@@ -641,4 +641,4 @@ See also: [REST API](https://virtualsms.io/api/v1) · [Docs](https://virtualsms.
 
 MIT. See [LICENSE](./LICENSE)
 
-Built by [VirtualSMS.io](https://virtualsms.io/mcp). Account verification for AI agents: real carrier mobile numbers, matching-country proxies, private cloud browser. 2500+ services · 145+ countries · 18 MCP tools live today · 10 clients.
+Built by [VirtualSMS.io](https://virtualsms.io/mcp). Account verification for AI agents: real carrier mobile numbers, matching-country proxies (rolling out to this server), and a private cloud browser (coming soon, not yet available). 2500+ services · 145+ countries · 18 MCP tools live today · 10 clients.
