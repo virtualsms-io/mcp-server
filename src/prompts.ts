@@ -71,7 +71,7 @@ export const PROMPT_DEFINITIONS = [
   },
   {
     name: 'recover-verification',
-    description: 'Recover an interrupted SMS verification session. Lists active orders and checks for pending verification codes — useful after a crash or timeout.',
+    description: 'Recover an interrupted SMS verification session. Lists active orders and checks for pending verification codes. Useful after a crash or timeout.',
     arguments: [],
   },
   {

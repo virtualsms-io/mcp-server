@@ -3,7 +3,7 @@ import { randomUUID } from 'node:crypto';
 
 // ─── GET-only retry policy (Tier-A hardening) ──────────────────────────────
 // Mutating calls (POST purchase/cancel/swap/rotate/extend/etc.) are NEVER
-// retried here — a 5xx (or a dropped connection) on a mutating request does
+// retried here: a 5xx (or a dropped connection) on a mutating request does
 // NOT mean the operation failed server-side, it may have gone through right
 // before the error was returned. Blindly retrying risks a double purchase,
 // double cancel, or double proxy rotation. Only idempotent reads (GET/HEAD)
@@ -14,7 +14,7 @@ const GET_RETRY_BASE_DELAY_MS = 300;
 /**
  * Whether a failed request should be retried, given the method that was
  * used and how the request failed. GET/HEAD only. Retries on network
- * errors (no response at all — timeout, connection reset, DNS failure) and
+ * errors (no response at all: timeout, connection reset, DNS failure) and
  * 5xx server errors. Never retries 4xx: 401/402/404 are not transient, and
  * 429 retried blindly would actively fight the server's own rate limiter.
  */
@@ -111,13 +111,13 @@ export interface Order {
   created_at?: string;
   expires_at?: string;
   status: string;
-  // Legacy fields — kept for backward compat with older API responses.
+  // Legacy fields: kept for backward compat with older API responses.
   sms_code?: string;
   sms_text?: string;
-  // Canonical SMS payload — server returns one entry per inbound message.
+  // Canonical SMS payload: server returns one entry per inbound message.
   messages?: SmsMessage[];
   sms_received?: boolean;
-  // Cooldown timestamps (added v1.2.3) — RFC3339 wallclock when cancel/swap
+  // Cooldown timestamps (added v1.2.3): RFC3339 wallclock when cancel/swap
   // become available. Lets MCP pre-validate without a 4xx round-trip. Backend
   // always sets these; consumers fall back gracefully if missing on legacy
   // payloads.
@@ -207,7 +207,7 @@ export interface ProxyTargetingResult {
   ok: boolean;
   country_code: string;
   // true when city/state/zip/asn targeting was requested on a non-premium
-  // pool — the sub-country refinement burns the customer's own funded GB
+  // pool. The sub-country refinement burns the customer's own funded GB
   // 2x faster (see Vault/Operations/proxy-system.md §2). Free on
   // residential_premium.
   premium_2x: boolean;
@@ -270,10 +270,10 @@ export interface NavigateSessionResult {
 
 // ─── Rentals ────────────────────────────────────────────────────────────────
 // Two rental tiers, reflected generically (no supplier names):
-//   "full_access" — local SIM inventory, full SMS access across any service,
+//   "full_access": local SIM inventory, full SMS access across any service,
 //                    no 20-minute refund countdown (early release after a
 //                    2h minimum hold instead).
-//   "platform"    — sourced via our global supplier network, locked to ONE
+//   "platform":    sourced via our global supplier network, locked to ONE
 //                    chosen service per number, 20-minute auto-refund window.
 
 export interface RentalPricingTier {
@@ -402,7 +402,7 @@ export interface NumberCheckResult {
 // Required only by the platform-tier create call (the backend's create
 // endpoint takes a numeric ID; every other rentals endpoint resolves
 // country_code server-side). Server-side only in the sense that these IDs
-// carry no product/supplier meaning on their own — this is the same mapping
+// carry no product/supplier meaning on their own. This is the same mapping
 // already shipped in the customer-facing frontend bundle for the same
 // purpose. Not every ISO code the platform lists is rental-capable; an
 // unmapped code means that country isn't available for platform-tier rentals.
@@ -456,7 +456,7 @@ function buildProxyUsername(
 }
 
 // Fixed gateway ports (frontend/src/components/my-numbers-v2/ProxyEndpointGenerator.tsx
-// HTTP_PORT/SOCKS5_PORT) — rotating vs. sticky is encoded entirely in the
+// HTTP_PORT/SOCKS5_PORT). Rotating vs. sticky is encoded entirely in the
 // username's sessid/sessttl params, NOT by port selection.
 const PROXY_HTTP_PORT = 823;
 const PROXY_SOCKS5_PORT = 824;
@@ -552,7 +552,7 @@ export class VirtualSMSClient implements IVirtualSMSClient {
       // (POST/PUT/PATCH/DELETE). Forward-compatible: the proxies endpoint
       // already dedups on this header/body key; orders/rentals endpoints
       // ignore it harmlessly until backend support lands there too. GETs
-      // never get a key — nothing to dedup on a read.
+      // never get a key: nothing to dedup on a read.
       const method = (config.method ?? 'get').toLowerCase();
       if (method !== 'get' && method !== 'head') {
         config.headers['X-Idempotency-Key'] = randomUUID();
@@ -564,7 +564,7 @@ export class VirtualSMSClient implements IVirtualSMSClient {
     this.http.interceptors.response.use(
       (res) => res,
       async (err: AxiosError) => {
-        // GET-only bounded retry — see shouldRetryGet()/getRetryDelayMs()
+        // GET-only bounded retry: see shouldRetryGet()/getRetryDelayMs()
         // above for the safety rationale. Runs before the status-code
         // mapping below so a transient failure never surfaces to the
         // caller at all if a retry succeeds.
@@ -598,7 +598,7 @@ export class VirtualSMSClient implements IVirtualSMSClient {
           throw new Error('Rate limit exceeded. Please slow down requests.');
         } else if (status && status >= 500) {
           // Anti-blind-retry: a 5xx on a mutating call (purchase/create/cancel/
-          // extend/etc.) does NOT mean the operation failed server-side — it
+          // extend/etc.) does NOT mean the operation failed server-side. It
           // may have gone through before the error was returned. Never tell
           // the agent to just retry a money-moving call blind.
           throw new Error(
@@ -650,7 +650,7 @@ export class VirtualSMSClient implements IVirtualSMSClient {
       params: { service, country },
     });
     // API returns: {price: 0.9, country: "GB", service: "wa", success: true}
-    // NOTE: /api/v1/price returns NO availability field. Fail closed — a missing
+    // NOTE: /api/v1/price returns NO availability field. Fail closed: a missing
     // field must never read as in-stock. Real stock comes from getCatalogCountries().
     const raw = res.data as Record<string, unknown>;
     return {
@@ -762,7 +762,7 @@ export class VirtualSMSClient implements IVirtualSMSClient {
 
   async completeOrder(orderId: string): Promise<Order> {
     this.requireApiKey();
-    // No separate "complete" endpoint — just return the current order status
+    // No separate "complete" endpoint. Just return the current order status
     return this.getOrder(orderId);
   }
 
@@ -788,7 +788,7 @@ export class VirtualSMSClient implements IVirtualSMSClient {
         sms_text: o.sms_text ? String(o.sms_text) : undefined,
       })) as Order[];
     } catch (err) {
-      // Endpoint may not exist yet — return empty list gracefully
+      // Endpoint may not exist yet. Return empty list gracefully
       const message = (err as Error).message;
       if (message.includes('Not found') || message.includes('404')) {
         return [];
@@ -893,9 +893,9 @@ export class VirtualSMSClient implements IVirtualSMSClient {
    * don't override it). Country-only is free; cities/asns bill the
    * customer's own funded GB at 2x on non-premium pools (backend response
    * carries premium_2x so the caller can warn). Matches
-   * ws-gateway/handlers/proxies.go SetTargeting exactly — note the backend
+   * ws-gateway/handlers/proxies.go SetTargeting exactly. Note the backend
    * does NOT accept state/zip here (only country_code + cities + asns);
-   * state/zip refinement is a per-connection username param only — see
+   * state/zip refinement is a per-connection username param only. See
    * generateProxyEndpoint.
    */
   async setProxyTargeting(proxyId: string, params: {
@@ -918,8 +918,8 @@ export class VirtualSMSClient implements IVirtualSMSClient {
   }
 
   /**
-   * TestProxy dials out through the proxy and reports the exit IP/country —
-   * the only backend-supported use of a per-request `session` param
+   * TestProxy dials out through the proxy and reports the exit IP/country.
+   * It is the only backend-supported use of a per-request `session` param
    * (rotating|sticky). Matches ws-gateway/handlers/proxies.go TestProxy.
    * Server-side cooldown (~20s) applies; a 429 surfaces as a thrown Error
    * via the response interceptor.
@@ -951,9 +951,9 @@ export class VirtualSMSClient implements IVirtualSMSClient {
   }
 
   /**
-   * GetLocations — public inventory endpoint (no auth, no FEATURE_PROXIES
+   * GetLocations: public inventory endpoint (no auth, no FEATURE_PROXIES
    * gate). Backend excludes residential_premium from pool_type here (its
-   * locations API doesn't support it) — see
+   * locations API doesn't support it). See
    * ws-gateway/handlers/proxies.go GetLocations validLocPoolTypes.
    */
   async listProxyLocations(params: {
@@ -973,12 +973,12 @@ export class VirtualSMSClient implements IVirtualSMSClient {
   }
 
   /**
-   * generateProxyEndpoint composes ready-to-use connection string(s) — no
+   * generateProxyEndpoint composes ready-to-use connection string(s). No
    * backend call. Mirrors the frontend's ProxyEndpointGenerator
    * (frontend/src/components/my-numbers-v2/ProxyEndpointGenerator.tsx)
    * buildUsername()/buildEndpoint() exactly: targeting is encoded in the
    * username at connection time per the per-connection convention in
-   * Vault/Operations/proxy-system.md §2 — one credential serves every
+   * Vault/Operations/proxy-system.md §2: one credential serves every
    * country/refinement, nothing is purchased or persisted here. Looks up
    * the proxy's login/password/host/port via listProxies() first.
    */
@@ -1047,7 +1047,7 @@ export class VirtualSMSClient implements IVirtualSMSClient {
     return data.session ?? (res.data as BrowserSessionResult);
   }
 
-  /** Drive an existing (owned) session's address bar to a URL — runs async server-side, returns 202 immediately. */
+  /** Drive an existing (owned) session's address bar to a URL. Runs async server-side, returns 202 immediately. */
   async navigateBrowserSession(sessionId: string, url: string): Promise<NavigateSessionResult> {
     this.requireApiKey();
     const res = await this.http.post(`/api/v1/browser-sessions/${sessionId}/navigate`, { url });
@@ -1106,7 +1106,7 @@ export class VirtualSMSClient implements IVirtualSMSClient {
       },
     });
     const raw: Array<Record<string, unknown>> = Array.isArray(res.data) ? res.data : [];
-    // Explicit field allowlist — the backend response includes an internal
+    // Explicit field allowlist: the backend response includes an internal
     // supplier-code field we never forward (see HARD RULE 5 in this repo).
     return raw.map((s) => ({
       service_id: String(s.service_id ?? ''),
@@ -1134,7 +1134,7 @@ export class VirtualSMSClient implements IVirtualSMSClient {
     return res.data as RentalPriceResult;
   }
 
-  /** Full Access tier — local SIM inventory, any service, no refund countdown. */
+  /** Full Access tier: local SIM inventory, any service, no refund countdown. */
   async createFullAccessRental(params: {
     country: string;
     rentalType: 'service' | 'full';
@@ -1154,10 +1154,10 @@ export class VirtualSMSClient implements IVirtualSMSClient {
   }
 
   /**
-   * Platform tier — sourced via our global supplier network, locked to one
+   * Platform tier: sourced via our global supplier network, locked to one
    * service per number, durations 1/3/7 days only, 20-minute refund window.
-   * Takes country_code (ISO) and resolves the internal numeric ID itself —
-   * callers never need to know or pass the numeric ID.
+   * Takes country_code (ISO) and resolves the internal numeric ID itself.
+   * Callers never need to know or pass the numeric ID.
    */
   async createPlatformRental(params: {
     service: string;
@@ -1209,23 +1209,23 @@ export class VirtualSMSClient implements IVirtualSMSClient {
     return res.data as RentalActionResult;
   }
 
-  /** Full refund — only eligible within 20 minutes of purchase and 0 SMS received. Any provider. */
+  /** Full refund: only eligible within 20 minutes of purchase and 0 SMS received. Any provider. */
   async cancelRental(rentalId: string): Promise<RentalActionResult> {
     this.requireApiKey();
     const res = await this.http.post(`/api/v1/rentals/${rentalId}/cancel`, {});
     return res.data as RentalActionResult;
   }
 
-  /** Early release with pro-rated refund — Full Access (local) tier only, after a 2h minimum hold. */
+  /** Early release with pro-rated refund: Full Access (local) tier only, after a 2h minimum hold. */
   async releaseRental(rentalId: string): Promise<RentalActionResult> {
     this.requireApiKey();
     const res = await this.http.post(`/api/v1/rentals/${rentalId}/release`, {});
     return res.data as RentalActionResult;
   }
 
-  // ─── Orders — retry ───────────────────────────────────────────────────────
+  // ─── Orders: retry ────────────────────────────────────────────────────────
 
-  /** Ask the current provider to resend the SMS to the SAME number (not a new number — see swapNumber for that). */
+  /** Ask the current provider to resend the SMS to the SAME number (not a new number; see swapNumber for that). */
   async retryOrder(orderId: string): Promise<RetryOrderResult> {
     this.requireApiKey();
     const res = await this.http.post(`/api/v1/orders/${orderId}/retry`, {});
@@ -1243,7 +1243,7 @@ export class VirtualSMSClient implements IVirtualSMSClient {
 
 // ─── Client interface ────────────────────────────────────────────────────────
 // Structural contract shared by VirtualSMSClient (real backend) and
-// MockVirtualSMSClient (sandbox — see src/sandbox/mock-http.ts). Tool handlers
+// MockVirtualSMSClient (sandbox: see src/sandbox/mock-http.ts). Tool handlers
 // in tools.ts accept this interface instead of the concrete class so the same
 // handler code runs unmodified against either implementation.
 export interface IVirtualSMSClient {

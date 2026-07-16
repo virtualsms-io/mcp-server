@@ -119,7 +119,7 @@ const BASE_URL = (process.env.VIRTUALSMS_BASE_URL || 'https://virtualsms.io').re
 // flag, default OFF. Truthy = "1" / "true" / "yes" (case-insensitive).
 const ENABLE_SESSIONS = /^(1|true|yes)$/i.test(process.env.VIRTUALSMS_ENABLE_SESSIONS ?? '');
 
-// Sandbox mode (VIRTUALSMS_SANDBOX=1) — zero-key, in-memory mock. No real
+// Sandbox mode (VIRTUALSMS_SANDBOX=1): zero-key, in-memory mock. No real
 // network calls, no real charges. Every tool still lists + executes; it just
 // talks to MockVirtualSMSClient instead of the real backend.
 const SANDBOX_MODE = isSandboxEnabled(process.env);
@@ -455,7 +455,7 @@ main().catch((err) => {
   process.exit(1);
 });
 
-// Smithery config schema — exported so Smithery can detect optional config fields
+// Smithery config schema: exported so Smithery can detect optional config fields
 import { z } from 'zod';
 export const configSchema = z.object({
   virtualsmsApiKey: z.string()
@@ -468,7 +468,7 @@ export const configSchema = z.object({
     .describe("Polling interval in seconds when WebSocket delivery is unavailable"),
   environment: z.enum(["production", "sandbox"])
     .default("production")
-    .describe("API environment — use sandbox for testing without real charges"),
+    .describe("API environment. Use sandbox for testing without real charges"),
   preferredCurrency: z.enum(["USD", "EUR", "GBP"])
     .default("USD")
     .describe("Preferred currency for displaying balances and prices"),
