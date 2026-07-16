@@ -6,7 +6,7 @@ description: |
   Use when an agent needs to receive an SMS verification code, get a verification phone number for account creation, or handle OTP flows for any of 2500+ services across 145+ countries.
 ---
 
-# VirtualSMS — Real SIM SMS Verification for AI Agents
+# VirtualSMS: Real SIM SMS Verification for AI Agents
 
 ## When to Use This Skill
 
@@ -23,12 +23,12 @@ Invoke this skill when the user (or another skill) needs to:
 - Swap a number that didn't deliver, or cancel an order for a refund
 
 Skip when the user only needs a generic phone number (no SMS), wants
-landline/VoIP numbers, or is doing voice verification — VirtualSMS is
+landline/VoIP numbers, or is doing voice verification. VirtualSMS is
 SMS-OTP focused with real mobile SIMs.
 
 ## Prerequisites
 
-1. A VirtualSMS API key — sign up free at <https://virtualsms.io>
+1. A VirtualSMS API key: sign up free at <https://virtualsms.io>
 2. Connection to the MCP server. Two paths:
 
    **Hosted (recommended, zero install):** point your client at the URL
@@ -57,34 +57,34 @@ full lifecycle:
 
 ### Discovery (no auth required)
 
-1. `list_services` — full catalog of supported services
-2. `list_countries` — all 145+ available countries
-3. `check_price` — exact price for a service × country pair
-4. `find_cheapest` — return the lowest-price country available right
+1. `list_services`: full catalog of supported services
+2. `list_countries`: all 145+ available countries
+3. `check_price`: exact price for a service × country pair
+4. `find_cheapest`: return the lowest-price country available right
    now for a target service. Use this when the user says "cheapest" or
    doesn't care about country.
-5. `search_service` — natural-language match. "telega" → Telegram.
+5. `search_service`: natural-language match. "telega" → Telegram.
 
 ### Account (API key required)
 
-6. `get_balance` — USD balance on the authenticated key
-7. `get_profile` — email, tier, referral code, key metadata
-8. `get_stats` — orders count, success rate, 30-day spend
-9. `get_transactions` — deposit / spend history with filters
+6. `get_balance`: USD balance on the authenticated key
+7. `get_profile`: email, tier, referral code, key metadata
+8. `get_stats`: orders count, success rate, 30-day spend
+9. `get_transactions`: deposit / spend history with filters
 
 ### Order management (API key required)
 
-10. `buy_number` — purchase a verification number. Pass `service` and
+10. `buy_number`: purchase a verification number. Pass `service` and
     `country`. Returns the number + an order id.
-11. `check_sms` — poll for SMS on an order. Extracts the code.
-12. `get_order` — full order detail including all SMS received.
-13. `cancel_order` — cancel + refund if no SMS arrived yet.
-14. `cancel_all_orders` — bulk cancel.
-15. `list_active_orders` — every currently-active activation.
-16. `order_history` — past orders with filters.
-17. `swap_number` — exchange the number on an active order without
+11. `check_sms`: poll for SMS on an order. Extracts the code.
+12. `get_order`: full order detail including all SMS received.
+13. `cancel_order`: cancel + refund if no SMS arrived yet.
+14. `cancel_all_orders`: bulk cancel.
+15. `list_active_orders`: every currently-active activation.
+16. `order_history`: past orders with filters.
+17. `swap_number`: exchange the number on an active order without
     paying again. Use on retries / blocked numbers.
-18. `wait_for_code` — WebSocket-backed wait. Returns instantly when the
+18. `wait_for_code`: WebSocket-backed wait. Returns instantly when the
     SMS lands. Prefer this over `check_sms` for interactive flows.
 
 ## Recommended Flow

@@ -10,7 +10,7 @@ We currently support and ship security fixes for the following versions of `virt
 | ------- | --------- |
 | `>=1.2.0` (current) | Yes |
 | `1.1.x` | Critical fixes only |
-| `1.0.x` | No — please upgrade |
+| `1.0.x` | No, please upgrade |
 | `<1.0.0` | No |
 
 Always pin to a recent minor (`^1.2.0`) or rely on `npx virtualsms-mcp` to pull the latest published release.
@@ -19,7 +19,7 @@ Always pin to a recent minor (`^1.2.0`) or rely on `npx virtualsms-mcp` to pull 
 
 - **Hosted MCP endpoint:** `https://mcp.virtualsms.io/mcp` (StreamableHTTP transport).
 - **TLS-only.** The hosted endpoint terminates TLS at Cloudflare and refuses plaintext HTTP. All traffic from agent → hosted MCP server is encrypted.
-- **Local stdio install** (`npx virtualsms-mcp`) runs entirely on your machine; no network traffic except the underlying `https://virtualsms.io/api/v1/` REST calls and `wss://virtualsms.io/ws/orders` WebSocket — both TLS-only.
+- **Local stdio install** (`npx virtualsms-mcp`) runs entirely on your machine; no network traffic except the underlying `https://virtualsms.io/api/v1/` REST calls and `wss://virtualsms.io/ws/orders` WebSocket, both TLS-only.
 
 ## Authentication
 
@@ -75,16 +75,16 @@ The following are **not** considered vulnerabilities in this MCP server:
 - Pipedream-hosted, Smithery-hosted, or third-party-hosted forks of this MCP server. Report those to the respective host operator.
 - Behavior of services targeted by VirtualSMS (e.g. WhatsApp number bans, Google CAPTCHA challenges). These are upstream platform behaviors, not vulnerabilities in this package.
 - Rate-limit responses from the VirtualSMS REST API. These are intentional anti-abuse measures.
-- Issues in dependencies fixed in a newer minor of that dependency — please file the issue upstream and open a PR here bumping the version.
+- Issues in dependencies fixed in a newer minor of that dependency: please file the issue upstream and open a PR here bumping the version.
 
 ## Security Best Practices for Operators
 
 If you're embedding this MCP server in a product or agent:
 
-1. **Never log API keys** — strip the `x-api-key` header and `VIRTUALSMS_API_KEY` env var from any application logs you ship to third parties (Sentry, Datadog, etc.).
-2. **Rotate keys per environment** — separate dev / staging / prod keys, never share.
+1. **Never log API keys**: strip the `x-api-key` header and `VIRTUALSMS_API_KEY` env var from any application logs you ship to third parties (Sentry, Datadog, etc.).
+2. **Rotate keys per environment**: separate dev / staging / prod keys, never share.
 3. **Pin the package version** in production (`"virtualsms-mcp": "1.2.0"`) and upgrade deliberately after reviewing the [CHANGELOG](./CHANGELOG.md).
-4. **Use the hosted MCP endpoint** when possible — you get patches automatically and don't need to manage Node.js versions on the agent host.
+4. **Use the hosted MCP endpoint** when possible. You get patches automatically and don't need to manage Node.js versions on the agent host.
 5. **Set spending limits on your VirtualSMS account** to cap blast radius of a compromised key.
 
 ---
