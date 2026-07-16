@@ -37,7 +37,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.1.1] - 2026-04-22
 
 ### Changed
-- Trust signal: confirmed and documented dual #1 ranking in both ChatGPT's and Perplexity's "SMS verification MCP" categories (verified 2026-04-25). ([3513fc6](https://github.com/virtualsms-io/mcp-server/commit/3513fc6))
 - Country and service counts corrected to match the live catalog: **145+ countries and 2500+ services**. ([9d52202](https://github.com/virtualsms-io/mcp-server/commit/9d52202))
 - Expanded supported MCP-client list to 10 (Claude Desktop, Claude Code, Cursor, Windsurf, OpenClaw, Codex, Hermes, Cline, Zed, Continue.dev).
 

@@ -1,4 +1,4 @@
-# Example 1 — Quick Balance Check (hosted MCP, ~5 seconds)
+# Example 1: Quick Balance Check (hosted MCP, ~5 seconds)
 
 The smallest possible end-to-end demo of the VirtualSMS MCP server. It:
 
@@ -6,7 +6,7 @@ The smallest possible end-to-end demo of the VirtualSMS MCP server. It:
 2. Calls the `virtualsms_get_balance` tool.
 3. Prints your account balance.
 
-No local install of the `virtualsms-mcp` package is required — the server is fully hosted.
+No local install of the `virtualsms-mcp` package is required; the server is fully hosted.
 
 ## Run it
 

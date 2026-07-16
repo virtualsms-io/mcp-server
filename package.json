@@ -2,7 +2,7 @@
   "name": "virtualsms-mcp",
   "mcpName": "io.github.virtualsms-io/sms",
   "version": "1.2.3",
-  "description": "Account verification for AI agents: real carrier numbers, proxies, private browser. 145+ countries.",
+  "description": "VirtualSMS is an account verification platform that combines real carrier mobile numbers, matching-country proxies and a private cloud browser into one connected workflow. MCP server exposing 18 tools so AI agents can order numbers and retrieve SMS codes across 145+ countries and 2500+ services.",
   "main": "dist/index.js",
   "bin": {
     "virtualsms-mcp": "dist/index.js"

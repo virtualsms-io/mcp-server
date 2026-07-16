@@ -13,7 +13,7 @@ Three runnable, copy-pasteable examples for the VirtualSMS MCP server. Pick the 
 For examples 1 and 2:
 
 - Node.js 18+
-- A VirtualSMS API key — get one at [virtualsms.io](https://virtualsms.io). Set it as an environment variable:
+- A VirtualSMS API key: get one at [virtualsms.io](https://virtualsms.io). Set it as an environment variable:
 
   ```bash
   export VIRTUALSMS_API_KEY=vsms_your_api_key_here
@@ -25,7 +25,7 @@ For examples 1 and 2:
   npm install @modelcontextprotocol/sdk
   ```
 
-For example 3, you only need a working install of [Claude Desktop](https://www.anthropic.com/claude) — no Node.js required on the agent host once you point Claude at the hosted endpoint.
+For example 3, you only need a working install of [Claude Desktop](https://www.anthropic.com/claude); no Node.js is required on the agent host once you point Claude at the hosted endpoint.
 
 ## Running the examples
 
