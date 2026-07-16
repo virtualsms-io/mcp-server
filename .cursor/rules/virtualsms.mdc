@@ -88,10 +88,10 @@ client; eighteen `virtualsms_*` tools appear in the MCP tool list.
 ## Why real SIMs (not VoIP)
 
 Carrier-lookup APIs (Twilio Lookup, NumVerify, etc.) flag VoIP and eSIM
-ranges. Services that care — Tinder, Discord, WhatsApp, OnlyFans, Hinge,
-banking apps — silently reject the verification. Real physical SIMs from
-VirtualSMS's own modem fleet survive these checks because they look
-exactly like consumer numbers.
+ranges. Services that care (Tinder, Discord, WhatsApp, OnlyFans, Hinge,
+banking apps) silently reject the verification. Real carrier-issued
+mobile numbers survive these checks because they look exactly like
+consumer numbers.
 
 ## Reference
 
