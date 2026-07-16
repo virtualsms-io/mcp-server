@@ -24,6 +24,7 @@ import { MockVirtualSMSClient, isSandboxEnabled } from './sandbox/mock-http.js';
 import { PROMPT_DEFINITIONS, getPromptMessages } from './prompts.js';
 import { RESOURCE_DEFINITIONS, getResourceContent } from './resources.js';
 import { SERVER_INSTRUCTIONS } from './instructions.js';
+import { mapToolCallError } from './error-utils.js';
 import {
   TOOL_DEFINITIONS,
   getToolDefinitions,
@@ -365,19 +366,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         throw new McpError(ErrorCode.MethodNotFound, `Unknown tool: ${name}`);
     }
   } catch (err) {
-    if (err instanceof McpError) throw err;
-
-    const message = err instanceof Error ? err.message : String(err);
-
-    if (message.includes('ZodError') || (err as { name?: string }).name === 'ZodError') {
-      throw new McpError(ErrorCode.InvalidParams, `Invalid parameters: ${message}`);
-    }
-
-    if (message.includes('API key') || message.includes('VIRTUALSMS_API_KEY')) {
-      throw new McpError(ErrorCode.InvalidRequest, message);
-    }
-
-    throw new McpError(ErrorCode.InternalError, message);
+    throw mapToolCallError(err);
   }
 });
 
