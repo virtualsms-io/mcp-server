@@ -10,6 +10,33 @@ permissions:
   contents: read
 
 jobs:
+  # Deliberately first, and deliberately a separate job rather than a step
+  # inside build: the guard needs no toolchain and no install, so it reports in
+  # seconds instead of waiting on npm ci, and it runs once instead of once per
+  # Node matrix entry. It is not wired as a "needs:" gate for build/lint/test,
+  # because a copy problem is no reason to delay finding out whether the code
+  # compiles. Either job failing turns the workflow red.
+  positioning:
+    name: Positioning guard
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Fails this job on exit 1 (banned copy in a tracked file), exit 2
+      # (harness error) and exit 3 (stale or hand-edited vendored canon).
+      #
+      # The Vault is not reachable from a GitHub runner, so the guard runs off
+      # the vendored scripts/canonical.json and prints a loud "FRESHNESS NOT
+      # VERIFIED" banner. A hand-edited vendor is still caught here via the
+      # in-repo hash chain. A vendored canon that is stale but internally
+      # consistent is NOT caught here and cannot be: only a run with the Vault
+      # in reach (a developer machine, or VIRTUALSMS_CANON set) verifies the ban
+      # list is current. Green here means "no banned strings", never "the copy
+      # is accurate". See scripts/canonical.json _guardLimit.
+      - name: Run positioning guard
+        run: sh scripts/check-positioning.sh
+
   build:
     name: Build (Node ${{ matrix.node }})
     runs-on: ubuntu-latest
