@@ -4,17 +4,17 @@ import { type IVirtualSMSClient, type Rental } from './client.js';
 
 // ─── Input Schemas ───────────────────────────────────────────────────────────
 
-export const CheckPriceInput = z.object({
+export const GetPriceInput = z.object({
   service: z.string().describe('Service code (e.g. "telegram", "whatsapp", "google")'),
   country: z.string().describe('Country ISO code (e.g. "US", "GB", "RU") or country name'),
 });
 
-export const BuyNumberInput = z.object({
+export const CreateOrderInput = z.object({
   service: z.string().describe('Service code (e.g. "telegram", "whatsapp", "google")'),
   country: z.string().describe('Country ISO code (e.g. "US", "GB", "RU")'),
 });
 
-export const CheckSmsInput = z.object({
+export const GetSmsInput = z.object({
   order_id: z.string().describe('Order ID returned from buy_number'),
 });
 
@@ -26,7 +26,7 @@ export const SwapNumberInput = z.object({
   order_id: z.string().describe('Order ID to swap. Must be in waiting/created status with no SMS received'),
 });
 
-export const WaitForCodeInput = z.object({
+export const WaitForSmsInput = z.object({
   order_id: z.string().describe('Existing order ID returned from create_order. The tool waits for SMS on this order.'),
   timeout_seconds: z.number()
     .int()
@@ -41,7 +41,7 @@ export const FindCheapestInput = z.object({
   limit: z.number().int().min(1).max(50).default(5).describe('Number of cheapest options to return (default: 5)'),
 });
 
-export const SearchServiceInput = z.object({
+export const SearchServicesInput = z.object({
   query: z.string().describe('Natural language search query (e.g. "uber", "whatsapp", "binance", "steam")'),
 });
 
@@ -1357,7 +1357,7 @@ export async function handleListCountries(client: IVirtualSMSClient) {
 
 export async function handleCheckPrice(
   client: IVirtualSMSClient,
-  args: z.infer<typeof CheckPriceInput>
+  args: z.infer<typeof GetPriceInput>
 ) {
   let price;
   try {
@@ -1399,7 +1399,7 @@ export async function handleGetBalance(client: IVirtualSMSClient) {
 
 export async function handleBuyNumber(
   client: IVirtualSMSClient,
-  args: z.infer<typeof BuyNumberInput>
+  args: z.infer<typeof CreateOrderInput>
 ) {
   const order = await client.createOrder(args.service, args.country);
   return jsonResult({
@@ -1421,7 +1421,7 @@ function extractCode(text: string): string | undefined {
 
 export async function handleCheckSms(
   client: IVirtualSMSClient,
-  args: z.infer<typeof CheckSmsInput>
+  args: z.infer<typeof GetSmsInput>
 ) {
   const order = await client.getOrder(args.order_id);
 
@@ -1614,7 +1614,7 @@ function waitForSMSViaWebSocket(
 
 export async function handleWaitForCode(
   client: IVirtualSMSClient,
-  args: z.infer<typeof WaitForCodeInput>
+  args: z.infer<typeof WaitForSmsInput>
 ) {
   const timeoutMs = (args.timeout_seconds ?? 60) * 1000;
   const pollIntervalMs = 5000;
@@ -1778,7 +1778,7 @@ export async function handleFindCheapest(
 
 export async function handleSearchService(
   client: IVirtualSMSClient,
-  args: z.infer<typeof SearchServiceInput>
+  args: z.infer<typeof SearchServicesInput>
 ) {
   const services = await client.listServices();
   const query = args.query.toLowerCase().trim();

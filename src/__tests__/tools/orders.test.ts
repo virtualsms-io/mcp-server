@@ -10,7 +10,7 @@ import { describe, expect, it } from 'vitest';
 import type { IVirtualSMSClient, Order } from '../../client.js';
 import { MockVirtualSMSClient } from '../../sandbox/mock-http.js';
 import {
-  BuyNumberInput,
+  CreateOrderInput,
   CancelOrderInput,
   RetryOrderInput,
   SwapNumberInput,
@@ -26,14 +26,14 @@ function freshClient(): MockVirtualSMSClient {
 
 describe('virtualsms_create_order (handleBuyNumber)', () => {
   it('rejects bad input (missing required fields)', () => {
-    expect(BuyNumberInput.safeParse({}).success).toBe(false);
-    expect(BuyNumberInput.safeParse({ service: 'telegram' }).success).toBe(false);
-    expect(BuyNumberInput.safeParse({ country: 'US' }).success).toBe(false);
+    expect(CreateOrderInput.safeParse({}).success).toBe(false);
+    expect(CreateOrderInput.safeParse({ service: 'telegram' }).success).toBe(false);
+    expect(CreateOrderInput.safeParse({ country: 'US' }).success).toBe(false);
   });
 
   it('happy path: creates an order against the mock backend', async () => {
     const client = freshClient();
-    const args = BuyNumberInput.parse({ service: 'telegram', country: 'US' });
+    const args = CreateOrderInput.parse({ service: 'telegram', country: 'US' });
     const result = await handleBuyNumber(client, args);
     const payload = result.structuredContent as Record<string, unknown>;
     expect(payload.order_id).toBeTruthy();
@@ -46,7 +46,7 @@ describe('virtualsms_create_order (handleBuyNumber)', () => {
         throw new Error('Insufficient balance. Top up at https://virtualsms.io');
       },
     };
-    const args = BuyNumberInput.parse({ service: 'telegram', country: 'US' });
+    const args = CreateOrderInput.parse({ service: 'telegram', country: 'US' });
     await expect(handleBuyNumber(failingClient as IVirtualSMSClient, args)).rejects.toThrow(
       'Insufficient balance',
     );
