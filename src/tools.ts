@@ -479,7 +479,7 @@ export const TOOL_DEFINITIONS = [
     name: 'virtualsms_start_manual_registration_session',
     title: 'Start Manual Registration Session',
     description:
-      'Start a private cloud-browser session for manual signup/verification. Returns debug_url for live takeover, optional order phone number, and timeline. Pair with create_order for OTP + browser in one agent flow.',
+      'Beta. Start a private cloud-browser session for manual signup/verification. Returns debug_url for live takeover, optional order phone number, and timeline. Pair with create_order for OTP + browser in one agent flow.',
     inputSchema: {
       type: 'object' as const,
       properties: {
@@ -1175,7 +1175,7 @@ export const TOOL_DEFINITIONS = [
   {
     name: 'virtualsms_stop_session',
     title: 'Stop Browser Session',
-    description: 'Stop an active browser session and release it.',
+    description: 'Beta. Stop an active browser session and release it.',
     inputSchema: {
       type: 'object' as const,
       properties: { session_id: { type: 'string', description: 'Browser session ID to stop' } },
@@ -1187,7 +1187,7 @@ export const TOOL_DEFINITIONS = [
   {
     name: 'virtualsms_navigate_session',
     title: 'Navigate Browser Session',
-    description: 'Navigate an active browser session to a URL.',
+    description: 'Beta. Navigate an active browser session to a URL.',
     inputSchema: {
       type: 'object' as const,
       properties: {
@@ -1202,7 +1202,7 @@ export const TOOL_DEFINITIONS = [
   {
     name: 'virtualsms_session_viewer',
     title: 'Get Session Live Viewer',
-    description: 'Get the live viewer URL and current status for an active browser session.',
+    description: 'Beta. Get the live viewer URL and current status for an active browser session.',
     inputSchema: {
       type: 'object' as const,
       properties: { session_id: { type: 'string', description: 'Browser session ID to get the live viewer URL for' } },
@@ -2225,7 +2225,8 @@ function isSessionsUnavailableError(err: unknown): boolean {
   );
 }
 
-const SESSIONS_UNAVAILABLE_MESSAGE = 'Browser sessions are not available on this endpoint.';
+const SESSIONS_UNAVAILABLE_MESSAGE =
+  'Browser sessions are beta and are not available on this endpoint.';
 
 export async function handleStopSession(
   client: IVirtualSMSClient,
