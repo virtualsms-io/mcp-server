@@ -271,7 +271,11 @@ NODE
 fi
 
 # --- gate 9: tool count in the copy == the built server's tools/list --------
-# THE GATE THAT WOULD HAVE CAUGHT "12 tools" SURVIVING FOR MONTHS.
+# THE GATE THAT WOULD HAVE CAUGHT THE STALE TOOL COUNT SURVIVING FOR MONTHS.
+# (The stale count is not written out here on purpose: canon bans the literal,
+# and this file gets no carve-out. CHANGELOG.md has one because a dated release
+# record is true as history; a comment quoting the number is just a quote, and it
+# reads exactly the same without it.)
 # Everything else in this script checks that a string is absent. This one checks
 # that a NUMBER IS TRUE, by asking the actual built server and comparing. A string
 # matcher cannot do this: a count that is true today is false after the next merge
