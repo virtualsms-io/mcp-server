@@ -17,8 +17,8 @@
 # profile: mixed-content
 # rules: 37
 # generator-version: 1
-# canonical-sha256: 0fd75fd8386592ae2397bd189a857438b24887462af077c888eb1f909c12004b
-# rules-sha256: 4896190029bb532a83ef32917c2c89eb97f3d0a626c725f748d9f9cf79b64568
+# canonical-sha256: 29b036c0d1f86bbbdaa61f8d103097dff634d8fe73078cb3ac5b5a62472e66f1
+# rules-sha256: 1aa411d99b2faebf5adc76448a3aa18825421a740b382a087061a00bdbcc2d61
 #RULES
 numeric	700+ services	canonical services count is 2500+	700\+ services	.	-
 numeric	500+ services	canonical services count is 2500+	500\+ services	.	-
@@ -40,7 +40,7 @@ literal	#1 on	unverifiable ranking claim	#1 on	.	-
 literal	#1 in	unverifiable ranking claim	#1 in	.	-
 literal	not a reseller	untrue; VirtualSMS is HYBRID (own SIMs plus supplier aggregation)	not a reseller	.	-
 literal	direct-sourced	untrue; inherits the 'not a reseller' false claim	direct-sourced	.	-
-literal	agentic	canonical wording is 'AI agents', not 'agentic'	agentic	README.md package.json setup.py pyproject.toml composer.json *.gemspec *.csproj *.nuspec server.json .plugin/plugin.json	-
+literal	agentic	canonical wording in a published description is 'AI agents', not 'agentic'	agentic	package.json setup.py pyproject.toml composer.json *.gemspec *.csproj *.nuspec server.json .plugin/plugin.json	-
 literal	physical SIM infrastructure	infra leak; the SIM is the PRODUCT and is allowed, the infrastructure is not	physical SIM infrastructure	.	-
 literal	modem	infra leak; never describe our hardware	modem	.	-
 literal	SIM box	infra leak; never describe our hardware	SIM box	.	-
