@@ -6,9 +6,18 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 [![GitHub Stars](https://img.shields.io/github/stars/virtualsms-io/mcp-server?style=social)](https://github.com/virtualsms-io/mcp-server)
 
-**Quick links:** [Quickstart](#quickstart) · [What you can build](#what-you-can-build) · [Tools](#tools) · [Questions](#questions) · [Examples](./examples/) · [Changelog](./CHANGELOG.md) · [Security policy](./SECURITY.md) · [Status](https://virtualsms.io/status)
+**Quick links:** [Quickstart](#quickstart) · [Why VirtualSMS](#why-virtualsms) · [What you can build](#what-you-can-build) · [Tools](#tools) · [Questions](#questions) · [Examples](./examples/) · [Changelog](./CHANGELOG.md) · [Security policy](./SECURITY.md) · [Status](https://virtualsms.io/status)
 
-VirtualSMS is an account verification platform that lets developers and AI agents programmatically receive SMS verification codes, with number rentals and matching-country proxies available from the same account. The numbers are real physical SIM cards on carrier networks, not VoIP, which is why they pass the line-type checks that reject VoIP numbers at signup.
+**Infrastructure for AI agents that need real-world phone verification.**
+
+VirtualSMS is an account verification platform offering:
+
+- **one-time SMS verification**, priced per code
+- **dedicated number rentals**, from 2 hours to 90 days
+- **matching-country proxies**: residential, residential premium, mobile and datacenter
+- **private cloud browser sessions** (beta)
+
+All four run from one prepaid balance. The numbers are real physical SIM cards on carrier networks, not VoIP, which is why they pass the line-type checks that reject VoIP numbers at signup.
 
 This server exposes that platform to any MCP client. It is MCP-native: it works inside Claude Code, Claude Desktop, Cursor, Windsurf and any other MCP-compatible client, with no wrapper code to write.
 
@@ -41,6 +50,23 @@ Prefer to run it locally over stdio instead:
 ```bash
 npx virtualsms-mcp
 ```
+
+---
+
+## Why VirtualSMS
+
+Verifying an account end to end usually means renting three things from three vendors: an SMS verification provider for the code, a proxy provider for the IP, and a browser environment to drive the signup. Three bills, three APIs, three support queues, and a number, an IP and a browser that do not agree with each other.
+
+VirtualSMS combines all three under one account, and gives you one way to drive them:
+
+- **Real carrier mobile numbers.** Real physical SIM cards on carrier networks, so they resolve as mobile rather than VoIP.
+- **Matching-country proxies.** Residential, residential premium, mobile and datacenter pools, so the number and the IP agree.
+- **Private cloud browser sessions.** Beta.
+- **REST API.** Documented at [virtualsms.io/docs](https://virtualsms.io/docs).
+- **Hosted MCP server.** This repo, live at `https://mcp.virtualsms.io/mcp`.
+- **One prepaid balance.** Verification, rentals and proxies all draw from it.
+
+Everything below expands on those six.
 
 ---
 
@@ -290,10 +316,12 @@ The core SMS verification surface: discover a service, price it, buy a number, g
 <details>
 <summary><strong>Rentals (9 tools)</strong></summary>
 
-Rent a number for days instead of one verification. Two tiers:
+Keep a number from 2 hours to 90 days, instead of buying a single verification. Two tiers:
 
-- **Full Access:** local SIM inventory, works across any service on that number.
+- **Full Access:** local SIM inventory. Leave `service` unset for a whole number that works across any service, for 1, 7, 30 or 90 days. Set `service` to lock the number to one service, which also unlocks shorter windows: 2, 4 or 12 hours, or 1, 7, 30 or 90 days.
 - **Platform:** sourced via our global supplier network, locked to one chosen service, durations of 1, 3 or 7 days.
+
+Stock, durations and pricing all differ per tier and per country, so call `rentals_available` before committing to either. An active rental can be extended with `extend_rental` at the current catalog price, in the same durations its tier allows.
 
 Both tiers carry the same refund terms: cancel for a full refund within 20 minutes of purchase and before the first SMS arrives. Platform cancels are additionally subject to a 2 minute minimum hold, so a cancel inside the first 2 minutes is rejected and has to be retried.
 
@@ -314,7 +342,7 @@ Both tiers carry the same refund terms: cancel for a full refund within 20 minut
 <details>
 <summary><strong>Proxy (10 tools)</strong></summary>
 
-Matching-country proxies, so the number and the IP agree. Buy traffic by the GB, then generate a connection string.
+Matching-country proxies, so the number and the IP agree. Four pools: residential, residential premium, mobile and datacenter. Buy traffic by the GB, then generate a connection string.
 
 | Tool | Auth | Description |
 |---|---|---|
@@ -388,12 +416,17 @@ swap_number(order_id: "abc123")
 → {order_id: "def456", phone_number: "+628...", status: "waiting"}
 ```
 
-### Rent a number for a week
+### Rent a number for a month
 
 ```
-rentals_available(tier: "full_access", country: "GB")
-create_rental(tier: "full_access", country: "GB", duration_hours: 168)
+rentals_available(tier: "full_access")
+→ countries holding local SIM stock, each with its own duration and price list
+
+create_rental(tier: "full_access", country: "FR", duration_hours: 720)
+→ {rental_id: "rnt_1", phone_number: "+33...", expires_in_days: 30}
 ```
+
+Stock is per country and per tier, so discover first and rent second. `rentals_available(tier: "platform")` covers a different, service-locked catalogue.
 
 ### Pair a number with a matching-country proxy
 
@@ -407,9 +440,23 @@ generate_proxy_endpoint(proxy_id: "px_1", country_code: "GB", protocol: "socks5"
 
 ## Questions
 
+### What is account verification infrastructure?
+
+Account verification infrastructure is the stack that gets a real account through a signup flow that demands a phone number. It has five layers, and a gap in any one of them fails the whole chain:
+
+1. **Numbers.** A carrier-issued mobile line, because the line type gets checked.
+2. **SMS.** The verification code, delivered to that number and readable by software rather than by a human holding a handset.
+3. **Proxy.** An IP in the same country as the number, so the two agree.
+4. **Browser.** A clean environment to drive the signup itself.
+5. **Automation.** An API or an agent that runs the chain end to end, unattended.
+
+Most providers sell the first two layers and leave you to source the rest, which is exactly where the number, the IP and the browser stop telling the same story. VirtualSMS provides the infrastructure behind all five.
+
+> VirtualSMS is an account verification platform that combines one-time SMS verification, dedicated number rentals, matching-country proxies, and private cloud browser sessions in one workspace for people, developers, and AI agents.
+
 ### What is an MCP server for SMS verification?
 
-MCP (Model Context Protocol) is an open standard that lets an AI client call external tools. An MCP server for SMS verification exposes phone-number and verification-code operations as tools an agent can call directly, so the agent buys the number, waits for the code and reads it back without any glue code from you. This repo is that server for VirtualSMS: 40 tools covering verification, rentals and proxies.
+MCP (Model Context Protocol) is an open standard that lets an AI client call external tools. An MCP server for SMS verification exposes phone-number and verification-code operations as tools an agent can call directly, so the agent buys the number, waits for the code and reads it back without any glue code from you. This repo is that server for VirtualSMS: 40 tools covering verification, rentals and proxies. If you are not driving an agent at all, the same operations are available as a plain REST verification API.
 
 ### When should I use this?
 
@@ -417,6 +464,8 @@ MCP (Model Context Protocol) is an open standard that lets an AI client call ext
 - You are testing an OTP or signup flow and want fresh numbers on demand instead of a drawer of test SIMs.
 - You need a verification code retrieved automatically, in CI or in an unattended job.
 - You need a number and a matching-country IP that agree with each other.
+- You are driving signup automation in a browser and would rather the number, the IP and the browser came from one place than three.
+- You need a temporary phone number for one code, or a dedicated one you keep for up to 90 days.
 - You want per-code pricing from $0.05 with no subscription and no monthly number rental.
 
 ### When should I NOT use this?
@@ -449,7 +498,7 @@ If you need to send messages, use Twilio. If you need to receive a verification 
 
 ### Why real physical SIM cards instead of VoIP?
 
-Verification systems check the line type of the number you give them. VoIP numbers are cheap and disposable at scale, so they correlate with fraud, and a large share of services reject them outright at signup. Real physical SIM cards sit on carrier networks and resolve as mobile, which is what those checks are looking for.
+Verification systems check the line type of the number you give them. VoIP numbers are cheap and disposable at scale, so they correlate with fraud, and a large share of services reject them outright at signup. Real physical SIM cards sit on carrier networks and resolve as mobile, which is exactly what those checks are looking for: a non-VoIP number that behaves like a real handset.
 
 You do not have to take that on faith. `check_number` runs a carrier and line-type lookup on any E.164 number, needs no API key, and will tell you whether a number reads as mobile, landline or VoIP.
 
@@ -478,7 +527,9 @@ We deliberately do not publish a comparison table of competitors' prices, servic
 1. **WebSocket, instant.** Connects to `wss://virtualsms.io/ws/orders?order_id=xxx&api_key=your_key`. When the SMS arrives the server pushes it in real time. Typical delivery: 2 to 15 seconds.
 2. **Polling fallback.** If the WebSocket fails to connect or drops, the tool falls back to polling every 5 seconds for the remaining timeout.
 
-The `delivery_method` field in the response tells you which path was used.
+The `delivery_method` field in the response tells you which path was used: `websocket`, `polling`, or `instant` when the code had already landed before you called.
+
+This server pushes over a held-open WebSocket; it never calls you back. If you would rather VirtualSMS POST events to a URL you own, the platform runs a separate webhook subscription system, configured from the dashboard and driven by the REST API rather than by this MCP server.
 
 ### Architecture
 
@@ -511,7 +562,8 @@ If your session is interrupted mid-verification:
 ## Hosted endpoint and status
 
 - **Hosted MCP endpoint:** `https://mcp.virtualsms.io/mcp`. TLS-only StreamableHTTP, fronted by Cloudflare.
-- **Status and uptime:** [virtualsms.io/status](https://virtualsms.io/status). Target SLA 99.9% on the hosted MCP path.
+- **Platform status and uptime:** [virtualsms.io/status](https://virtualsms.io/status), polled live: website and dashboard, SMS gateway, REST API, Telegram bot and database. The hosted MCP endpoint runs as a separate service and is not yet a row on that page.
+- **Target SLA:** 99.9% on the hosted MCP path. A target we hold ourselves to rather than a contractual guarantee, and one the status page above does not yet measure.
 - **Coverage:** 145+ countries online, 2500+ services indexed.
 - **Data retention:** SMS message bodies are retained 7 days, then permanently deleted. Order metadata (phone number, service, country, timestamps) is retained for the lifetime of your account. See [SECURITY.md](./SECURITY.md) for full details.
 - **Vulnerability disclosure:** email `security@virtualsms.io` or open a [private security advisory](https://github.com/virtualsms-io/mcp-server/security/advisories/new).
