@@ -10,16 +10,24 @@
 
 **Infrastructure for AI agents that need real-world phone verification.**
 
-VirtualSMS is an account verification platform offering:
+VirtualSMS is an account verification platform for individuals, developers, and AI agents. It combines one-time SMS verification, dedicated number rentals, matching-country proxies, and private cloud browser sessions behind one API, one MCP server, and one prepaid balance.
 
-- **one-time SMS verification**, priced per code
-- **dedicated number rentals**, from 1 to 30 days
-- **matching-country proxies**: residential, mobile and datacenter
-- **private cloud browser sessions** (beta)
+The numbers are carrier-issued mobile numbers, backed by real physical SIM cards, not VoIP, which is why they pass the line-type checks that reject VoIP numbers at signup.
 
-All four run from one prepaid balance. The numbers are real physical SIM cards on carrier networks, not VoIP, which is why they pass the line-type checks that reject VoIP numbers at signup.
+From one prepaid balance you can:
 
-This server exposes that platform to any MCP client. It is MCP-native: it works inside Claude Code, Claude Desktop, Cursor, Windsurf and any other MCP-compatible client, with no wrapper code to write.
+- receive one-time SMS verification codes from $0.05
+- rent dedicated numbers for 1 to 30 days
+- buy matching-country residential, mobile and datacenter proxies
+- launch private cloud browser sessions that work alongside your number and proxy (beta)
+
+All four work together from one prepaid balance, one API and one dashboard. Use only the pieces you need, or combine them into a single verification workflow.
+
+Most providers solve one piece of the verification workflow. VirtualSMS combines numbers, rentals, proxies, browser sessions, a REST API, SDKs and an MCP server into one platform.
+
+VirtualSMS can be used by individuals manually, integrated into applications with SDKs and APIs, or driven by AI agents through MCP. Use the platform through a REST API, official SDKs for Node, Python, PHP, Ruby and .NET, a hosted MCP server, or automation tools like n8n.
+
+This server exposes that platform to any MCP client. Built for AI agents. Designed for agentic workflows. Works with Claude Code, Claude Desktop, Cursor, Windsurf and every MCP-compatible client, with no wrapper code to write.
 
 ---
 
@@ -55,11 +63,11 @@ npx virtualsms-mcp
 
 ## Why VirtualSMS
 
-Verifying an account end to end usually means renting three things from three vendors: an SMS verification provider for the code, a proxy provider for the IP, and a browser environment to drive the signup. Three bills, three APIs, three support queues, and a number, an IP and a browser that do not agree with each other.
+Verifying an account should not mean stitching together numbers from one provider, proxies from another, and browser sessions from a third: multiple accounts, multiple balances and APIs, and support spread across vendors. VirtualSMS brings those pieces together behind one balance, one API and one MCP server.
 
 VirtualSMS combines all three under one account, and gives you one way to drive them:
 
-- **Real carrier mobile numbers.** Real physical SIM cards on carrier networks, so they resolve as mobile rather than VoIP.
+- **Carrier-issued mobile numbers.** Backed by real physical SIM cards, not VoIP, so they resolve as mobile at signup.
 - **Matching-country proxies.** Residential, mobile and datacenter pools, so the number and the IP agree.
 - **Private cloud browser sessions.** Beta.
 - **REST API.** Documented at [virtualsms.io/docs](https://virtualsms.io/docs).
@@ -452,7 +460,7 @@ Account verification infrastructure is the stack that gets a real account throug
 
 Most providers sell the first two layers and leave you to source the rest, which is exactly where the number, the IP and the browser stop telling the same story. VirtualSMS provides the infrastructure behind all five.
 
-> VirtualSMS is an account verification platform that combines one-time SMS verification, dedicated number rentals, matching-country proxies, and private cloud browser sessions in one workspace for people, developers, and AI agents.
+> VirtualSMS is an account verification platform for individuals, developers, and AI agents. It combines one-time SMS verification, dedicated number rentals, matching-country proxies, and private cloud browser sessions behind one API, one MCP server, and one prepaid balance.
 
 ### What is an MCP server for SMS verification?
 
