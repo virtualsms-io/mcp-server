@@ -336,12 +336,14 @@ Matching-country proxies, so the number and the IP agree. Buy traffic by the GB,
 |---|---|---|
 | `retry_order` | Yes | Ask for the SMS to be resent to the same number. Not all order types support it |
 | `check_number` | No | Carrier and line-type lookup for any E.164 number: mobile, landline or VoIP, plus spam risk |
-| `start_manual_registration_session` | Yes | Start a private cloud-browser session for manual signup or verification. Returns a `debug_url` for live takeover |
+| `start_manual_registration_session` | Yes | **Beta.** Start a private cloud-browser session for manual signup or verification. Returns a `debug_url` for live takeover |
 
 </details>
 
 <details>
 <summary><strong>Session tools (3 more, off by default)</strong></summary>
+
+**Beta.** The browser stack is early. It works, but the shape of these tools can still change and there is no stability guarantee yet.
 
 Served only when `VIRTUALSMS_ENABLE_SESSIONS` is set to `1`, `true` or `yes`. Not exposed on the default surface.
 
