@@ -15,7 +15,7 @@ export const CreateOrderInput = z.object({
 });
 
 export const GetSmsInput = z.object({
-  order_id: z.string().describe('Order ID returned from buy_number'),
+  order_id: z.string().describe('Order ID returned from create_order'),
 });
 
 export const CancelOrderInput = z.object({
@@ -610,7 +610,7 @@ export const TOOL_DEFINITIONS = [
       'Purchase a virtual phone number for SMS verification. ' +
       'Returns order_id and phone_number. ' +
       'Codes typically arrive within ~10-60 seconds after purchase. ' +
-      'Use check_sms to poll for the verification code, or use wait_for_sms to block until it arrives.',
+      'Use get_sms to poll for the verification code, or use wait_for_sms to block until it arrives.',
     inputSchema: {
       type: 'object' as const,
       properties: {
@@ -645,7 +645,7 @@ export const TOOL_DEFINITIONS = [
       properties: {
         order_id: {
           type: 'string',
-          description: 'Order ID returned from buy_number',
+          description: 'Order ID returned from create_order',
         },
       },
       required: ['order_id'],
@@ -806,7 +806,7 @@ export const TOOL_DEFINITIONS = [
     title: 'List Active Orders',
     description:
       'List your active orders. Essential for crash recovery. If your session was interrupted, ' +
-      'use this to find pending orders and their phone numbers, then use check_sms to retrieve codes.',
+      'use this to find pending orders and their phone numbers, then use get_sms to retrieve codes.',
     inputSchema: {
       type: 'object' as const,
       properties: {
@@ -831,7 +831,7 @@ export const TOOL_DEFINITIONS = [
     description:
       'Get the full details of a specific order, including status, phone number, service, country, ' +
       'timestamps, and any received SMS code/text. Use this when you have an order_id and need the ' +
-      'latest state beyond what check_sms returns.',
+      'latest state beyond what get_sms returns.',
     inputSchema: {
       type: 'object' as const,
       properties: {
@@ -1397,7 +1397,7 @@ export async function handleGetBalance(client: IVirtualSMSClient) {
   return jsonResult(balance);
 }
 
-export async function handleBuyNumber(
+export async function handleCreateOrder(
   client: IVirtualSMSClient,
   args: z.infer<typeof CreateOrderInput>
 ) {
@@ -1407,7 +1407,7 @@ export async function handleBuyNumber(
     phone_number: order.phone_number,
     expires_at: order.expires_at,
     status: order.status,
-    tip: 'Codes typically arrive within ~10-60 seconds. Use check_sms to poll for the code, or wait_for_sms to block until it arrives. cancel_order to refund.',
+    tip: 'Codes typically arrive within ~10-60 seconds. Use get_sms to poll for the code, or wait_for_sms to block until it arrives. cancel_order to refund.',
   });
 }
 
@@ -1419,7 +1419,7 @@ function extractCode(text: string): string | undefined {
   return m ? m[1] : undefined;
 }
 
-export async function handleCheckSms(
+export async function handleGetSms(
   client: IVirtualSMSClient,
   args: z.infer<typeof GetSmsInput>
 ) {
@@ -1514,7 +1514,7 @@ export async function handleSwapNumber(
   return jsonResult(result);
 }
 
-// ─── WebSocket + Polling for wait_for_code ────────────────────────────────────
+// ─── WebSocket + Polling for wait_for_sms ─────────────────────────────────────
 
 interface SMSResult {
   sms_code: string;
@@ -1612,7 +1612,7 @@ function waitForSMSViaWebSocket(
   });
 }
 
-export async function handleWaitForCode(
+export async function handleWaitForSms(
   client: IVirtualSMSClient,
   args: z.infer<typeof WaitForSmsInput>
 ) {
@@ -1765,7 +1765,7 @@ export async function handleFindCheapest(
       service: args.service,
       cheapest_options: [],
       total_available_countries: 0,
-      message: `No countries available for service "${args.service}". Use search_service to verify the service code, or list_services to see all available services.`,
+      message: `No countries available for service "${args.service}". Use search_services to verify the service code, or list_services to see all available services.`,
     });
   }
 
@@ -1849,7 +1849,7 @@ export async function handleActiveOrders(
       expires_at: o.expires_at,
     })),
     tip: orders.length > 0
-      ? 'Use check_sms with any order_id to get the latest status, or cancel_order to refund pending orders.'
+      ? 'Use get_sms with any order_id to get the latest status, or cancel_order to refund pending orders.'
       : 'No orders found.',
   });
 }
