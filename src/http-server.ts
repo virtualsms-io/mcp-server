@@ -25,14 +25,14 @@ import { MockVirtualSMSClient, isSandboxEnabled } from './sandbox/mock-http.js';
 import {
   TOOL_DEFINITIONS,
   getToolDefinitions,
-  CheckPriceInput,
-  BuyNumberInput,
-  CheckSmsInput,
+  GetPriceInput,
+  CreateOrderInput,
+  GetSmsInput,
   CancelOrderInput,
   SwapNumberInput,
-  WaitForCodeInput,
+  WaitForSmsInput,
   FindCheapestInput,
-  SearchServiceInput,
+  SearchServicesInput,
   ActiveOrdersInput,
   GetOrderInput,
   OrderHistoryInput,
@@ -280,17 +280,17 @@ export function createMCPServer(config: ServerConfig) {
         case 'virtualsms_list_countries':
           return await handleListCountries(client);
         case 'virtualsms_get_price': {
-          const parsed = CheckPriceInput.parse(args);
+          const parsed = GetPriceInput.parse(args);
           return await handleCheckPrice(client, parsed);
         }
         case 'virtualsms_get_balance':
           return await handleGetBalance(client);
         case 'virtualsms_create_order': {
-          const parsed = BuyNumberInput.parse(args);
+          const parsed = CreateOrderInput.parse(args);
           return await handleBuyNumber(client, parsed);
         }
         case 'virtualsms_get_sms': {
-          const parsed = CheckSmsInput.parse(args);
+          const parsed = GetSmsInput.parse(args);
           return await handleCheckSms(client, parsed);
         }
         case 'virtualsms_cancel_order': {
@@ -302,7 +302,7 @@ export function createMCPServer(config: ServerConfig) {
           return await handleSwapNumber(client, parsed);
         }
         case 'virtualsms_wait_for_sms': {
-          const parsed = WaitForCodeInput.parse(args);
+          const parsed = WaitForSmsInput.parse(args);
           return await handleWaitForCode(client, parsed);
         }
         case 'virtualsms_find_cheapest': {
@@ -310,7 +310,7 @@ export function createMCPServer(config: ServerConfig) {
           return await handleFindCheapest(client, parsed);
         }
         case 'virtualsms_search_services': {
-          const parsed = SearchServiceInput.parse(args);
+          const parsed = SearchServicesInput.parse(args);
           return await handleSearchService(client, parsed);
         }
         case 'virtualsms_list_orders': {

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Example 01 — Quick Balance Check
+ * Example 01, Quick Balance Check
  *
  * Connects to the hosted VirtualSMS MCP server at https://mcp.virtualsms.io/mcp
  * via StreamableHTTP transport, calls the virtualsms_get_balance tool, and

@@ -1,11 +1,12 @@
 #!/usr/bin/env node
 /**
- * Example 02 — Buy SMS Number and Wait for Code (end-to-end)
+ * Example 02: Buy SMS Number and Wait for Code (end-to-end)
  *
- * Demonstrates the canonical agentic flow:
- *   1. find_cheapest — pick the cheapest country for the service
- *   2. wait_for_code — buy a number AND block on the WebSocket for the SMS
- *   3. cancel_order — clean up if the SMS never lands
+ * Demonstrates the canonical flow for AI agents:
+ *   1. find_cheapest: pick the cheapest country for the service
+ *   2. create_order:  buy the number, get an order_id
+ *   3. wait_for_sms:  block on the WebSocket for the SMS on that order_id
+ *   4. cancel_order:  clean up if the SMS never lands
  *
  * Requires:
  *   - Node.js 18+
@@ -59,10 +60,10 @@ async function main() {
   );
   await client.connect(transport);
 
-  // Step 1 — find cheapest country for the service (unless one was forced via env).
+  // Step 1 - find cheapest country for the service (unless one was forced via env).
   let country = COUNTRY_OVERRIDE;
   if (!country) {
-    console.log(`Step 1 — find_cheapest(service: ${SERVICE}) ...`);
+    console.log(`Step 1 - find_cheapest(service: ${SERVICE}) ...`);
     const cheapestRaw = await client.callTool({
       name: 'virtualsms_find_cheapest',
       arguments: { service: SERVICE, limit: 5 },
@@ -78,27 +79,42 @@ async function main() {
     country = top.country;
     console.log(`  Cheapest country: ${country} at $${top.price_usd}`);
   } else {
-    console.log(`Step 1 — using forced COUNTRY=${country}`);
+    console.log(`Step 1 - using forced COUNTRY=${country}`);
   }
 
-  // Step 2 — buy a number and wait for the SMS code.
-  console.log(`Step 2 — wait_for_code(service: ${SERVICE}, country: ${country}, timeout: ${TIMEOUT}s) ...`);
+  // Step 2 - buy the number. Returns the order_id that step 3 waits on.
+  console.log(`Step 2 - create_order(service: ${SERVICE}, country: ${country}) ...`);
+  const orderRaw = await client.callTool({
+    name: 'virtualsms_create_order',
+    arguments: { service: SERVICE, country },
+  });
+  const order = unwrap(orderRaw);
+
+  if (!order.order_id) {
+    console.error('Purchase failed. Result:', order);
+    await client.close();
+    process.exit(3);
+  }
+  console.log(`  Bought number: ${order.phone_number} (order ${order.order_id})`);
+
+  // Step 3 - block until the SMS lands on that order, or until timeout.
+  // wait_for_sms takes an order_id, NOT a service/country pair.
+  console.log(`Step 3 - wait_for_sms(order_id: ${order.order_id}, timeout: ${TIMEOUT}s) ...`);
   const waitRaw = await client.callTool({
-    name: 'virtualsms_wait_for_code',
-    arguments: { service: SERVICE, country, timeout_seconds: TIMEOUT },
+    name: 'virtualsms_wait_for_sms',
+    arguments: { order_id: order.order_id, timeout_seconds: TIMEOUT },
   });
   const waitResult = unwrap(waitRaw);
 
   if (waitResult.success) {
-    console.log(`  Bought number: ${waitResult.phone_number}`);
     console.log(`  SMS arrived (${waitResult.delivery_method}, ${waitResult.elapsed_seconds}s):`);
-    console.log(`    code: ${waitResult.sms_code}`);
+    console.log(`    code: ${waitResult.code ?? waitResult.sms_code}`);
     console.log(`    text: ${waitResult.sms_text}`);
   } else {
     console.log(`  No SMS within ${TIMEOUT}s. order_id: ${waitResult.order_id}`);
     if (waitResult.order_id) {
-      // Step 3 — recover budget on timeout.
-      console.log(`Step 3 — cancel_order(${waitResult.order_id}) ...`);
+      // Step 4 - recover budget on timeout.
+      console.log(`Step 4 - cancel_order(${waitResult.order_id}) ...`);
       const cancelRaw = await client.callTool({
         name: 'virtualsms_cancel_order',
         arguments: { order_id: waitResult.order_id },
