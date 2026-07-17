@@ -190,7 +190,7 @@ export const RentalsPriceInput = z.object({
 export const CreateRentalInput = z.object({
   tier: z.enum(['full_access', 'platform']).describe('full_access = local SIM, any service. platform = our global supplier network, one service per number. Both tiers: full refund within 20 minutes of purchase and before the first SMS.'),
   country: z.string().describe('ISO-2 country code (e.g. "DE")'),
-  duration_hours: z.number().int().describe('Duration in hours. full_access: whatever rentals_pricing lists (e.g. 24/168/720). platform: 24, 72, or 168 only.'),
+  duration_hours: z.number().int().describe('Duration in hours. full_access: only the durations rentals_available lists for that specific country are purchasable (typically 24/168/720); any other value is rejected. platform: 24, 72, or 168 only.'),
   service: z.string().optional().describe('Service code. Required for platform tier and for full_access "service" sub-type; omit for full_access "full" (any-service) rentals'),
   auto_renew: z.boolean().optional().describe('full_access tier only. Auto-renew at expiry (default: false)'),
 });
@@ -1005,6 +1005,8 @@ export const TOOL_DEFINITIONS = [
     title: 'List Rental Pricing Tiers',
     description:
       'List all active rental pricing tiers (Full Access tier: local SIM inventory, durations and prices). ' +
+      'This is a raw catalog dump and may list rows that are not purchasable today, so confirm against ' +
+      'rentals_available (authoritative per country) before creating a rental. ' +
       'Use rentals_price for platform-tier (per-country, per-service) pricing instead.',
     inputSchema: { type: 'object' as const, properties: {}, required: [] },
     annotations: { title: 'List Rental Pricing Tiers', readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },

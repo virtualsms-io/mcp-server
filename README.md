@@ -13,7 +13,7 @@
 VirtualSMS is an account verification platform offering:
 
 - **one-time SMS verification**, priced per code
-- **dedicated number rentals**, from 2 hours to 90 days
+- **dedicated number rentals**, from 1 to 30 days
 - **matching-country proxies**: residential, residential premium, mobile and datacenter
 - **private cloud browser sessions** (beta)
 
@@ -316,10 +316,10 @@ The core SMS verification surface: discover a service, price it, buy a number, g
 <details>
 <summary><strong>Rentals (9 tools)</strong></summary>
 
-Keep a number from 2 hours to 90 days, instead of buying a single verification. Two tiers:
+Keep a number by the day instead of buying a single verification. Two tiers:
 
-- **Full Access:** local SIM inventory. Leave `service` unset for a whole number that works across any service, for 1, 7, 30 or 90 days. Set `service` to lock the number to one service, which also unlocks shorter windows: 2, 4 or 12 hours, or 1, 7, 30 or 90 days.
-- **Platform:** sourced via our global supplier network, locked to one chosen service, durations of 1, 3 or 7 days.
+- **Full Access:** local SIM inventory, for a whole number that works across any service. Every country in stock today lists 1, 7 and 30 days, at prices that vary per country. Durations and prices are not hardcoded here on purpose: call `rentals_available` for the live list per country and treat that as authoritative.
+- **Platform:** sourced via our global supplier network, locked to one chosen service, durations of 1, 3 or 7 days. Call `rentals_price` for the exact retail price of a (service, country, duration) combo.
 
 Stock, durations and pricing all differ per tier and per country, so call `rentals_available` before committing to either. An active rental can be extended with `extend_rental` at the current catalog price, in the same durations its tier allows.
 
@@ -465,7 +465,7 @@ MCP (Model Context Protocol) is an open standard that lets an AI client call ext
 - You need a verification code retrieved automatically, in CI or in an unattended job.
 - You need a number and a matching-country IP that agree with each other.
 - You are driving signup automation in a browser and would rather the number, the IP and the browser came from one place than three.
-- You need a temporary phone number for one code, or a dedicated one you keep for up to 90 days.
+- You need a temporary phone number for one code, or a dedicated one you keep for up to 30 days.
 - You want per-code pricing from $0.05 with no subscription and no monthly number rental.
 
 ### When should I NOT use this?
