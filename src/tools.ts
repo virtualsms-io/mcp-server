@@ -160,8 +160,12 @@ export const SessionViewerInput = z.object({
 
 // ─── Rentals input schemas ────────────────────────────────────────────────────
 // Two rental tiers, reflected generically:
-//   full_access: local SIM inventory, any service, no refund countdown
-//   platform:    our global supplier network, one service per number, 20-min refund window
+//   full_access: local SIM inventory, any service
+//   platform:    our global supplier network, one service per number
+// Refund terms are IDENTICAL across tiers: a full refund within 20 minutes of
+// purchase and before the first SMS. The gate is tier-agnostic in the backend
+// (ws-gateway/handlers/rentals.go). Do not describe refunds as a tier
+// differentiator; they are not one.
 
 export const RentalsPricingInput = z.object({});
 
@@ -184,7 +188,7 @@ export const RentalsPriceInput = z.object({
 });
 
 export const CreateRentalInput = z.object({
-  tier: z.enum(['full_access', 'platform']).describe('full_access = local SIM, any service, no refund countdown. platform = our global supplier network, one service per number, 20-min refund window.'),
+  tier: z.enum(['full_access', 'platform']).describe('full_access = local SIM, any service. platform = our global supplier network, one service per number. Both tiers: full refund within 20 minutes of purchase and before the first SMS.'),
   country: z.string().describe('ISO-2 country code (e.g. "DE")'),
   duration_hours: z.number().int().describe('Duration in hours. full_access: whatever rentals_pricing lists (e.g. 24/168/720). platform: 24, 72, or 168 only.'),
   service: z.string().optional().describe('Service code. Required for platform tier and for full_access "service" sub-type; omit for full_access "full" (any-service) rentals'),
@@ -209,7 +213,7 @@ export const CancelRentalInput = z.object({
 });
 
 export const ReleaseRentalInput = z.object({
-  rental_id: z.string().describe('Rental ID to release early. Full Access (local) tier only, pro-rated refund, requires a 2-hour minimum hold since purchase'),
+  rental_id: z.string().describe('Rental ID to release early. Full Access (local) tier only, partial refund, requires a 2-hour minimum hold since purchase'),
 });
 
 export const RetryOrderInput = z.object({
@@ -1060,10 +1064,10 @@ export const TOOL_DEFINITIONS = [
     title: 'Create Rental',
     description:
       'Rent a phone number for an extended period (as opposed to a one-off number via create_order). Two tiers: ' +
-      '"full_access" = local SIM inventory, works across ANY service on that number, no refund countdown (early ' +
-      'release available after a 2h minimum hold). "platform" = sourced via our global supplier network, locked to ' +
-      'ONE chosen service, durations 1/3/7 days only, with a 20-minute full-refund window. Check rentals_available ' +
-      'and rentals_price/rentals_pricing first to confirm country/service/duration and cost.',
+      '"full_access" = local SIM inventory, works across ANY service on that number. "platform" = sourced via our ' +
+      'global supplier network, locked to ONE chosen service, durations 1/3/7 days only. Both tiers carry the same ' +
+      'refund terms: a full refund within 20 minutes of purchase and before the first SMS arrives. Check ' +
+      'rentals_available and rentals_price/rentals_pricing first to confirm country/service/duration and cost.',
     inputSchema: {
       type: 'object' as const,
       properties: {
@@ -1124,7 +1128,7 @@ export const TOOL_DEFINITIONS = [
     title: 'Cancel Rental',
     description:
       'Cancel a rental for a full refund. Only eligible within 20 minutes of purchase AND before any SMS has been ' +
-      'received. Works for either tier. For a Full Access rental past the 20-minute window, use release_rental instead.',
+      'received. Works for either tier. Past that window a rental runs to its natural expiry.',
     inputSchema: {
       type: 'object' as const,
       properties: { rental_id: { type: 'string', description: 'Rental ID to cancel' } },
@@ -1132,11 +1136,18 @@ export const TOOL_DEFINITIONS = [
     },
     annotations: { title: 'Cancel Rental', readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: true },
   },
+  // Gated behind VIRTUALSMS_ENABLE_RELEASE (default off) pending an unmade
+  // pricing decision. The backend charges a 10% fee of the original price and
+  // pays the remainder as STORE CREDIT, not cash, and claws back the value of
+  // every service that already received an SMS. None of that is settled policy,
+  // and none of it is documented anywhere a customer can read. Publishing it on
+  // the default tool surface would hand an undocumented fee to every API user.
+  // Ungate only after the refund-strategy call lands. See VSMS-486.
   {
     name: 'virtualsms_release_rental',
     title: 'Release Rental Early',
     description:
-      'End a Full Access (local-tier) rental early for a pro-rated refund. Requires a 2-hour minimum hold since ' +
+      'End a Full Access (local-tier) rental early for a partial refund. Requires a 2-hour minimum hold since ' +
       'purchase. NOT available for platform-tier rentals. Those run to their natural expiry or must be cancelled ' +
       'within the 20-minute window instead.',
     inputSchema: {
@@ -1145,6 +1156,7 @@ export const TOOL_DEFINITIONS = [
       required: ['rental_id'],
     },
     annotations: { title: 'Release Rental Early', readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true },
+    requiresRelease: true,
   },
   {
     name: 'virtualsms_retry_order',
@@ -1213,12 +1225,17 @@ export const TOOL_DEFINITIONS = [
   },
 ];
 
-// Marker used by index.ts / http-server.ts to gate the 3 session-drive tools
-// above behind VIRTUALSMS_ENABLE_SESSIONS (default off). Tools with no
-// `requiresSessions` marker are always served. Unaffected by the flag.
-export function getToolDefinitions(enableSessions: boolean) {
-  if (enableSessions) return TOOL_DEFINITIONS;
-  return TOOL_DEFINITIONS.filter((t) => !('requiresSessions' in t) || !t.requiresSessions);
+// Markers used by index.ts / http-server.ts to gate tools off the default
+// surface. Two independent flags, both default off:
+//   - `requiresSessions` -> VIRTUALSMS_ENABLE_SESSIONS (3 session-drive tools)
+//   - `requiresRelease`  -> VIRTUALSMS_ENABLE_RELEASE  (release_rental)
+// A tool carrying no marker is always served, unaffected by either flag.
+export function getToolDefinitions(enableSessions: boolean, enableRelease = false) {
+  return TOOL_DEFINITIONS.filter((t) => {
+    if (!enableSessions && 'requiresSessions' in t && t.requiresSessions) return false;
+    if (!enableRelease && 'requiresRelease' in t && t.requiresRelease) return false;
+    return true;
+  });
 }
 
 // ─── Tool Handlers ────────────────────────────────────────────────────────────

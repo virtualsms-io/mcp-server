@@ -244,13 +244,14 @@ Not natively. ChatGPT uses GPT Actions, a different protocol than MCP. For ChatG
 |----------|----------|---------|-------------|
 | `VIRTUALSMS_API_KEY` | Yes, for account tools | none | Your VirtualSMS API key. Keys carry a `vsms_` prefix |
 | `VIRTUALSMS_BASE_URL` | No | `https://virtualsms.io` | API base URL |
-| `VIRTUALSMS_ENABLE_SESSIONS` | No | off | Serves 3 additional session-drive tools when set to `1`, `true` or `yes`. Off by default, so the server exposes 41 tools |
+| `VIRTUALSMS_ENABLE_SESSIONS` | No | off | Serves 3 additional session-drive tools when set to `1`, `true` or `yes`. Off by default |
+| `VIRTUALSMS_ENABLE_RELEASE` | No | off | Serves the early-release rental tool when set to `1`, `true` or `yes`. Off by default while its refund terms are being settled |
 
 ---
 
 ## Tools
 
-41 tools by default. Set `VIRTUALSMS_ENABLE_SESSIONS=1` to expose 3 more, for 44 total.
+40 tools by default. Set `VIRTUALSMS_ENABLE_SESSIONS=1` to expose 3 more.
 
 Tool names are shown below without the `virtualsms_` prefix for readability. The real wire names are prefixed: `virtualsms_create_order`, `virtualsms_get_sms`, and so on.
 
@@ -287,12 +288,14 @@ The core SMS verification surface: discover a service, price it, buy a number, g
 </details>
 
 <details>
-<summary><strong>Rentals (10 tools)</strong></summary>
+<summary><strong>Rentals (9 tools)</strong></summary>
 
 Rent a number for days instead of one verification. Two tiers:
 
-- **Full Access:** local SIM inventory, works across any service on that number, no refund countdown. Early release after a 2 hour minimum hold.
-- **Platform:** sourced via our global supplier network, locked to one chosen service, durations of 1, 3 or 7 days, with a 20 minute full-refund window.
+- **Full Access:** local SIM inventory, works across any service on that number.
+- **Platform:** sourced via our global supplier network, locked to one chosen service, durations of 1, 3 or 7 days.
+
+Both tiers carry the same refund terms: cancel for a full refund within 20 minutes of purchase and before the first SMS arrives. Platform cancels are additionally subject to a 2 minute minimum hold, so a cancel inside the first 2 minutes is rejected and has to be retried.
 
 | Tool | Auth | Description |
 |---|---|---|
@@ -305,7 +308,6 @@ Rent a number for days instead of one verification. Two tiers:
 | `get_rental` | Yes | Full detail for one rental: tier, number, service lock, status, expiry, SMS |
 | `extend_rental` | Yes | Extend an active rental. Charges the current catalog price |
 | `cancel_rental` | Yes | Full refund, within 20 minutes of purchase and before any SMS |
-| `release_rental` | Yes | End a Full Access rental early for a pro-rated refund. 2 hour minimum hold |
 
 </details>
 
@@ -407,7 +409,7 @@ generate_proxy_endpoint(proxy_id: "px_1", country_code: "GB", protocol: "socks5"
 
 ### What is an MCP server for SMS verification?
 
-MCP (Model Context Protocol) is an open standard that lets an AI client call external tools. An MCP server for SMS verification exposes phone-number and verification-code operations as tools an agent can call directly, so the agent buys the number, waits for the code and reads it back without any glue code from you. This repo is that server for VirtualSMS: 41 tools covering verification, rentals and proxies.
+MCP (Model Context Protocol) is an open standard that lets an AI client call external tools. An MCP server for SMS verification exposes phone-number and verification-code operations as tools an agent can call directly, so the agent buys the number, waits for the code and reads it back without any glue code from you. This repo is that server for VirtualSMS: 40 tools covering verification, rentals and proxies.
 
 ### When should I use this?
 
@@ -457,7 +459,7 @@ You do not have to take that on faith. `check_number` runs a carrier and line-ty
 
 Developers searching for `textverified mcp`, `sms-activate mcp`, `5sim mcp`, `daisysms mcp` or `smspool mcp` are usually asking one question: which SMS verification provider can an AI agent drive natively? This section answers that without a scoreboard.
 
-**VirtualSMS** publishes this MCP server, so any MCP client calls it directly with no wrapper code: 41 tools, 2500+ services, 145+ countries, from $0.05 per code, on real physical SIM cards, plus number rentals and matching-country proxies from the same balance.
+**VirtualSMS** publishes this MCP server, so any MCP client calls it directly with no wrapper code: 40 tools, 2500+ services, 145+ countries, from $0.05 per code, on real physical SIM cards, plus number rentals and matching-country proxies from the same balance.
 
 **SMS-Activate** shut down in December 2025. If your integration pointed there, it is gone, and the migration is a new API key and a new base URL rather than a rewrite: the shape of the job, buy a number then read the code, is the same here.
 

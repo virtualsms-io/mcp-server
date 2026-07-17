@@ -120,6 +120,11 @@ const BASE_URL = (process.env.VIRTUALSMS_BASE_URL || 'https://virtualsms.io').re
 // flag, default OFF. Truthy = "1" / "true" / "yes" (case-insensitive).
 const ENABLE_SESSIONS = /^(1|true|yes)$/i.test(process.env.VIRTUALSMS_ENABLE_SESSIONS ?? '');
 
+// release_rental is gated behind this flag, default OFF, pending an unmade
+// refund-pricing decision (10% fee + store-credit payout are undocumented and
+// unsettled). Same semantics as ENABLE_SESSIONS. See VSMS-486.
+const ENABLE_RELEASE = /^(1|true|yes)$/i.test(process.env.VIRTUALSMS_ENABLE_RELEASE ?? '');
+
 // Sandbox mode (VIRTUALSMS_SANDBOX=1): zero-key, in-memory mock. No real
 // network calls, no real charges. Every tool still lists + executes; it just
 // talks to MockVirtualSMSClient instead of the real backend.
@@ -147,7 +152,7 @@ const server = new Server(
 
 // List available tools
 server.setRequestHandler(ListToolsRequestSchema, async () => {
-  return { tools: getToolDefinitions(ENABLE_SESSIONS) };
+  return { tools: getToolDefinitions(ENABLE_SESSIONS, ENABLE_RELEASE) };
 });
 
 // Handle tool calls
@@ -349,6 +354,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       }
 
       case 'virtualsms_release_rental': {
+        if (!ENABLE_RELEASE) throw new McpError(ErrorCode.MethodNotFound, `Unknown tool: ${name}`);
         const parsed = ReleaseRentalInput.parse(args);
         return await handleReleaseRental(client, parsed);
       }
@@ -430,7 +436,7 @@ export function createSandboxServer() {
   );
 
   sandboxServer.setRequestHandler(ListToolsRequestSchema, async () => {
-    return { tools: getToolDefinitions(ENABLE_SESSIONS) };
+    return { tools: getToolDefinitions(ENABLE_SESSIONS, ENABLE_RELEASE) };
   });
 
   sandboxServer.setRequestHandler(ListPromptsRequestSchema, async () => {

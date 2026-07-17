@@ -209,19 +209,40 @@ function collectStrings(node: unknown, out: string[] = []): string[] {
 }
 
 describe('wire strings: nothing the server serves may name a dead tool', () => {
-  // The default payload: session-drive tools are gated off behind
-  // VIRTUALSMS_ENABLE_SESSIONS, so a default client sees 41 of the 44.
-  const served = getToolDefinitions(false);
+  // The default payload: two independent flags gate tools off the default
+  // surface. VIRTUALSMS_ENABLE_SESSIONS holds back 3 session-drive tools;
+  // VIRTUALSMS_ENABLE_RELEASE holds back release_rental pending an unmade
+  // refund-pricing decision (VSMS-486). A default client sees 40 of the 44.
+  const served = getToolDefinitions(false, false);
 
-  it('tools/list serves the expected 41 tools by default', () => {
-    expect(served.length).toBe(41);
-    expect(TOOL_DEFINITIONS.length).toBe(44); // 41 + 3 session-gated
+  it('tools/list serves the expected 40 tools by default', () => {
+    expect(served.length).toBe(40);
+    expect(TOOL_DEFINITIONS.length).toBe(44); // 40 + 3 session-gated + 1 release-gated
+  });
+
+  it('each gate is independent: sessions adds 3, release adds 1, both add 4', () => {
+    expect(getToolDefinitions(true, false).length).toBe(43);
+    expect(getToolDefinitions(false, true).length).toBe(41);
+    expect(getToolDefinitions(true, true).length).toBe(44);
+  });
+
+  it('release_rental is absent by default and present only when its flag is on', () => {
+    const name = 'virtualsms_release_rental';
+    expect(served.some((t) => t.name === name)).toBe(false);
+    // the sessions flag must NOT smuggle it back in
+    expect(getToolDefinitions(true, false).some((t) => t.name === name)).toBe(false);
+    expect(getToolDefinitions(false, true).some((t) => t.name === name)).toBe(true);
   });
 
   it('every tool NAME on the wire is unchanged (renaming a published tool breaks every user)', () => {
     // Frozen list. Descriptions may change freely; names may not. If you are
     // here because you renamed a tool: that is a breaking change for every
     // installed client, and the docs+wire sweep must go with it.
+    //
+    // virtualsms_release_rental is absent: it is gated off the default surface
+    // behind VIRTUALSMS_ENABLE_RELEASE (VSMS-486). It never shipped to npm
+    // (verified absent from the published v1.2.3 tarball), so withholding it
+    // breaks no installed client. Restore this entry when the gate opens.
     expect(served.map((t) => t.name).sort()).toEqual(
       [
         'virtualsms_buy_proxy',
@@ -252,7 +273,6 @@ describe('wire strings: nothing the server serves may name a dead tool', () => {
         'virtualsms_list_rentals',
         'virtualsms_list_services',
         'virtualsms_order_history',
-        'virtualsms_release_rental',
         'virtualsms_rentals_available',
         'virtualsms_rentals_price',
         'virtualsms_rentals_pricing',
@@ -269,7 +289,7 @@ describe('wire strings: nothing the server serves may name a dead tool', () => {
     );
   });
 
-  it('the Smithery-scored ratios hold: 41/41 described, 41/41 all-params-described, 41/41 annotated', () => {
+  it('the Smithery-scored ratios hold: 40/40 described, 40/40 all-params-described, 40/40 annotated', () => {
     const described = served.filter((t) => t.description?.trim()).length;
     const annotated = served.filter((t) => t.annotations).length;
     const allParams = served.filter((t) => {
@@ -279,9 +299,9 @@ describe('wire strings: nothing the server serves may name a dead tool', () => {
       return Object.values(props).every((p) => p?.description?.trim());
     }).length;
 
-    expect(described).toBe(41);
-    expect(allParams).toBe(41);
-    expect(annotated).toBe(41);
+    expect(described).toBe(40);
+    expect(allParams).toBe(40);
+    expect(annotated).toBe(40);
   });
 
   it('no dead name appears anywhere in the tools/list payload', () => {
