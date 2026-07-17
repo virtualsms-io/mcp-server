@@ -483,7 +483,7 @@ export const TOOL_DEFINITIONS = [
     name: 'virtualsms_start_manual_registration_session',
     title: 'Start Manual Registration Session',
     description:
-      'Beta. Start a private cloud-browser session for manual signup/verification. Returns debug_url for live takeover, optional order phone number, and timeline. Pair with create_order for OTP + browser in one agent flow.',
+      'Beta, invite-only. Start a country-matched cloud browser you drive yourself: returns a viewer_url, an authenticated live-viewer link you open to watch and drive the session (manual takeover), plus optional order phone number and timeline. Agent-driven navigation is the separate opt-in session tools. Pair with create_order for OTP + browser in one agent flow.',
     inputSchema: {
       type: 'object' as const,
       properties: {
@@ -1350,23 +1350,35 @@ export async function handleStartManualRegistrationSession(
   client: IVirtualSMSClient,
   args: z.infer<typeof StartManualRegistrationSessionInput>
 ) {
-  const session = await client.startManualRegistrationSession({
-    serviceName: args.service_name,
-    country: args.country,
-    deviceMode: args.device_mode,
-    withProxy: args.with_proxy,
-    targetUrl: args.target_url,
-    orderId: args.order_id,
-    mode: args.mode,
-  });
+  try {
+    const session = await client.startManualRegistrationSession({
+      serviceName: args.service_name,
+      country: args.country,
+      deviceMode: args.device_mode,
+      withProxy: args.with_proxy,
+      targetUrl: args.target_url,
+      orderId: args.order_id,
+      mode: args.mode,
+    });
 
-  if (args.run_prep && session.id) {
-    const preset = args.prep_preset ?? (args.service_name?.toLowerCase() === 'telegram' ? 'telegram' : 'generic');
-    const prepped = await client.prepBrowserSession(session.id, preset, args.target_url);
-    return jsonResult({ session: prepped, prep_preset: preset });
+    if (args.run_prep && session.id) {
+      const preset = args.prep_preset ?? (args.service_name?.toLowerCase() === 'telegram' ? 'telegram' : 'generic');
+      const prepped = await client.prepBrowserSession(session.id, preset, args.target_url);
+      return jsonResult({ session: prepped, prep_preset: preset });
+    }
+
+    return jsonResult({ session });
+  } catch (err) {
+    // This tool ships in the default surface, but the cloud-browser backend is
+    // invite-only beta: a normal account gets a 503 (feature flag off) or 403
+    // (not on the allowlist). Map ONLY those beta-gate cases to a clean signup
+    // pointer, and let genuine errors (401 auth, 500, etc.) surface with their
+    // own message instead of being swallowed.
+    if (isSessionsUnavailableError(err)) {
+      return { ...jsonResult({ error: SESSIONS_BETA_START_MESSAGE }), isError: true };
+    }
+    throw err;
   }
-
-  return jsonResult({ session });
 }
 
 export async function handleListCountries(client: IVirtualSMSClient) {
@@ -2236,16 +2248,28 @@ export async function handleCheckNumber(
 // of a raw 404/503. Never leak the upstream supplier name in the error text.
 function isSessionsUnavailableError(err: unknown): boolean {
   const message = (err as Error)?.message ?? '';
+  // Beta-gate signals only: endpoint missing (404), feature flag off (503), or
+  // account not allowlisted (403 / "not enabled"). A 500, 401 auth error, 402
+  // balance error, etc. do NOT match here and keep their own message.
   return (
     message.includes('Not found') ||
     message.includes('404') ||
     message.includes('server error (503)') ||
-    message.includes('not available')
+    message.includes('403') ||
+    message.includes('Forbidden') ||
+    message.includes('not available') ||
+    message.includes('not enabled')
   );
 }
 
 const SESSIONS_UNAVAILABLE_MESSAGE =
-  'Browser sessions are beta and are not available on this endpoint.';
+  'Browser sessions are in invite-only beta. Join https://t.me/VirtualSMS_io for beta access and updates.';
+
+// Shown by the default-surface start tool when the account is not yet on the
+// cloud-browser beta allowlist (503 feature-off / 403 not-allowlisted).
+const SESSIONS_BETA_START_MESSAGE =
+  'Cloud browser sessions are in invite-only beta and are not enabled for this account yet. ' +
+  'Join https://t.me/VirtualSMS_io for beta access and product updates.';
 
 export async function handleStopSession(
   client: IVirtualSMSClient,

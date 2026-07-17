@@ -254,7 +254,8 @@ export interface BrowserSessionResult {
   country_code?: string;
   device_mode?: string;
   with_proxy?: boolean;
-  debug_url?: string;
+  // The backend returns only viewer_url (our own proxied live-viewer link); it
+  // never sends a debug_url. Do not add one back.
   viewer_url?: string;
   target_url?: string;
   order_id?: string;

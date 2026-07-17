@@ -366,14 +366,14 @@ Matching-country proxies, so the number and the IP agree. Three pools: residenti
 |---|---|---|
 | `retry_order` | Yes | Ask for the SMS to be resent to the same number. Not all order types support it |
 | `check_number` | No | Carrier and line-type lookup for any E.164 number: mobile, landline or VoIP, plus spam risk |
-| `start_manual_registration_session` | Yes | **Beta.** Start a private cloud-browser session for manual signup or verification. Returns a `debug_url` for live takeover |
+| `start_manual_registration_session` | Yes | **Beta, invite-only.** Start a country-matched cloud browser you drive yourself in a live viewer. Agent-driven navigation is a separate opt-in (the session tools). Join https://t.me/VirtualSMS_io for beta access |
 
 </details>
 
 <details>
 <summary><strong>Session tools (3 more, off by default)</strong></summary>
 
-**Beta.** The browser stack is early. It works, but the shape of these tools can still change and there is no stability guarantee yet.
+**Beta, invite-only.** The browser stack is early. It works, but the shape of these tools can still change and there is no stability guarantee yet. Join https://t.me/VirtualSMS_io for beta access and updates.
 
 Served only when `VIRTUALSMS_ENABLE_SESSIONS` is set to `1`, `true` or `yes`. Not exposed on the default surface.
 
