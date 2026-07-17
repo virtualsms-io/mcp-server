@@ -12,9 +12,10 @@ export const SERVER_INSTRUCTIONS = `VirtualSMS lets you receive SMS verification
 SMS verification: find the service and country, check the price, create an order, then poll or wait for the SMS code to arrive. Cancel the order if you no longer need the number.
 
 Rentals (two tiers):
-- Full Access: local SIM inventory, usable for any service, longer durations, no refund countdown.
-- Platform: sourced via our global supplier network, locked to one chosen service, short durations, with an early refund window if cancelled quickly.
-List availability and pricing before creating a rental. Extend an active rental if you need more time, or cancel/release it when done.
+- Full Access: local SIM inventory, usable for any service, longer durations.
+- Platform: sourced via our global supplier network, locked to one chosen service, short durations.
+Both tiers carry the same refund terms: cancel for a full refund within 20 minutes of purchase and before the first SMS arrives. After that a rental runs to its natural expiry.
+List availability and pricing before creating a rental. Extend an active rental if you need more time, or cancel it while it is still refundable.
 
 Proxies: list the catalog, buy a proxy, and rotate it for a new IP when needed.
 

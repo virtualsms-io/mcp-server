@@ -122,6 +122,11 @@ const DEFAULT_TIMEOUT = parseInt(process.env.VIRTUALSMS_TIMEOUT || '30', 10);
 // flag, default OFF. Truthy = "1" / "true" / "yes" (case-insensitive).
 const ENABLE_SESSIONS = /^(1|true|yes)$/i.test(process.env.VIRTUALSMS_ENABLE_SESSIONS ?? '');
 
+// release_rental is gated behind this flag, default OFF, pending an unmade
+// refund-pricing decision (10% fee + store-credit payout are undocumented and
+// unsettled). Same semantics as ENABLE_SESSIONS. See VSMS-486.
+const ENABLE_RELEASE = /^(1|true|yes)$/i.test(process.env.VIRTUALSMS_ENABLE_RELEASE ?? '');
+
 // Sandbox mode (VIRTUALSMS_SANDBOX=1): zero-key, in-memory mock. Same flag
 // semantics as index.ts (stdio transport). When active, the HTTP transport's
 // H-005 "reject unauthenticated requests" gate is bypassed (see below) since
@@ -213,7 +218,7 @@ export function createMCPServer(config: ServerConfig) {
   // ─── Tools ────────────────────────────────────────────────────────────────
 
   server.setRequestHandler(ListToolsRequestSchema, async () => {
-    return { tools: getToolDefinitions(ENABLE_SESSIONS) };
+    return { tools: getToolDefinitions(ENABLE_SESSIONS, ENABLE_RELEASE) };
   });
 
   server.setRequestHandler(CallToolRequestSchema, async (request) => {
@@ -373,6 +378,7 @@ export function createMCPServer(config: ServerConfig) {
           return await handleCancelRental(client, parsed);
         }
         case 'virtualsms_release_rental': {
+          if (!ENABLE_RELEASE) throw new McpError(ErrorCode.MethodNotFound, `Unknown tool: ${name}`);
           const parsed = ReleaseRentalInput.parse(args);
           return await handleReleaseRental(client, parsed);
         }

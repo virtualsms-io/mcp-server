@@ -270,11 +270,12 @@ export interface NavigateSessionResult {
 
 // ─── Rentals ────────────────────────────────────────────────────────────────
 // Two rental tiers, reflected generically (no supplier names):
-//   "full_access": local SIM inventory, full SMS access across any service,
-//                    no 20-minute refund countdown (early release after a
-//                    2h minimum hold instead).
+//   "full_access": local SIM inventory, full SMS access across any service.
 //   "platform":    sourced via our global supplier network, locked to ONE
-//                    chosen service per number, 20-minute auto-refund window.
+//                    chosen service per number.
+// Refunds are NOT a tier differentiator: both tiers get a full refund within
+// 20 minutes of purchase and before the first SMS. The backend gate is
+// tier-agnostic (ws-gateway/handlers/rentals.go).
 
 export interface RentalPricingTier {
   rental_type: string;
@@ -1134,7 +1135,7 @@ export class VirtualSMSClient implements IVirtualSMSClient {
     return res.data as RentalPriceResult;
   }
 
-  /** Full Access tier: local SIM inventory, any service, no refund countdown. */
+  /** Full Access tier: local SIM inventory, any service. */
   async createFullAccessRental(params: {
     country: string;
     rentalType: 'service' | 'full';
@@ -1216,7 +1217,13 @@ export class VirtualSMSClient implements IVirtualSMSClient {
     return res.data as RentalActionResult;
   }
 
-  /** Early release with pro-rated refund: Full Access (local) tier only, after a 2h minimum hold. */
+  /**
+   * Early release with a PARTIAL refund: Full Access (local) tier only, after a
+   * 2h minimum hold. Not "pro-rated": the backend pays
+   * price - MAX(timeValue, servicesBurnedValue) - 10% of price, as store credit
+   * rather than cash. Gated off the default tool surface behind
+   * VIRTUALSMS_ENABLE_RELEASE pending a refund-strategy call (VSMS-486).
+   */
   async releaseRental(rentalId: string): Promise<RentalActionResult> {
     this.requireApiKey();
     const res = await this.http.post(`/api/v1/rentals/${rentalId}/release`, {});

@@ -16,12 +16,15 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import { TOOL_DEFINITIONS } from '../tools.js';
 
-// These two flags are read once at http-server.ts module load — set BEFORE
-// the dynamic import below so sandbox mode is active and every tool
-// (including the VIRTUALSMS_ENABLE_SESSIONS-gated browser-session tools) is
-// registered for this test run.
+// These flags are read once at http-server.ts module load, so set them BEFORE
+// the dynamic import below so sandbox mode is active and every tool (including the
+// VIRTUALSMS_ENABLE_SESSIONS-gated browser-session tools and the
+// VIRTUALSMS_ENABLE_RELEASE-gated release_rental) is registered for this test
+// run. This suite deliberately exercises the FULL surface; the default surface
+// is asserted separately in docs-tool-names.test.ts.
 process.env.VIRTUALSMS_SANDBOX = '1';
 process.env.VIRTUALSMS_ENABLE_SESSIONS = '1';
+process.env.VIRTUALSMS_ENABLE_RELEASE = '1';
 
 let client: Client;
 
@@ -158,6 +161,8 @@ describe('sandbox integration — every registered tool, driven via real tools/l
     const rentalIdB = structured(created2).rental_id as string;
     expect(rentalIdB).toBeTruthy();
 
+    // Gated off the default surface behind VIRTUALSMS_ENABLE_RELEASE (VSMS-486);
+    // reachable here only because this suite sets that flag at module load.
     await call('virtualsms_release_rental', { rental_id: rentalIdB });
   });
 
