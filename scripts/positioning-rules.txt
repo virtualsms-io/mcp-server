@@ -17,7 +17,7 @@
 # profile: mixed-content
 # rules: 38
 # generator-version: 1
-# canonical-sha256: bd4c4ddc3c1d55d3a61e06c2f5abfec1f511a65d91293c56205a41db7320f52a
+# canonical-sha256: b6bd2b316154ba10d4308765c60e91b639f8e11c9d54e561f0aa01e78208db19
 # rules-sha256: 933bc20111f56b8085d1dbd08bdfca45a8cd75c8b45d5bea1dfa5e20cf2432b1
 #RULES
 numeric	700+ services	canonical services count is 2500+	700\+ services	.	-
