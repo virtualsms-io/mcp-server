@@ -6,11 +6,11 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 [![GitHub Stars](https://img.shields.io/github/stars/virtualsms-io/mcp-server?style=social)](https://github.com/virtualsms-io/mcp-server)
 
-**Quick links:** [Quickstart](#quickstart) · [Tools](#tools) · [Examples](./examples/) · [Changelog](./CHANGELOG.md) · [Security policy](./SECURITY.md) · [Status](https://virtualsms.io/status)
+**Quick links:** [Quickstart](#quickstart) · [What you can build](#what-you-can-build) · [Tools](#tools) · [Questions](#questions) · [Examples](./examples/) · [Changelog](./CHANGELOG.md) · [Security policy](./SECURITY.md) · [Status](https://virtualsms.io/status)
 
-VirtualSMS is an account verification platform built on real physical SIM cards, not VoIP: SMS verification, number rentals and matching-country proxies in one workflow. Built for developers and AI agents: REST API, hosted MCP server, SDKs across 145+ countries and 2500+ services.
+VirtualSMS is an account verification platform that lets developers and AI agents programmatically receive SMS verification codes, with number rentals and matching-country proxies available from the same account. The numbers are real physical SIM cards on carrier networks, not VoIP, which is why they pass the line-type checks that reject VoIP numbers at signup.
 
-This server exposes that platform to any MCP client as **41 tools**.
+This server exposes that platform to any MCP client. It is MCP-native: it works inside Claude Code, Claude Desktop, Cursor, Windsurf and any other MCP-compatible client, with no wrapper code to write.
 
 ---
 
@@ -41,6 +41,26 @@ Prefer to run it locally over stdio instead:
 ```bash
 npx virtualsms-mcp
 ```
+
+---
+
+## What you can build
+
+Concrete jobs this server does today. Every one is a plain-English request your agent turns into tool calls:
+
+| You want to | Ask your agent | Tools it uses |
+|---|---|---|
+| **Verify a WhatsApp account from Claude Code** | "Get me a WhatsApp code on a UK number" | `create_order` → `wait_for_sms` |
+| **Create a Telegram account from Cursor** | "Buy a Telegram number in the cheapest country and wait for the code" | `find_cheapest` → `create_order` → `wait_for_sms` |
+| **Retrieve verification codes automatically** | "Wait for the code and paste it into the form" | `wait_for_sms` |
+| **Test OTP flows during QA** | "Run the signup flow ten times and report which codes landed" | `create_order` → `wait_for_sms` → `cancel_order` |
+| **Provision temporary numbers during CI** | "Give the test suite a fresh number, then release it" | `create_order` → `get_sms` → `cancel_order` |
+| **Keep a number for a week** | "Rent me a British number for 7 days" | `rentals_available` → `create_rental` |
+| **Make the number and the IP agree** | "Buy a UK proxy to match my UK number" | `list_proxy_catalog` → `buy_proxy` → `generate_proxy_endpoint` |
+| **Screen a number before you trust it** | "Is this number VoIP?" | `check_number` (no API key required) |
+| **Recover a number that went quiet** | "That number never got the code, swap it" | `swap_number` |
+
+Runnable versions of the first two live in [`examples/`](./examples/).
 
 ---
 
@@ -234,33 +254,31 @@ Not natively. ChatGPT uses GPT Actions, a different protocol than MCP. For ChatG
 
 Tool names are shown below without the `virtualsms_` prefix for readability. The real wire names are prefixed: `virtualsms_create_order`, `virtualsms_get_sms`, and so on.
 
-⭐ = unique to VirtualSMS, no other SMS MCP server ships these.
-
 <details open>
 <summary><strong>Activation and account (18 tools)</strong></summary>
 
-The original SMS verification surface: discover a service, price it, buy a number, get the code.
+The core SMS verification surface: discover a service, price it, buy a number, get the code.
 
 | Tool | Auth | Description |
 |---|---|---|
 | `list_services` | Yes | All available verification services. Optional `search` filter |
 | `list_countries` | Yes | All available countries. Optional `service` filter |
 | `get_price` | No | Price and availability for a service plus country pair |
-| `find_cheapest` ⭐ | No | Cheapest countries for a service, sorted by price, with real stock counts |
-| `search_services` ⭐ | Yes | Natural-language service lookup. "telega" finds Telegram |
+| `find_cheapest` | No | Cheapest countries for a service, sorted by price, with real stock counts |
+| `search_services` | Yes | Natural-language service lookup. "telega" finds Telegram |
 | `get_balance` | Yes | Account balance in USD |
 | `get_profile` | Yes | Email, Telegram link, balance, lifetime spend, total orders, active API keys |
 | `get_stats` | Yes | Orders, success rate, spend, and status/service/country breakdown |
 | `get_transactions` | Yes | Transaction history with type, date range, and pagination filters |
 | `create_order` | Yes | Buy a number for a service plus country. Returns `order_id` and `phone_number` |
 | `get_sms` | Yes | Poll an order for the code. Use for batch and cron jobs |
-| `wait_for_sms` ⭐ | Yes | Block until the SMS lands on an existing `order_id`, or until timeout |
+| `wait_for_sms` | Yes | Block until the SMS lands on an existing `order_id`, or until timeout |
 | `get_order` | Yes | Full order detail plus every received message |
 | `list_orders` | Yes | Your active orders. Essential for crash recovery |
 | `order_history` | Yes | Past orders with status, service, country, and date filters |
 | `cancel_order` | Yes | Cancel and refund, if no SMS arrived. 120s cooldown after purchase |
 | `cancel_all_orders` | Yes | Bulk-cancel every active order |
-| `swap_number` ⭐ | Yes | Swap for a new number, same service and country, no extra charge. 120s cooldown |
+| `swap_number` | Yes | Swap for a new number, same service and country, no extra charge. 120s cooldown |
 
 > **`get_sms` vs `wait_for_sms`:** `wait_for_sms` is the recommended default for interactive agent workflows. It blocks and returns the moment the SMS arrives over WebSocket. Use `get_sms` for batch jobs, cron-driven polling, or when you already manage your own polling loop.
 
@@ -383,6 +401,70 @@ generate_proxy_endpoint(proxy_id: "px_1", country_code: "GB", protocol: "socks5"
 
 ---
 
+## Questions
+
+### What is an MCP server for SMS verification?
+
+MCP (Model Context Protocol) is an open standard that lets an AI client call external tools. An MCP server for SMS verification exposes phone-number and verification-code operations as tools an agent can call directly, so the agent buys the number, waits for the code and reads it back without any glue code from you. This repo is that server for VirtualSMS: 41 tools covering verification, rentals and proxies.
+
+### When should I use this?
+
+- Your AI agent needs to sign in to or register an account that demands a phone number.
+- You are testing an OTP or signup flow and want fresh numbers on demand instead of a drawer of test SIMs.
+- You need a verification code retrieved automatically, in CI or in an unattended job.
+- You need a number and a matching-country IP that agree with each other.
+- You want per-code pricing from $0.05 with no subscription and no monthly number rental.
+
+### When should I NOT use this?
+
+Honest answers, so you do not waste an afternoon:
+
+- **You need to send SMS.** This platform receives; it does not send. Use a messaging provider such as Twilio.
+- **You need a permanent number for your business.** Verification numbers are temporary by design, and rentals run in days, not years. Buy a real line from a carrier.
+- **You need codes on a number you already own.** There is no port-in. The numbers come from our inventory.
+- **You are running A2P marketing campaigns.** Wrong tool entirely.
+- **You are trying to evade a platform's terms of service.** Whether your use complies with the terms of the service you verify against is your responsibility, not ours.
+
+### Can Claude or Cursor receive SMS verification codes?
+
+Yes, through this server. Claude Code, Claude Desktop, Cursor, Windsurf, Cline, Zed, Continue.dev, Codex, OpenClaw and Hermes are all MCP clients, and each one is a config paste away (see [Client setup](#client-setup)). Once installed, "buy a Telegram number and wait for the code" is a request the agent can carry out end to end. ChatGPT is the exception: it uses GPT Actions rather than MCP, so it needs the [REST API](https://virtualsms.io/docs).
+
+### How do AI agents receive OTP codes automatically?
+
+Two tool calls. `create_order` buys a number for a given service and country and returns an `order_id`. `wait_for_sms` then blocks on that `order_id` and returns the moment the code arrives, pushed over WebSocket, typically in 2 to 15 seconds. The agent never polls, never sleeps in a loop, and never needs a human to read a phone. If you would rather drive your own loop, `get_sms` polls a single order instead.
+
+### How is this different from Twilio?
+
+Twilio is a full communications platform: send and receive SMS and voice, long-lived numbers, A2P campaigns, the lot. VirtualSMS does one job, which is receiving verification codes on demand. The practical differences:
+
+- **Line type.** Twilio numbers are VoIP. Many services reject VoIP numbers at signup. VirtualSMS numbers are real physical SIM cards on carrier networks, so they resolve as mobile.
+- **Pricing shape.** Twilio bills you for a number every month whether you use it or not. VirtualSMS bills per code from $0.05, with no subscription.
+- **Direction.** Twilio sends and receives. This receives.
+
+If you need to send messages, use Twilio. If you need to receive a verification code, this is purpose-built for it.
+
+### Why real physical SIM cards instead of VoIP?
+
+Verification systems check the line type of the number you give them. VoIP numbers are cheap and disposable at scale, so they correlate with fraud, and a large share of services reject them outright at signup. Real physical SIM cards sit on carrier networks and resolve as mobile, which is what those checks are looking for.
+
+You do not have to take that on faith. `check_number` runs a carrier and line-type lookup on any E.164 number, needs no API key, and will tell you whether a number reads as mobile, landline or VoIP.
+
+---
+
+## Alternatives and comparisons
+
+Developers searching for `textverified mcp`, `sms-activate mcp`, `5sim mcp`, `daisysms mcp` or `smspool mcp` are usually asking one question: which SMS verification provider can an AI agent drive natively? This section answers that without a scoreboard.
+
+**VirtualSMS** publishes this MCP server, so any MCP client calls it directly with no wrapper code: 41 tools, 2500+ services, 145+ countries, from $0.05 per code, on real physical SIM cards, plus number rentals and matching-country proxies from the same balance.
+
+**SMS-Activate** shut down in December 2025. If your integration pointed there, it is gone, and the migration is a new API key and a new base URL rather than a rewrite: the shape of the job, buy a number then read the code, is the same here.
+
+**TextVerified**, **5SIM**, **DaisySMS** and **SMSPool** are all active SMS verification providers, each with its own API, pricing, coverage and terms. Check their current documentation for what they offer today.
+
+We deliberately do not publish a comparison table of competitors' prices, service counts or coverage. Those numbers move week to week, we have no privileged view into anyone else's inventory, and a stale table dressed up as research is worse than no table at all. The VirtualSMS numbers above are ours and we stand behind them. Compare them against whatever you are using now.
+
+---
+
 ## How it works
 
 ### WebSocket and polling
@@ -429,12 +511,6 @@ If your session is interrupted mid-verification:
 - **Coverage:** 145+ countries online, 2500+ services indexed.
 - **Data retention:** SMS message bodies are retained 7 days, then permanently deleted. Order metadata (phone number, service, country, timestamps) is retained for the lifetime of your account. See [SECURITY.md](./SECURITY.md) for full details.
 - **Vulnerability disclosure:** email `security@virtualsms.io` or open a [private security advisory](https://github.com/virtualsms-io/mcp-server/security/advisories/new).
-
----
-
-## Moving off SMS-Activate?
-
-SMS-Activate shut down in December 2025. VirtualSMS covers 2500+ services across 145+ countries on real physical SIMs. Swap your API key and update the base URL.
 
 👉 [Sign up at VirtualSMS.io](https://virtualsms.io)
 
@@ -496,4 +572,5 @@ Report vulnerabilities to `security@virtualsms.io`.
 
 MIT. See [LICENSE](./LICENSE).
 
-Built by [VirtualSMS.io](https://virtualsms.io/mcp). Account verification for AI agents on real physical SIM cards: 2500+ services · 145+ countries · 41 MCP tools · 10 clients.
+Built by [VirtualSMS.io](https://virtualsms.io/mcp). Account verification for developers and AI agents, on real physical SIM cards: 2500+ services · 145+ countries · from $0.05 per code.
+</content>
