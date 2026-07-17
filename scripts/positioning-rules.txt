@@ -15,10 +15,10 @@
 #   exclude extra git exclude pathspec(s), "-" for none
 #
 # profile: mixed-content
-# rules: 37
+# rules: 38
 # generator-version: 1
-# canonical-sha256: 29b036c0d1f86bbbdaa61f8d103097dff634d8fe73078cb3ac5b5a62472e66f1
-# rules-sha256: 1aa411d99b2faebf5adc76448a3aa18825421a740b382a087061a00bdbcc2d61
+# canonical-sha256: bd4c4ddc3c1d55d3a61e06c2f5abfec1f511a65d91293c56205a41db7320f52a
+# rules-sha256: 933bc20111f56b8085d1dbd08bdfca45a8cd75c8b45d5bea1dfa5e20cf2432b1
 #RULES
 numeric	700+ services	canonical services count is 2500+	700\+ services	.	-
 numeric	500+ services	canonical services count is 2500+	500\+ services	.	-
@@ -41,6 +41,7 @@ literal	#1 in	unverifiable ranking claim	#1 in	.	-
 literal	not a reseller	untrue; VirtualSMS is HYBRID (own SIMs plus supplier aggregation)	not a reseller	.	-
 literal	direct-sourced	untrue; inherits the 'not a reseller' false claim	direct-sourced	.	-
 literal	agentic	canonical wording in a published description is 'AI agents', not 'agentic'	agentic	package.json setup.py pyproject.toml composer.json *.gemspec *.csproj *.nuspec server.json .plugin/plugin.json	-
+literal	communications infrastructure	Twilio's category; VirtualSMS solves the narrower account-verification wedge, and 'platform' (not broad 'communications infrastructure') is the customer noun	communications infrastructure	.	-
 literal	physical SIM infrastructure	infra leak; the SIM is the PRODUCT and is allowed, the infrastructure is not	physical SIM infrastructure	.	-
 literal	modem	infra leak; never describe our hardware	modem	.	-
 literal	SIM box	infra leak; never describe our hardware	SIM box	.	-
