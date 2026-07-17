@@ -79,11 +79,11 @@ import {
   handleListCountries,
   handleCheckPrice,
   handleGetBalance,
-  handleBuyNumber,
-  handleCheckSms,
+  handleCreateOrder,
+  handleGetSms,
   handleCancelOrder,
   handleSwapNumber,
-  handleWaitForCode,
+  handleWaitForSms,
   handleFindCheapest,
   handleSearchService,
   handleActiveOrders,
@@ -287,11 +287,11 @@ export function createMCPServer(config: ServerConfig) {
           return await handleGetBalance(client);
         case 'virtualsms_create_order': {
           const parsed = CreateOrderInput.parse(args);
-          return await handleBuyNumber(client, parsed);
+          return await handleCreateOrder(client, parsed);
         }
         case 'virtualsms_get_sms': {
           const parsed = GetSmsInput.parse(args);
-          return await handleCheckSms(client, parsed);
+          return await handleGetSms(client, parsed);
         }
         case 'virtualsms_cancel_order': {
           const parsed = CancelOrderInput.parse(args);
@@ -303,7 +303,7 @@ export function createMCPServer(config: ServerConfig) {
         }
         case 'virtualsms_wait_for_sms': {
           const parsed = WaitForSmsInput.parse(args);
-          return await handleWaitForCode(client, parsed);
+          return await handleWaitForSms(client, parsed);
         }
         case 'virtualsms_find_cheapest': {
           const parsed = FindCheapestInput.parse(args);

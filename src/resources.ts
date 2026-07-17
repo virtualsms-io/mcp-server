@@ -32,18 +32,20 @@ export function getResourceContent(uri: string): string {
 ## What is VirtualSMS?
 VirtualSMS provides disposable virtual phone numbers for SMS verification. Use it to verify accounts on Telegram, WhatsApp, Google, and 2500 other services.
 
-## Quick Start (3 steps)
+## Quick Start
 
-### Option A: One-step (recommended)
-Use \`wait_for_code\`. It buys a number AND waits for the SMS automatically:
+### Option A: Buy, then block until the code arrives (recommended)
+Two calls. \`create_order\` buys the number, \`wait_for_sms\` blocks on the
+\`order_id\` it returns until the SMS lands:
 \`\`\`
-wait_for_code(service="telegram", country="RU")
+create_order(service="telegram", country="RU")   → returns order_id
+wait_for_sms(order_id="...")                     → blocks until the code arrives
 \`\`\`
 
-### Option B: Manual flow
-1. **Check price**: \`check_price(service="telegram", country="RU")\`
-2. **Buy number**: \`buy_number(service="telegram", country="RU")\` → returns \`order_id\` + \`phone_number\`
-3. **Wait for SMS**: \`check_sms(order_id="...")\` (poll every 5-10 seconds)
+### Option B: Buy, then poll
+1. **Check price**: \`get_price(service="telegram", country="RU")\`
+2. **Buy number**: \`create_order(service="telegram", country="RU")\` → returns \`order_id\` + \`phone_number\`
+3. **Check for SMS**: \`get_sms(order_id="...")\` (poll every 5-10 seconds)
 
 ## Common Service Codes
 | Service | Code |
@@ -59,9 +61,9 @@ wait_for_code(service="telegram", country="RU")
 
 ## Tips
 - Use \`find_cheapest(service="telegram")\` to compare prices across countries
-- Use \`search_service(query="uber")\` if you don't know the exact code
+- Use \`search_services(query="uber")\` if you don't know the exact code
 - Use \`swap_number\` if your number isn't receiving SMS
-- Use \`active_orders\` to recover from interrupted sessions
+- Use \`list_orders\` to recover from interrupted sessions
 
 ## Pricing
 Numbers start from $0.05. Check current prices at [virtualsms.io](https://virtualsms.io).
@@ -70,7 +72,7 @@ Numbers start from $0.05. Check current prices at [virtualsms.io](https://virtua
     case 'virtualsms://docs/popular-services':
       return `# Popular Services Reference
 
-Use these service codes with \`buy_number\`, \`wait_for_code\`, \`check_price\`, and \`find_cheapest\`.
+Use these service codes with \`create_order\`, \`wait_for_sms\`, \`get_price\`, and \`find_cheapest\`.
 
 ## Messaging Apps
 | Service | Code | Avg. Price |
@@ -117,7 +119,7 @@ Use these service codes with \`buy_number\`, \`wait_for_code\`, \`check_price\`,
 ## Tips
 - Prices vary by country and availability
 - Use \`find_cheapest(service="<code>")\` to compare current prices
-- Use \`search_service(query="<name>")\` to find codes for services not listed here (2500 supported)
+- Use \`search_services(query="<name>")\` to find codes for services not listed here (2500 supported)
 `;
 
     case 'virtualsms://docs/pricing-tips':
@@ -149,9 +151,9 @@ If you buy a number and it doesn't receive SMS after 2-3 minutes:
 - You get one free swap per order
 
 ### 5. Timeout Strategy
-- Default timeout is 120 seconds
+- Default \`wait_for_sms\` timeout is 60 seconds (min 5, max 600)
 - For slow services (Google, Facebook), use \`timeout_seconds=300\`
-- If timed out, use \`check_sms\` with the \`order_id\` to keep checking
+- If timed out, use \`get_sms\` with the \`order_id\` to keep checking
 
 ## Typical Price Ranges
 | Budget | Countries | Use Case |

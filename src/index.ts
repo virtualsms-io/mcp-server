@@ -82,11 +82,11 @@ import {
   handleListCountries,
   handleCheckPrice,
   handleGetBalance,
-  handleBuyNumber,
-  handleCheckSms,
+  handleCreateOrder,
+  handleGetSms,
   handleCancelOrder,
   handleSwapNumber,
-  handleWaitForCode,
+  handleWaitForSms,
   handleFindCheapest,
   handleSearchService,
   handleActiveOrders,
@@ -240,12 +240,12 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
       case 'virtualsms_create_order': {
         const parsed = CreateOrderInput.parse(args);
-        return await handleBuyNumber(client, parsed);
+        return await handleCreateOrder(client, parsed);
       }
 
       case 'virtualsms_get_sms': {
         const parsed = GetSmsInput.parse(args);
-        return await handleCheckSms(client, parsed);
+        return await handleGetSms(client, parsed);
       }
 
       case 'virtualsms_cancel_order': {
@@ -260,7 +260,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
       case 'virtualsms_wait_for_sms': {
         const parsed = WaitForSmsInput.parse(args);
-        return await handleWaitForCode(client, parsed);
+        return await handleWaitForSms(client, parsed);
       }
 
       case 'virtualsms_find_cheapest': {
@@ -462,7 +462,7 @@ export const configSchema = z.object({
     .describe("Your VirtualSMS API key. Get one at https://virtualsms.io/dashboard"),
   defaultTimeoutSeconds: z.number()
     .min(30).max(600).default(120)
-    .describe("Default timeout in seconds for wait_for_sms_code tool"),
+    .describe("Default timeout in seconds for the wait_for_sms tool"),
   pollingIntervalSeconds: z.number()
     .min(3).max(15).default(5)
     .describe("Polling interval in seconds when WebSocket delivery is unavailable"),

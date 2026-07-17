@@ -16,12 +16,21 @@
  *
  * Docs write tool names without the `virtualsms_` prefix for readability, so
  * both the bare and prefixed spellings resolve.
+ *
+ * PART 2 (the wire half) closes the gap that let this bug survive the docs
+ * sweep. Dead names also lived INSIDE the strings the server itself serves:
+ * tool descriptions, JSON-schema param descriptions, resource bodies, prompt
+ * text, and a runtime `tip` handed to the model mid-task. Docs are read by
+ * humans; these are read by the model at call time, so they are strictly worse.
+ * Every wire surface is now swept by the same resolver.
  */
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { TOOL_DEFINITIONS } from '../tools.js';
+import { TOOL_DEFINITIONS, getToolDefinitions } from '../tools.js';
+import { RESOURCE_DEFINITIONS, getResourceContent } from '../resources.js';
+import { PROMPT_DEFINITIONS, getPromptMessages } from '../prompts.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.join(__dirname, '..', '..');
@@ -33,9 +42,12 @@ const repoRoot = path.join(__dirname, '..', '..');
  * - CHANGELOG.md — a historical record. Entries for v1.0.0/v1.1.0 correctly
  *   use the pre-rename names that shipped at that time. Rewriting them would
  *   falsify history.
- * - .smithery/shttp/manifest.json — a generated bundle artifact, currently
- *   stale (it still advertises a pre-b5aac6c generation of names). Regenerate
- *   or delete it rather than hand-editing.
+ *
+ * (.smithery/ was a generated bundle from an abandoned Smithery CLI pipeline.
+ * It advertised a third generation of names and a hardcoded count of 12 against
+ * a real 41, could not be regenerated (no @smithery/cli dependency), and was
+ * referenced by nothing. Deleted rather than hand-edited; smithery.yaml is
+ * `type: http` and points at the hosted URL, so no bundle is needed.)
  */
 const DOC_FILES = [
   'README.md',
@@ -154,4 +166,225 @@ describe('docs vs wire — every tool name in the docs must exist in tools/list'
       expect(broken.sort()).toEqual([]);
     });
   }
+});
+
+/**
+ * The six names retired on 2026-03-15, plus later strays found on the wire:
+ * `active_orders` (a prompt/resource invention that never existed) and the
+ * third-generation names that only ever lived in the deleted .smithery bundle.
+ * Checked as a literal substring blocklist: belt and braces alongside the
+ * resolver below, and it documents the exact tokens for the next reader.
+ */
+const DEAD_NAMES = [
+  'buy_number',
+  'check_sms',
+  'check_price',
+  'list_active_orders',
+  'wait_for_code',
+  'active_orders',
+  'create_number_order',
+  'get_sms_code',
+  'wait_for_sms_code',
+  'find_cheapest_countries',
+  'swap_phone_number',
+];
+
+/** `search_service` is dead but is a prefix of the live `search_services`. */
+const DEAD_SEARCH_SERVICE = /search_service(?!s)/;
+
+function findDeadNames(text: string): string[] {
+  const hits = DEAD_NAMES.filter((d) => text.includes(d));
+  if (DEAD_SEARCH_SERVICE.test(text)) hits.push('search_service');
+  return hits;
+}
+
+/** Collect every human-readable string a wire payload exposes to the model. */
+function collectStrings(node: unknown, out: string[] = []): string[] {
+  if (typeof node === 'string') out.push(node);
+  else if (Array.isArray(node)) for (const v of node) collectStrings(v, out);
+  else if (node && typeof node === 'object') {
+    for (const v of Object.values(node)) collectStrings(v, out);
+  }
+  return out;
+}
+
+describe('wire strings: nothing the server serves may name a dead tool', () => {
+  // The default payload: session-drive tools are gated off behind
+  // VIRTUALSMS_ENABLE_SESSIONS, so a default client sees 41 of the 44.
+  const served = getToolDefinitions(false);
+
+  it('tools/list serves the expected 41 tools by default', () => {
+    expect(served.length).toBe(41);
+    expect(TOOL_DEFINITIONS.length).toBe(44); // 41 + 3 session-gated
+  });
+
+  it('every tool NAME on the wire is unchanged (renaming a published tool breaks every user)', () => {
+    // Frozen list. Descriptions may change freely; names may not. If you are
+    // here because you renamed a tool: that is a breaking change for every
+    // installed client, and the docs+wire sweep must go with it.
+    expect(served.map((t) => t.name).sort()).toEqual(
+      [
+        'virtualsms_buy_proxy',
+        'virtualsms_cancel_all_orders',
+        'virtualsms_cancel_order',
+        'virtualsms_cancel_rental',
+        'virtualsms_check_number',
+        'virtualsms_create_order',
+        'virtualsms_create_rental',
+        'virtualsms_extend_rental',
+        'virtualsms_find_cheapest',
+        'virtualsms_generate_proxy_endpoint',
+        'virtualsms_get_balance',
+        'virtualsms_get_order',
+        'virtualsms_get_price',
+        'virtualsms_get_profile',
+        'virtualsms_get_proxy_usage',
+        'virtualsms_get_proxy_usage_history',
+        'virtualsms_get_rental',
+        'virtualsms_get_sms',
+        'virtualsms_get_stats',
+        'virtualsms_get_transactions',
+        'virtualsms_list_countries',
+        'virtualsms_list_orders',
+        'virtualsms_list_proxies',
+        'virtualsms_list_proxy_catalog',
+        'virtualsms_list_proxy_locations',
+        'virtualsms_list_rentals',
+        'virtualsms_list_services',
+        'virtualsms_order_history',
+        'virtualsms_release_rental',
+        'virtualsms_rentals_available',
+        'virtualsms_rentals_price',
+        'virtualsms_rentals_pricing',
+        'virtualsms_rentals_services',
+        'virtualsms_retry_order',
+        'virtualsms_rotate_proxy',
+        'virtualsms_search_services',
+        'virtualsms_set_proxy_targeting',
+        'virtualsms_start_manual_registration_session',
+        'virtualsms_swap_number',
+        'virtualsms_test_proxy',
+        'virtualsms_wait_for_sms',
+      ].sort()
+    );
+  });
+
+  it('the Smithery-scored ratios hold: 41/41 described, 41/41 all-params-described, 41/41 annotated', () => {
+    const described = served.filter((t) => t.description?.trim()).length;
+    const annotated = served.filter((t) => t.annotations).length;
+    const allParams = served.filter((t) => {
+      const props: Record<string, { description?: string }> =
+        (t.inputSchema as { properties?: Record<string, { description?: string }> })?.properties ??
+        {};
+      return Object.values(props).every((p) => p?.description?.trim());
+    }).length;
+
+    expect(described).toBe(41);
+    expect(allParams).toBe(41);
+    expect(annotated).toBe(41);
+  });
+
+  it('no dead name appears anywhere in the tools/list payload', () => {
+    const broken: string[] = [];
+    for (const t of served) {
+      for (const dead of findDeadNames(JSON.stringify(t))) {
+        broken.push(`${t.name} -> ${dead}`);
+      }
+    }
+    expect(broken.sort()).toEqual([]);
+  });
+
+  it('every tool-shaped token in a tools/list description resolves to a real tool', () => {
+    const broken: string[] = [];
+    for (const t of served) {
+      for (const s of collectStrings(t)) {
+        for (const [tok] of extractToolRefs(s)) {
+          if (!validNames.has(tok)) broken.push(`${t.name} -> ${tok}`);
+        }
+      }
+    }
+    expect([...new Set(broken)].sort()).toEqual([]);
+  });
+
+  it('no dead name appears in any resource body (resources/read)', () => {
+    const broken: string[] = [];
+    for (const r of RESOURCE_DEFINITIONS) {
+      const body = getResourceContent(r.uri);
+      for (const dead of findDeadNames(body)) broken.push(`${r.uri} -> ${dead}`);
+      for (const [tok] of extractToolRefs(body)) {
+        if (!validNames.has(tok)) broken.push(`${r.uri} -> ${tok}`);
+      }
+    }
+    expect([...new Set(broken)].sort()).toEqual([]);
+  });
+
+  it('no dead name appears in any prompt (prompts/get)', () => {
+    const broken: string[] = [];
+    for (const p of PROMPT_DEFINITIONS) {
+      const text = collectStrings(getPromptMessages(p.name, {})).join('\n');
+      const blob = `${text}\n${JSON.stringify(p)}`;
+      for (const dead of findDeadNames(blob)) broken.push(`${p.name} -> ${dead}`);
+      for (const [tok] of extractToolRefs(blob)) {
+        if (!validNames.has(tok)) broken.push(`${p.name} -> ${tok}`);
+      }
+    }
+    expect([...new Set(broken)].sort()).toEqual([]);
+  });
+
+  it('sanity: the dead-name detector actually fires (guards against a silently-passing sweep)', () => {
+    expect(findDeadNames('use check_sms to poll')).toEqual(['check_sms']);
+    expect(findDeadNames('call search_service now')).toEqual(['search_service']);
+    // the live name must NOT trip the search_service matcher
+    expect(findDeadNames('call search_services now')).toEqual([]);
+    expect(findDeadNames('use get_sms to poll')).toEqual([]);
+  });
+});
+
+/**
+ * The tools/list sweep above cannot see runtime response bodies: a `tip` or
+ * `message` built inside a handler is only born when the tool is called. Those
+ * are the worst offenders. They are not documentation, but a string handed to
+ * the model mid-task, exactly when it is deciding what to call next.
+ * (src/tools.ts once returned `tip: 'Use check_sms...'` from the buy handler.)
+ *
+ * Enumerating every handler response would need a live client per tool, so this
+ * scans the server source instead: no dead name may appear anywhere in the
+ * files that build wire payloads, in any form, whether description, tip, error
+ * string or comment. Coarse, but it has no blind spot, and a comment naming a
+ * dead tool is itself drift bait for the next reader.
+ */
+const WIRE_SOURCE_FILES = [
+  'src/tools.ts',
+  'src/resources.ts',
+  'src/prompts.ts',
+  // Both entrypoints dispatch tool calls and expose a Smithery-facing
+  // configSchema whose .describe() text is rendered to users. index.ts shipped
+  // `wait_for_sms_code` (a name that only ever existed in the dead .smithery
+  // bundle) until this list grew to cover it.
+  'src/index.ts',
+  'src/http-server.ts',
+];
+
+describe('wire source: no dead name may survive in the files that build wire payloads', () => {
+  for (const rel of WIRE_SOURCE_FILES) {
+    it(`${rel} contains no dead tool name (covers runtime tips and error strings)`, () => {
+      const src = readFileSync(path.join(repoRoot, rel), 'utf8');
+      const broken: string[] = [];
+
+      src.split(/\r?\n/).forEach((line, i) => {
+        for (const dead of findDeadNames(line)) broken.push(`${dead} (${rel}:${i + 1})`);
+      });
+
+      expect(broken.sort()).toEqual([]);
+    });
+  }
+
+  it('sanity: the source scanner reads real files (guards against a silent empty read)', () => {
+    for (const rel of WIRE_SOURCE_FILES) {
+      const src = readFileSync(path.join(repoRoot, rel), 'utf8');
+      expect(src.length).toBeGreaterThan(500);
+      // every wire-source file must mention at least one real tool name
+      expect(/create_order|get_sms|wait_for_sms|find_cheapest/.test(src)).toBe(true);
+    }
+  });
 });

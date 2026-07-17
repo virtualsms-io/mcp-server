@@ -14,7 +14,7 @@ import {
   CancelOrderInput,
   RetryOrderInput,
   SwapNumberInput,
-  handleBuyNumber,
+  handleCreateOrder,
   handleCancelOrder,
   handleRetryOrder,
   handleSwapNumber,
@@ -24,7 +24,7 @@ function freshClient(): MockVirtualSMSClient {
   return new MockVirtualSMSClient('https://virtualsms.io');
 }
 
-describe('virtualsms_create_order (handleBuyNumber)', () => {
+describe('virtualsms_create_order (handleCreateOrder)', () => {
   it('rejects bad input (missing required fields)', () => {
     expect(CreateOrderInput.safeParse({}).success).toBe(false);
     expect(CreateOrderInput.safeParse({ service: 'telegram' }).success).toBe(false);
@@ -34,7 +34,7 @@ describe('virtualsms_create_order (handleBuyNumber)', () => {
   it('happy path: creates an order against the mock backend', async () => {
     const client = freshClient();
     const args = CreateOrderInput.parse({ service: 'telegram', country: 'US' });
-    const result = await handleBuyNumber(client, args);
+    const result = await handleCreateOrder(client, args);
     const payload = result.structuredContent as Record<string, unknown>;
     expect(payload.order_id).toBeTruthy();
     expect(payload.status).toBeTruthy();
@@ -47,7 +47,7 @@ describe('virtualsms_create_order (handleBuyNumber)', () => {
       },
     };
     const args = CreateOrderInput.parse({ service: 'telegram', country: 'US' });
-    await expect(handleBuyNumber(failingClient as IVirtualSMSClient, args)).rejects.toThrow(
+    await expect(handleCreateOrder(failingClient as IVirtualSMSClient, args)).rejects.toThrow(
       'Insufficient balance',
     );
   });

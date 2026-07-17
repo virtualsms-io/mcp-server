@@ -97,8 +97,9 @@ export function getPromptMessages(name: string, args: Record<string, string> = {
 
 Steps to follow:
 1. Use find_cheapest with service="whatsapp" to see pricing. ${countryNote}
-2. Use wait_for_code with service="whatsapp" and the selected country to buy a number and wait for the SMS automatically.
-3. Return the phone number and verification code when received.
+2. Use create_order with service="whatsapp" and the selected country to buy the number.
+3. Use wait_for_sms with the order_id from step 2 to block until the SMS arrives.
+4. Return the phone number and verification code when received.
 
 If the first number doesn't receive an SMS, try swap_number to get a fresh one without extra charge.`,
           },
@@ -120,8 +121,9 @@ If the first number doesn't receive an SMS, try swap_number to get a fresh one w
 
 Steps to follow:
 1. Use find_cheapest with service="telegram" to see pricing. ${countryNote}
-2. Use wait_for_code with service="telegram" and the selected country.
-3. Return the phone number and the 5-digit Telegram code when received.
+2. Use create_order with service="telegram" and the selected country to buy the number.
+3. Use wait_for_sms with the order_id from step 2 to block until the SMS arrives.
+4. Return the phone number and the 5-digit Telegram code when received.
 
 Note: Telegram codes arrive quickly (usually under 30 seconds).`,
           },
@@ -143,10 +145,11 @@ Note: Telegram codes arrive quickly (usually under 30 seconds).`,
 
 Steps to follow:
 1. Use find_cheapest with service="google" to see pricing. ${countryNote}
-2. Use wait_for_code with service="google" and the selected country.
-3. Return the phone number and the 6-digit Google verification code.
+2. Use create_order with service="google" and the selected country to buy the number.
+3. Use wait_for_sms with the order_id from step 2 and timeout_seconds=300 to block until the SMS arrives.
+4. Return the phone number and the 6-digit Google verification code.
 
-Note: Google may take up to 2 minutes to send the SMS.`,
+Note: Google may take up to 2 minutes to send the SMS, which is longer than the 60 second default wait.`,
           },
         },
       ];
@@ -163,7 +166,7 @@ Note: Google may take up to 2 minutes to send the SMS.`,
             text: `Find the cheapest virtual phone numbers for "${service}".
 
 Steps:
-1. First use search_service with query="${service}" to confirm the exact service code.
+1. First use search_services with query="${service}" to confirm the exact service code.
 2. Then use find_cheapest with service=<code> and limit=${limit}.
 3. Show me the top options with country, price, and stock availability.`,
           },
@@ -185,10 +188,11 @@ Steps:
             text: `Please get me an SMS verification code for "${service}" using a virtual phone number.
 
 Steps to follow:
-1. Use search_service with query="${service}" to find the exact service code.
+1. Use search_services with query="${service}" to find the exact service code.
 2. Use find_cheapest to see pricing. ${countryNote}
-3. Use wait_for_code to buy a number and automatically wait for the SMS.
-4. Return the phone number and verification code.
+3. Use create_order with the service code and the selected country to buy the number.
+4. Use wait_for_sms with the order_id from step 3 to block until the SMS arrives.
+5. Return the phone number and verification code.
 
 If no SMS arrives, try swap_number to get a different number.`,
           },
@@ -205,8 +209,8 @@ If no SMS arrives, try swap_number to get a different number.`,
             text: `My SMS verification session was interrupted. Please help me recover.
 
 Steps:
-1. Use active_orders to list all pending orders.
-2. For each pending order, use check_sms to see if an SMS has arrived.
+1. Use list_orders to list all pending orders.
+2. For each pending order, use get_sms to see if an SMS has arrived.
 3. If an SMS is found, show me the phone number and verification code.
 4. If no SMS yet, let me know the order IDs so I can decide to wait or cancel.`,
           },
@@ -224,7 +228,7 @@ Steps:
 
 Steps:
 1. Use get_balance to show my current account balance.
-2. Use active_orders to list any pending or active orders.
+2. Use list_orders to list any pending or active orders.
 3. Give me a summary of my balance and any ongoing verifications.`,
           },
         },
