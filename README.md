@@ -14,7 +14,7 @@ VirtualSMS is an account verification platform offering:
 
 - **one-time SMS verification**, priced per code
 - **dedicated number rentals**, from 1 to 30 days
-- **matching-country proxies**: residential, residential premium, mobile and datacenter
+- **matching-country proxies**: residential, mobile and datacenter
 - **private cloud browser sessions** (beta)
 
 All four run from one prepaid balance. The numbers are real physical SIM cards on carrier networks, not VoIP, which is why they pass the line-type checks that reject VoIP numbers at signup.
@@ -60,7 +60,7 @@ Verifying an account end to end usually means renting three things from three ve
 VirtualSMS combines all three under one account, and gives you one way to drive them:
 
 - **Real carrier mobile numbers.** Real physical SIM cards on carrier networks, so they resolve as mobile rather than VoIP.
-- **Matching-country proxies.** Residential, residential premium, mobile and datacenter pools, so the number and the IP agree.
+- **Matching-country proxies.** Residential, mobile and datacenter pools, so the number and the IP agree.
 - **Private cloud browser sessions.** Beta.
 - **REST API.** Documented at [virtualsms.io/docs](https://virtualsms.io/docs).
 - **Hosted MCP server.** This repo, live at `https://mcp.virtualsms.io/mcp`.
@@ -342,7 +342,7 @@ Both tiers carry the same refund terms: cancel for a full refund within 20 minut
 <details>
 <summary><strong>Proxy (10 tools)</strong></summary>
 
-Matching-country proxies, so the number and the IP agree. Four pools: residential, residential premium, mobile and datacenter. Buy traffic by the GB, then generate a connection string.
+Matching-country proxies, so the number and the IP agree. Three pools: residential, mobile and datacenter. Buy traffic by the GB, then generate a connection string.
 
 | Tool | Auth | Description |
 |---|---|---|
