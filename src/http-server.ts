@@ -111,6 +111,7 @@ import { PROMPT_DEFINITIONS, getPromptMessages } from './prompts.js';
 import { RESOURCE_DEFINITIONS, getResourceContent } from './resources.js';
 import { SERVER_INSTRUCTIONS } from './instructions.js';
 import { mapToolCallError } from './error-utils.js';
+import { VERSION } from './version.js';
 
 const PORT = parseInt(process.env.MCP_HTTP_PORT || '3456', 10);
 const DEFAULT_BASE_URL = (process.env.VIRTUALSMS_BASE_URL || 'https://virtualsms.io').replace(/\/$/, '');
@@ -205,7 +206,7 @@ export function createMCPServer(config: ServerConfig) {
     : new VirtualSMSClient(config.baseUrl, config.apiKey, config.timeout);
 
   const server = new Server(
-    { name: 'virtualsms-mcp', version: '1.2.3' },
+    { name: 'virtualsms-mcp', version: VERSION },
     { capabilities: { tools: {}, prompts: {}, resources: {} }, instructions: SERVER_INSTRUCTIONS }
   );
 
@@ -475,7 +476,7 @@ async function handleRequest(req: http.IncomingMessage, res: http.ServerResponse
     res.end(JSON.stringify({
       serverInfo: {
         name: 'VirtualSMS',
-        version: '1.2.3'
+        version: VERSION
       },
       configSchema: {
         type: 'object',

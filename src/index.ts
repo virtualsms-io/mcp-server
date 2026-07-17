@@ -25,6 +25,7 @@ import { PROMPT_DEFINITIONS, getPromptMessages } from './prompts.js';
 import { RESOURCE_DEFINITIONS, getResourceContent } from './resources.js';
 import { SERVER_INSTRUCTIONS } from './instructions.js';
 import { mapToolCallError } from './error-utils.js';
+import { VERSION } from './version.js';
 import {
   TOOL_DEFINITIONS,
   getToolDefinitions,
@@ -132,7 +133,7 @@ const client: VirtualSMSClient | MockVirtualSMSClient = SANDBOX_MODE
 const server = new Server(
   {
     name: 'virtualsms-mcp',
-    version: '1.2.3',
+    version: VERSION,
   },
   {
     capabilities: {
@@ -416,7 +417,7 @@ export function createSandboxServer() {
   const sandboxServer = new Server(
     {
       name: 'virtualsms-mcp',
-      version: '1.2.3',
+      version: VERSION,
     },
     {
       capabilities: {
@@ -460,9 +461,6 @@ import { z } from 'zod';
 export const configSchema = z.object({
   virtualsmsApiKey: z.string()
     .describe("Your VirtualSMS API key. Get one at https://virtualsms.io/dashboard"),
-  defaultTimeoutSeconds: z.number()
-    .min(30).max(600).default(120)
-    .describe("Default timeout in seconds for the wait_for_sms tool"),
   pollingIntervalSeconds: z.number()
     .min(3).max(15).default(5)
     .describe("Polling interval in seconds when WebSocket delivery is unavailable"),
