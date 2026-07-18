@@ -14,6 +14,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `examples/` directory with three runnable, copy-pasteable examples (balance check, end-to-end SMS verification, Claude Desktop config).
 - README sections: CI status badge, Demo / Screenshots, Production / Status, links to `SECURITY.md`, `CHANGELOG.md`, and `examples/`.
 
+## [1.3.1]
+
+### Fixed
+- HTTP server now starts correctly when launched via a symlinked path under systemd (realpath-resolve the main-module guard).
+
 ## [1.2.3] - 2026-04-30
 
 ### Added

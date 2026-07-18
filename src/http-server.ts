@@ -7,6 +7,7 @@
  */
 
 import http from 'node:http';
+import { realpathSync } from 'node:fs';
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import {
@@ -607,9 +608,25 @@ async function handleRequest(req: http.IncomingMessage, res: http.ServerResponse
 // and drives it over an in-memory transport. Without this guard, importing
 // http-server.ts anywhere (a test file, a future re-export) would silently
 // bind a real TCP port as a side effect.
-const isMainModule = process.argv[1]
-  ? import.meta.url === new URL(process.argv[1], 'file:').href
-  : false;
+//
+// Tier-A hardening: process.argv[1] is compared against import.meta.url
+// (which Node resolves through symlinks to a realpath). When launched via a
+// symlinked entry point (the systemd deploy model: a version-pinned dist
+// dir symlinked from a stable path), argv[1] stays the literal symlink path
+// while import.meta.url is the realpath, so the strict equality never
+// matched and the server silently never called .listen(). Resolving argv[1]
+// through realpathSync before comparing fixes that; the try/catch falls
+// back to the literal-path comparison if realpathSync fails (e.g. the path
+// doesn't exist on disk for some non-standard invocation).
+const argvPath = process.argv[1];
+let isMainModule = false;
+if (argvPath) {
+  try {
+    isMainModule = import.meta.url === new URL(realpathSync(argvPath), 'file:').href;
+  } catch {
+    isMainModule = import.meta.url === new URL(argvPath, 'file:').href;
+  }
+}
 
 if (isMainModule) {
   httpServer.listen(PORT, () => {
