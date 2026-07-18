@@ -268,7 +268,7 @@ mcpServers:
 
 ### Does this work with ChatGPT?
 
-Not natively. ChatGPT uses GPT Actions, a different protocol than MCP. For ChatGPT, build a custom GPT that calls the [VirtualSMS REST API](https://virtualsms.io/docs) directly.
+Yes, via ChatGPT's Developer Mode. Open Settings, turn on Developer mode, then add `https://mcp.virtualsms.io/mcp` as a custom connector (Plus, Pro, Business, Enterprise and Edu plans; not available on the free tier). Setup is a URL paste rather than a config file, so it differs from the client setups above. ChatGPT only connects to remote MCP servers over SSE or streaming HTTP, so use the hosted endpoint, not the local stdio command. The [REST API](https://virtualsms.io/docs) is still there if you would rather build a custom GPT or Action instead.
 
 ---
 
@@ -488,7 +488,7 @@ Honest answers, so you do not waste an afternoon:
 
 ### Can Claude or Cursor receive SMS verification codes?
 
-Yes, through this server. Claude Code, Claude Desktop, Cursor, Windsurf, Cline, Zed, Continue.dev, Codex, OpenClaw and Hermes are all MCP clients, and each one is a config paste away (see [Client setup](#client-setup)). Once installed, "buy a Telegram number and wait for the code" is a request the agent can carry out end to end. ChatGPT is the exception: it uses GPT Actions rather than MCP, so it needs the [REST API](https://virtualsms.io/docs).
+Yes, through this server. Claude Code, Claude Desktop, Cursor, Windsurf, Cline, Zed, Continue.dev, Codex, OpenClaw and Hermes are all MCP clients, and each one is a config paste away (see [Client setup](#client-setup)). Once installed, "buy a Telegram number and wait for the code" is a request the agent can carry out end to end. ChatGPT can reach it too, through Developer Mode custom connectors (see [Does this work with ChatGPT?](#does-this-work-with-chatgpt)), or through the [REST API](https://virtualsms.io/docs) if you would rather not enable Developer Mode.
 
 ### How do AI agents receive OTP codes automatically?
 
@@ -632,7 +632,7 @@ Release notes for v1.0.0 to v1.3.1 are in [CHANGELOG.md](./CHANGELOG.md).
 
 ## Security
 
-API keys are passed via the `x-api-key` header (hosted) or the `VIRTUALSMS_API_KEY` environment variable (local stdio), and are rotatable from the [dashboard](https://virtualsms.io/settings). Full policy, retention detail and disclosure process: [SECURITY.md](./SECURITY.md).
+API keys are passed via the `x-api-key` header (hosted) or the `VIRTUALSMS_API_KEY` environment variable (local stdio), and are rotatable from your account at [virtualsms.io](https://virtualsms.io). <!-- TODO: re-point to /dashboard and /settings once the frontend migration ships --> Full policy, retention detail and disclosure process: [SECURITY.md](./SECURITY.md).
 
 Report vulnerabilities to `security@virtualsms.io`.
 
