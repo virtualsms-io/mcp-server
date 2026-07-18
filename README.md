@@ -8,22 +8,22 @@
 
 **Quick links:** [Quickstart](#quickstart) · [Why VirtualSMS](#why-virtualsms) · [What you can build](#what-you-can-build) · [Tools](#tools) · [Questions](#questions) · [Examples](./examples/) · [Changelog](./CHANGELOG.md) · [Security policy](./SECURITY.md) · [Status](https://virtualsms.io/status)
 
+VirtualSMS is an account verification platform for developers and AI agents. It combines one-time SMS verification, dedicated number rentals, matching-country proxies and private cloud browser sessions behind one API, one MCP server and one prepaid balance.
+
 **Infrastructure for AI agents that need real-world phone verification.**
 
-VirtualSMS is an account verification platform for individuals, developers, and AI agents. It combines one-time SMS verification, dedicated number rentals, matching-country proxies, and private cloud browser sessions behind one API, one MCP server, and one prepaid balance.
-
-The numbers are carrier-issued mobile numbers, backed by real physical SIM cards, not VoIP, which is why they pass the line-type checks that reject VoIP numbers at signup.
+The numbers are carrier-issued mobile numbers, backed by real physical SIM cards on carrier networks, not VoIP, which is why they pass the line-type checks that reject VoIP numbers at signup.
 
 From one prepaid balance you can:
 
-- receive one-time SMS verification codes from $0.05
-- rent dedicated numbers for 1 to 30 days
+- receive one-time SMS codes from $0.05
+- rent dedicated numbers from 1 to 30 days
 - buy matching-country residential, mobile and datacenter proxies
 - launch private cloud browser sessions that work alongside your number and proxy (beta)
 
 All four work together from one prepaid balance, one API and one dashboard. Use only the pieces you need, or combine them into a single verification workflow.
 
-Most providers solve one piece of the verification workflow. VirtualSMS combines numbers, rentals, proxies, browser sessions, a REST API, SDKs and an MCP server into one platform.
+Most providers solve one piece of the verification workflow. VirtualSMS combines numbers, rentals, proxies and cloud browser sessions behind one API, SDKs and an MCP server, so you use only the pieces you need or combine them into one workflow.
 
 VirtualSMS can be used by individuals manually, integrated into applications with SDKs and APIs, or driven by AI agents through MCP. Use the platform through a REST API, official SDKs for Node, Python, PHP, Ruby and .NET, a hosted MCP server, or automation tools like n8n.
 
@@ -599,6 +599,10 @@ The same platform, from whatever you already write in:
 | [virtualsms-php-sdk](https://github.com/virtualsms-io/virtualsms-php-sdk) | Official PHP SDK |
 | [ruby-sdk](https://github.com/virtualsms-io/ruby-sdk) | Official Ruby SDK |
 | [dotnet-sdk](https://github.com/virtualsms-io/dotnet-sdk) | Official .NET SDK |
+| [go-sdk](https://github.com/virtualsms-io/go-sdk) | Official Go SDK |
+| [rust-sdk](https://github.com/virtualsms-io/rust-sdk) | Official Rust SDK |
+| [swift-sdk](https://github.com/virtualsms-io/swift-sdk) | Official Swift SDK |
+| [java-sdk](https://github.com/virtualsms-io/java-sdk) | Official Java SDK |
 | [api-docs](https://github.com/virtualsms-io/api-docs) | REST API documentation source |
 | [examples](https://github.com/virtualsms-io/examples) | Runnable examples across languages |
 | [n8n-nodes-virtualsms](https://github.com/virtualsms-io/n8n-nodes-virtualsms) | n8n community nodes |
@@ -624,7 +628,7 @@ Two transports share one tool table: `src/index.ts` (stdio) and `src/http-server
 
 Issues and pull requests: [github.com/virtualsms-io/mcp-server](https://github.com/virtualsms-io/mcp-server/issues).
 
-Release notes for v1.0.0 to v1.2.3 are in [CHANGELOG.md](./CHANGELOG.md).
+Release notes for v1.0.0 to v1.3.1 are in [CHANGELOG.md](./CHANGELOG.md).
 
 ## Security
 
