@@ -1,12 +1,12 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.virtualsms-io/sms",
-  "description": "Real physical SIMs for AI agents: SMS verification, number rentals and proxy bandwidth, plus x402 USDC deposits. 145+ countries, 2500+ services.",
+  "description": "Real physical SIMs for AI agents: SMS verification, number rentals, proxy bandwidth and Cloud Browser sessions, plus x402 USDC deposits. 145+ countries, 2500+ services.",
   "repository": {
     "url": "https://github.com/virtualsms-io/mcp-server",
     "source": "github"
   },
-  "version": "1.3.1",
+  "version": "1.3.2",
   "packages": [
     {
       "registryType": "npm",
