@@ -299,7 +299,7 @@ The core SMS verification surface: discover a service, price it, buy a number, g
 | `list_services` | Yes | All available verification services. Optional `search` filter |
 | `list_countries` | Yes | All available countries. Optional `service` filter |
 | `get_price` | No | Price and availability for a service plus country pair |
-| `find_cheapest` | No | Cheapest countries for a service, sorted by price, with real stock counts |
+| `find_cheapest` | No | Cheapest countries for a service, sorted by price, with stock levels |
 | `search_services` | Yes | Natural-language service lookup. "telega" finds Telegram |
 | `get_balance` | Yes | Account balance in USD |
 | `get_profile` | Yes | Email, Telegram link, balance, lifetime spend, total orders, active API keys |

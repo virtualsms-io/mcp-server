@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import WebSocket from 'ws';
 import { type IVirtualSMSClient, type Rental } from './client.js';
+import { catalogStockBand, isCatalogInStock } from './stock.js';
 
 // ─── Input Schemas ───────────────────────────────────────────────────────────
 
@@ -1403,14 +1404,14 @@ export async function handleCheckPrice(
   }
 
   // /api/v1/price returns no availability field, so real stock is sourced from the
-  // catalog's per-country `count` (count>0 = in stock), same source as find_cheapest
-  // and the website. Fail closed if the combo isn't in stock or the lookup fails.
+  // catalog's stock band (src/stock.ts), same source as find_cheapest and the
+  // website. Fail closed if the combo isn't in stock or the lookup fails.
   try {
     const catalog = await client.getCatalogCountries(args.service);
     const row = catalog.find(
       (c) => c.iso.toUpperCase() === args.country.toUpperCase()
     );
-    price.available = !!row && row.count > 0;
+    price.available = !!row && isCatalogInStock(row);
   } catch {
     // Keep checkPrice's fail-closed default (false) on catalog lookup error.
   }
@@ -1772,20 +1773,20 @@ export async function handleFindCheapest(
 ) {
   const limit = args.limit ?? 5;
 
-  // Stock comes from the catalog's real per-country `count` (count>0 = in stock),
-  // the same source the website uses. The old path fanned out to /api/v1/price
-  // per country, but that endpoint returns no availability field, so every priced
-  // combo was fabricated as in-stock (e.g. TikTok/Yemen showed stock:true despite
-  // count:0 and OUT OF STOCK on the site).
+  // Stock comes from the catalog's stock band (src/stock.ts: availability, with
+  // count as a legacy fallback), the same source the website uses. The old path
+  // fanned out to /api/v1/price per country, but that endpoint returns no
+  // availability field, so every priced combo was fabricated as in-stock (e.g.
+  // TikTok/Yemen showed stock:true despite being OUT OF STOCK on the site).
   const catalog = await client.getCatalogCountries(args.service);
 
   const results = catalog
-    .filter((c) => c.count > 0)
+    .filter((c) => isCatalogInStock(c))
     .map((c) => ({
       country: c.iso,
       country_name: c.name,
       price_usd: c.price_usd,
-      stock: true as const,
+      availability: catalogStockBand(c),
     }));
 
   results.sort((a, b) => a.price_usd - b.price_usd);
