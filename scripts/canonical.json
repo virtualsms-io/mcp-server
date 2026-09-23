@@ -1,18 +1,23 @@
 {
-  "_comment": "Canonical VirtualSMS copy values. Generated-from: Design/positioning.md (tone) + Design/brand-numbers.md (digits). Repos and pages should GENERATE descriptions from this, never retype. Verified 2026-07-16; mcpToolsPublished note corrected 2026-07-17; supplier names PURGED 2026-07-17 (see notes.supplierNames). READ _guardLimit BEFORE TRUSTING A GREEN GUARD.",
+  "_comment": "Canonical VirtualSMS copy values. Generated-from: Design/positioning.md (tone) + Design/brand-numbers.md (digits). Repos and pages should GENERATE descriptions from this, never retype. Verified 2026-07-16; mcpToolsPublished note corrected 2026-07-17; supplier names PURGED 2026-07-17 (see notes.supplierNames); mcpToolsPublished re-derived 2026-07-19 (18 to 40, feature/mcp-tier-a-hardening published as npm virtualsms-mcp@1.3.1); proxyCountries corrected 2026-07-20 (223 to 190+, see notes.proxyCountries); notes.x402 updated 2026-07-20 (not-live to LIVE-and-listed, see notes.x402). READ _guardLimit BEFORE TRUSTING A GREEN GUARD.",
   "_noNames": "THIS FILE CONTAINS NO SUPPLIER NAMES, BY RULE, AND MUST NOT ACQUIRE ANY. It is vendored byte-for-byte into 5 SDK repos plus mcp-server and ships inside 4 published packages, so any name written here is published to the world. If you are about to add a supplier name to enforce a ban: STOP. That is the exact defect the 2026-07-17 purge removed, and it is self-defeating, the anti-leak file becoming the leak. Ban the SHAPE ('our <x> fleet'), not the name. If the shape cannot be expressed without the name, declare it in guard.unenforceable[] with a reason, as two entries already do. See notes.supplierNames.",
-  "_guardLimit": "A GREEN GUARD MEANS 'NO BANNED STRINGS'. IT DOES NOT MEAN 'ACCURATE'. scripts/check-positioning.sh bans LITERAL STRINGS from avoid[]: it catches '$0.02', 'Ranked #1', '12 tools', '35 tools' and em-dashes. It CANNOT catch a number that is true today and false tomorrow. '18 tools' is accurate right now and goes false the moment feature/mcp-tier-a-hardening merges, exactly as '12 tools' was true once and then survived for months on a 90.8k-star list. The guard would have passed every single day of that. Nothing the guard runs can verify a count; only re-deriving it from the published server's tools/list can (see notes.mcpToolsPublished and Decisions/2026-07-17-mcp-server-publish-spec.md sections 2g, 6, 7). The same caveat covers every moving target in numbers{}: services, numberCountries, proxyCountries, the price floors and successFraming are point-in-time readings with a verification date, NOT invariants. When the code moves, the copy is part of the move.",
-  "entitySentence": "VirtualSMS is an account verification platform for individuals, developers, and AI agents. It combines one-time SMS verification, dedicated number rentals, matching-country proxies, and private cloud browser sessions behind one API, one MCP server, and one prepaid balance.",
+  "_guardLimit": "A GREEN GUARD MEANS 'NO BANNED STRINGS'. IT DOES NOT MEAN 'ACCURATE'. scripts/check-positioning.sh bans LITERAL STRINGS from avoid[]: it catches '$0.02', 'Ranked #1', '12 tools', '35 tools' and em-dashes. It CANNOT catch a number that is true today and false tomorrow. '40 tools' is accurate right now (re-derived 2026-07-19 from npm virtualsms-mcp@1.3.1 + hosted tools/list) and goes false the moment the gated session/release_rental tools ship by default, exactly as '18 tools' was accurate on 2026-07-16 and then went stale the moment feature/mcp-tier-a-hardening published, and exactly as '12 tools' was true once and then survived for months on a 90.8k-star list. The guard would have passed every single day of that. Nothing the guard runs can verify a count; only re-deriving it from the published server's tools/list can (see notes.mcpToolsPublished and Decisions/2026-07-17-mcp-server-publish-spec.md sections 2g, 6, 7). The same caveat covers every moving target in numbers{}: services, numberCountries, proxyCountries, the price floors and successFraming are point-in-time readings with a verification date, NOT invariants. When the code moves, the copy is part of the move.",
+  "entitySentence": "VirtualSMS is an account verification platform for individuals, businesses, developers, and AI agents. It combines one-time SMS verification, dedicated number rentals, matching-country proxies, and private cloud browser sessions behind one API, one MCP server, and one prepaid balance.",
   "infrastructureLine": "VirtualSMS provides the infrastructure behind reliable account verification workflows.",
-  "capabilities": ["one-time SMS verification", "dedicated number rentals", "matching-country proxies", "private cloud browser sessions (beta)"],
+  "capabilities": [
+    "one-time SMS verification",
+    "dedicated number rentals",
+    "matching-country proxies",
+    "private cloud browser sessions (beta)"
+  ],
   "devTagline": "Built for developers and AI agents: REST API, hosted MCP server, SDKs.",
   "mantra": "Real carrier SIMs. Matching-country IPs. Private browser. One balance.",
   "brandIdea": "your number, IP and browser tell the same story",
   "numbers": {
     "services": "2500+",
     "numberCountries": "145+",
-    "proxyCountries": "223",
-    "mcpToolsPublished": 18,
+    "proxyCountries": "190+",
+    "mcpToolsPublished": 40,
     "minPricePerCode": "$0.05",
     "rentalFromPerDay": "$0.25",
     "proxyFromPerGB": "$1.10",
@@ -20,19 +25,162 @@
     "foundingYear": 2022
   },
   "precedence": "Vault/CLAUDE.md and ~/.claude/CLAUDE.md carry the operator's ABSOLUTE rules. If anything in this file conflicts with them, CLAUDE.md WINS. This file is DERIVED (from Design/positioning.md + Design/brand-numbers.md) and never overrides an ABSOLUTE rule; it cannot create a new opsec ban on its own. Every avoid[] entry MUST have an avoidProvenance[] record. An entry with no provenance is UNVERIFIED and must NOT be enforced as an opsec rule until traced to an ABSOLUTE rule or a dated operator ruling: report it to the operator, do not enforce it and do not silently delete it. Test that resolves this class: does the phrase describe the SIM/number the CUSTOMER RECEIVES (product, allowed) or OUR hardware/fleet/location/counts (infrastructure, banned)? Reason: 2026-07-16, an unprovenanced 'physical SIM' ban drifted into the avoid-list, contradicted the ABSOLUTE opsec rule (which explicitly allows physical-SIM product wording), and an approved differentiator was scrubbed across 6 repos and 4 published packages.",
-  "avoid": ["700+ services","500+ services","500 services","2000+ services","2000 services","2500 services","200+ countries","100+ countries","180+ countries","30+ countries","physical SIM infrastructure","physical SIM modems","hardware modems","own modem fleet","our <supplier> fleet","our <supplier> integration","sourced from <supplier>","<supplier> name in a browser-visible provider field","not a reseller","direct-sourced","our network","we operate","agentic","identity","communications infrastructure","near-100","90%+ of VoIP","Ranked #1","$0.02","12 tools","35 tools","em-dash"],
+  "avoid": [
+    "700+ services",
+    "500+ services",
+    "500 services",
+    "2000+ services",
+    "2000 services",
+    "2500 services",
+    "200+ countries",
+    "100+ countries",
+    "180+ countries",
+    "30+ countries",
+    "223 proxy countries",
+    "224 countries",
+    "220 countries",
+    "220 proxy countries",
+    "physical SIM infrastructure",
+    "physical SIM modems",
+    "hardware modems",
+    "own modem fleet",
+    "our <supplier> fleet",
+    "our <supplier> integration",
+    "sourced from <supplier>",
+    "<supplier> name in a browser-visible provider field",
+    "not a reseller",
+    "direct-sourced",
+    "our network",
+    "we operate",
+    "agentic",
+    "identity",
+    "communications infrastructure",
+    "near-100",
+    "90%+ of VoIP",
+    "Ranked #1",
+    "$0.02",
+    "12 tools",
+    "35 tools",
+    "em-dash"
+  ],
   "avoidProvenance": [
-    { "entries": ["physical SIM infrastructure","physical SIM modems","hardware modems","own modem fleet"], "class": "absolute-opsec", "source": "Vault/CLAUDE.md 'No infrastructure location / exact-fleet leak' (operator hard rule 2026-06-02); Decisions/2026-06-02-no-infra-location-leak-hard-rule.md", "note": "Also covers modem/SIM box/ports, our fleet/our hardware, any fleet-location statement, any exact SIM/port/modem count." },
-    { "entries": ["our <supplier> fleet","our <supplier> integration","sourced from <supplier>","<supplier> name in a browser-visible provider field"], "class": "absolute-opsec", "source": "Vault/CLAUDE.md 'No provider / supplier-name leak' (operator hard rule 2026-06-12, REWRITTEN 2026-07-17); Decisions/2026-06-12-no-provider-name-leak-hard-rule.md. Carve-out: operator ruling 2026-07-02, Decisions/2026-07-02-1720-opsec-rules-product-vs-supply-clarification.md. Purge ruling: operator 2026-07-17, 'remove the providers from all the code and wording, we don't need provider names anywhere!! what's so hard about this?? make it a fucking rule.. so we dont even need to worry about this in the first place.'", "note": "READ THIS BEFORE ADDING A SUPPLIER RULE. These entries are DELIBERATELY WRITTEN WITH A <supplier> PLACEHOLDER AND NO REAL NAME. Until 2026-07-17 they spelled the names out in order to ban them, which made THIS FILE the largest concentration of supplier names in the whole estate: it is vendored byte-for-byte into 5 SDK repos plus mcp-server and ships inside 4 published packages, so the anti-leak file was the leak. It blocked a push on 2026-07-17 for containing the very strings it existed to remove. The operator's ruling is architectural and it is correct: if the name exists NOWHERE, there is nothing to guard and no rule to remember. THE RULE NOW: supplier names appear in no code, config, copy, identifier or comment in any repo. The ONLY permitted mentions are competitor context, Vault docs and Linear tickets. CARVE-OUT, UNCHANGED AND RULED TWICE (2026-07-02, 2026-07-16): our suppliers are ALSO public competitors. Comparison pages, vs-tables and 'Alternative to <them>' copy are ALLOWED and SEO-valuable; the alternative-to page is the best-performing page. NEVER scrub those. The purge targets the SUPPLY RELATIONSHIP, exactly as before; what changed is that the guard no longer needs the name to enforce it. Test, unchanged: does it reveal WHO SUPPLIES US? Server-side internals (server logs, DB columns, env vars, Vault docs, Linear tickets) remain out of scope for the browser-leak test, but per the 2026-07-17 ruling they are still purge targets wherever changing them is not a migration; where it IS a migration, report it and do not change it unilaterally." },
-    { "entries": ["our network","we operate"], "class": "mixed-opsec-tone", "source": "Opsec half: Vault/CLAUDE.md infra-leak rule (2026-06-02). Tone half: Decisions/2026-07-16-positioning-aeo-copywriting-framework.md ('platform' is the customer noun; 'infrastructure' only describes depth).", "note": "NOT a blanket ban on the words. Opsec only when the phrase states WHAT or WHERE we operate. Apply the product-vs-infrastructure test." },
-    { "entries": ["not a reseller","direct-sourced"], "class": "honesty-false-claim", "source": "Decisions/2026-04-29-1500-agents-subdomain-surgical-fix.md ('owns its modem fleet end-to-end - not a reseller' flagged FALSE: VirtualSMS is HYBRID, own SIMs + supplier aggregation). 'direct-sourced' was introduced 2026-07-16 as a replacement phrase (Operations/2026-07-16-sdk-positioning-review-B-mcp.md) and inherits the same false claim.", "note": "Banned because UNTRUE, not because it leaks. Do not escalate into an opsec sweep." },
-    { "entries": ["agentic"], "class": "tone", "source": "Decisions/2026-07-16-positioning-aeo-copywriting-framework.md, whose frontmatter scopes it 'canonical_for: all VirtualSMS marketing/product/blog page copy' and whose rule reads VERBATIM: \"Wording: use 'AI agents', NOT 'agentic workflows' (search/recognition; 'agentic' only in deep docs/blog).\" Scope narrowed from README+manifests to manifests-only on 2026-07-17 (expert review), on the authority of notes.agentTagline (operator call 2026-07-16).", "note": "SCOPE: PUBLISHED DESCRIPTIONS ONLY. Enforced by rule tone-agentic at include 'manifests'; READMEs and docs are deliberately OUT of scope. THREE grounds, all canon's own words: (1) the source decision is scoped BY ITS OWN FRONTMATTER to marketing/product/blog PAGE copy, and a developer repo README is documentation, not page copy; (2) that decision's own sentence carves docs out in terms ('agentic only in deep docs/blog'); (3) notes.agentTagline is a DATED OPERATOR CALL drawing this exact line: agent-first language is allowed in dev-repo README BODIES, while package.json/server.json/registry DESCRIPTIONS must lead with entitySentence. Note the decision bans the PHRASE 'agentic workflows' as a substitute for 'AI agents'; the bare token is merely the machine-checkable proxy for that inside a short description. HISTORY, and it is the point: until 2026-07-17 this rule scanned README.md, so canon turned CI RED on a word its own provenance expressly permits in docs. That is the notes.physicalSIM defect shape (a nuanced decision flattened into a broader ban than its provenance authorises), caught this time before it scrubbed anything. Do NOT re-widen to 'all' or 'customerFacing' without a NEW operator ruling that supersedes notes.agentTagline." },
-    { "entries": ["identity"], "class": "decision-risk-framing", "source": "Decisions/2026-07-16-positioning-aeo-copywriting-framework.md guardrails: never 'identity' framing; copy is about the user's OWN accounts." },
-    { "entries": ["communications infrastructure"], "class": "positioning", "source": "Operator + expert review ruling 2026-07-17 (locked in the 2026-07-17/18 session). 'Communications infrastructure' is Twilio's category; VirtualSMS solves the narrower account-verification wedge and must not adopt the broad Twilio framing.", "note": "BANS THE TWO-WORD PHRASE 'communications infrastructure' ONLY, never the bare word 'infrastructure'. The word 'infrastructure' is APPROVED in the sanctioned usages 'provides the infrastructure behind reliable account verification workflows' (about/dev surfaces, see infrastructureLine) and 'Infrastructure for AI agents that need real-world phone verification' (GitHub/MCP tagline). Rule tone-comms-infra is a literal substring match on the full phrase, so it cannot reach either approved line; both are pinned in guard.mustNotMatch.allProfiles so REFUSAL 2 proves it at sync time. PLATFORM-VS-INFRASTRUCTURE RULE (operator + expert 2026-07-17): 'platform' = what VirtualSMS IS (homepage/registry: 'account verification platform'); 'infrastructure' = what it ENABLES (about/dev: 'provides the infrastructure behind ...'). We are not saying VirtualSMS IS infrastructure, we are saying it PROVIDES infrastructure. See notes.platformVsInfrastructure." },
-    { "entries": ["700+ services","200+ countries","30+ countries","near-100","90%+ of VoIP","Ranked #1","$0.02","12 tools"], "class": "canonical-number-drift", "source": "Design/brand-numbers.md 'Format rules' sweep targets (last block added 2026-07-16). brand-numbers.md is authoritative for all digits." },
-    { "entries": ["500+ services","500 services","2000+ services","2000 services","2500 services","100+ countries","180+ countries"], "class": "canonical-number-drift", "source": "Design/brand-numbers.md 'Format rules' -> 'Historical drift to clean up (sweep targets)': 2000+ services, 2000 services, 500 services, 2500 services (no-plus from the earlier policy), 700+ services, 200+ countries, 100+ countries, 180+ countries. '500+ services' is from the same file's 'Anti-drift rule' table, which records mcp-server src/resources.ts shipping '500+ services'. Added to avoid[] 2026-07-17.", "note": "THESE WERE ALREADY CANON AND ENFORCED NOTHING. brand-numbers.md is authoritative for all digits and this file is supposed to be the machine-readable copy it is generated into, but only 3 of its 8 sweep targets had ever been copied here, and check-positioning.sh hand-enforced a 4th ('500+ services') that was in NEITHER list. Three lists, three different contents, which is the hand-copy defect this file exists to stop, occurring inside the anti-drift files themselves. Verified zero hits across all 6 guarded repos on 2026-07-17, so adding them is a pure gap-close with no copy change. Format note: '2500 services' bans the NO-PLUS form; the canonical string is '2500+ services' and the numeric matcher's not-preceded-by-a-digit guard is what keeps '500 services' from firing on it." },
-    { "entries": ["35 tools"], "class": "canonical-number-drift", "source": "Decisions/2026-07-17-mcp-server-publish-spec.md section 2h (2026-07-17). Recorded there and banned here because it had ALREADY leaked into this file's own notes.mcpToolsPublished and would otherwise return from any old transcript.", "note": "PHANTOM NUMBER: 35 was NEVER a real tool count on any branch. It was a stale session artifact, an MCP client's tool list loaded at session start before the dist was rebuilt 2026-07-16 22:12, reported once in a session and typed straight into canon. Real state: 18 published, 44 on feature/mcp-tier-a-hardening, 41 shipped by default. Banned as the PHRASE '35 tools', NOT the bare digit: 35 is legitimate elsewhere (rgba opacity 0.35 across Design/, faq.json item counts) and a bare-digit ban would be the flatten-a-nuanced-rule-into-a-blanket-ban failure this file exists to prevent (see notes.physicalSIM). KNOWN LIMIT, and it is exactly the point of _guardLimit: the original drift phrasing was 'a branch has 35', which this literal entry does NOT match. The guard cannot catch every phrasing of a wrong number, and it cannot catch a right number going stale. Only re-deriving from the published tools/list can." },
-    { "entries": ["em-dash"], "class": "operator-hard-rule", "source": "Design/brand-numbers.md 'No AI-slop / no em-dashes' (operator hard rule 2026-07-15). Covers en-dash too; ranges use a plain hyphen." }
+    {
+      "entries": [
+        "physical SIM infrastructure",
+        "physical SIM modems",
+        "hardware modems",
+        "own modem fleet"
+      ],
+      "class": "absolute-opsec",
+      "source": "Vault/CLAUDE.md 'No infrastructure location / exact-fleet leak' (operator hard rule 2026-06-02); Decisions/2026-06-02-no-infra-location-leak-hard-rule.md",
+      "note": "Also covers modem/SIM box/ports, our fleet/our hardware, any fleet-location statement, any exact SIM/port/modem count."
+    },
+    {
+      "entries": [
+        "our <supplier> fleet",
+        "our <supplier> integration",
+        "sourced from <supplier>",
+        "<supplier> name in a browser-visible provider field"
+      ],
+      "class": "absolute-opsec",
+      "source": "Vault/CLAUDE.md 'No provider / supplier-name leak' (operator hard rule 2026-06-12, REWRITTEN 2026-07-17); Decisions/2026-06-12-no-provider-name-leak-hard-rule.md. Carve-out: operator ruling 2026-07-02, Decisions/2026-07-02-1720-opsec-rules-product-vs-supply-clarification.md. Purge ruling: operator 2026-07-17, 'remove the providers from all the code and wording, we don't need provider names anywhere!! what's so hard about this?? make it a fucking rule.. so we dont even need to worry about this in the first place.'",
+      "note": "READ THIS BEFORE ADDING A SUPPLIER RULE. These entries are DELIBERATELY WRITTEN WITH A <supplier> PLACEHOLDER AND NO REAL NAME. Until 2026-07-17 they spelled the names out in order to ban them, which made THIS FILE the largest concentration of supplier names in the whole estate: it is vendored byte-for-byte into 5 SDK repos plus mcp-server and ships inside 4 published packages, so the anti-leak file was the leak. It blocked a push on 2026-07-17 for containing the very strings it existed to remove. The operator's ruling is architectural and it is correct: if the name exists NOWHERE, there is nothing to guard and no rule to remember. THE RULE NOW: supplier names appear in no code, config, copy, identifier or comment in any repo. The ONLY permitted mentions are competitor context, Vault docs and Linear tickets. CARVE-OUT, UNCHANGED AND RULED TWICE (2026-07-02, 2026-07-16): our suppliers are ALSO public competitors. Comparison pages, vs-tables and 'Alternative to <them>' copy are ALLOWED and SEO-valuable; the alternative-to page is the best-performing page. NEVER scrub those. The purge targets the SUPPLY RELATIONSHIP, exactly as before; what changed is that the guard no longer needs the name to enforce it. Test, unchanged: does it reveal WHO SUPPLIES US? Server-side internals (server logs, DB columns, env vars, Vault docs, Linear tickets) remain out of scope for the browser-leak test, but per the 2026-07-17 ruling they are still purge targets wherever changing them is not a migration; where it IS a migration, report it and do not change it unilaterally."
+    },
+    {
+      "entries": [
+        "our network",
+        "we operate"
+      ],
+      "class": "mixed-opsec-tone",
+      "source": "Opsec half: Vault/CLAUDE.md infra-leak rule (2026-06-02). Tone half: Decisions/2026-07-16-positioning-aeo-copywriting-framework.md ('platform' is the customer noun; 'infrastructure' only describes depth).",
+      "note": "NOT a blanket ban on the words. Opsec only when the phrase states WHAT or WHERE we operate. Apply the product-vs-infrastructure test."
+    },
+    {
+      "entries": [
+        "not a reseller",
+        "direct-sourced"
+      ],
+      "class": "honesty-false-claim",
+      "source": "Decisions/2026-04-29-1500-agents-subdomain-surgical-fix.md ('owns its modem fleet end-to-end - not a reseller' flagged FALSE: VirtualSMS is HYBRID, own SIMs + supplier aggregation). 'direct-sourced' was introduced 2026-07-16 as a replacement phrase (Operations/2026-07-16-sdk-positioning-review-B-mcp.md) and inherits the same false claim.",
+      "note": "Banned because UNTRUE, not because it leaks. Do not escalate into an opsec sweep."
+    },
+    {
+      "entries": [
+        "agentic"
+      ],
+      "class": "tone",
+      "source": "Decisions/2026-07-16-positioning-aeo-copywriting-framework.md, whose frontmatter scopes it 'canonical_for: all VirtualSMS marketing/product/blog page copy' and whose rule reads VERBATIM: \"Wording: use 'AI agents', NOT 'agentic workflows' (search/recognition; 'agentic' only in deep docs/blog).\" Scope narrowed from README+manifests to manifests-only on 2026-07-17 (expert review), on the authority of notes.agentTagline (operator call 2026-07-16).",
+      "note": "SCOPE: PUBLISHED DESCRIPTIONS ONLY. Enforced by rule tone-agentic at include 'manifests'; READMEs and docs are deliberately OUT of scope. THREE grounds, all canon's own words: (1) the source decision is scoped BY ITS OWN FRONTMATTER to marketing/product/blog PAGE copy, and a developer repo README is documentation, not page copy; (2) that decision's own sentence carves docs out in terms ('agentic only in deep docs/blog'); (3) notes.agentTagline is a DATED OPERATOR CALL drawing this exact line: agent-first language is allowed in dev-repo README BODIES, while package.json/server.json/registry DESCRIPTIONS must lead with entitySentence. Note the decision bans the PHRASE 'agentic workflows' as a substitute for 'AI agents'; the bare token is merely the machine-checkable proxy for that inside a short description. HISTORY, and it is the point: until 2026-07-17 this rule scanned README.md, so canon turned CI RED on a word its own provenance expressly permits in docs. That is the notes.physicalSIM defect shape (a nuanced decision flattened into a broader ban than its provenance authorises), caught this time before it scrubbed anything. Do NOT re-widen to 'all' or 'customerFacing' without a NEW operator ruling that supersedes notes.agentTagline."
+    },
+    {
+      "entries": [
+        "identity"
+      ],
+      "class": "decision-risk-framing",
+      "source": "Decisions/2026-07-16-positioning-aeo-copywriting-framework.md guardrails: never 'identity' framing; copy is about the user's OWN accounts."
+    },
+    {
+      "entries": [
+        "communications infrastructure"
+      ],
+      "class": "positioning",
+      "source": "Operator + expert review ruling 2026-07-17 (locked in the 2026-07-17/18 session). 'Communications infrastructure' is Twilio's category; VirtualSMS solves the narrower account-verification wedge and must not adopt the broad Twilio framing.",
+      "note": "BANS THE TWO-WORD PHRASE 'communications infrastructure' ONLY, never the bare word 'infrastructure'. The word 'infrastructure' is APPROVED in the sanctioned usages 'provides the infrastructure behind reliable account verification workflows' (about/dev surfaces, see infrastructureLine) and 'Infrastructure for AI agents that need real-world phone verification' (GitHub/MCP tagline). Rule tone-comms-infra is a literal substring match on the full phrase, so it cannot reach either approved line; both are pinned in guard.mustNotMatch.allProfiles so REFUSAL 2 proves it at sync time. PLATFORM-VS-INFRASTRUCTURE RULE (operator + expert 2026-07-17): 'platform' = what VirtualSMS IS (homepage/registry: 'account verification platform'); 'infrastructure' = what it ENABLES (about/dev: 'provides the infrastructure behind ...'). We are not saying VirtualSMS IS infrastructure, we are saying it PROVIDES infrastructure. See notes.platformVsInfrastructure."
+    },
+    {
+      "entries": [
+        "700+ services",
+        "200+ countries",
+        "30+ countries",
+        "near-100",
+        "90%+ of VoIP",
+        "Ranked #1",
+        "$0.02",
+        "12 tools"
+      ],
+      "class": "canonical-number-drift",
+      "source": "Design/brand-numbers.md 'Format rules' sweep targets (last block added 2026-07-16). brand-numbers.md is authoritative for all digits."
+    },
+    {
+      "entries": [
+        "500+ services",
+        "500 services",
+        "2000+ services",
+        "2000 services",
+        "2500 services",
+        "100+ countries",
+        "180+ countries"
+      ],
+      "class": "canonical-number-drift",
+      "source": "Design/brand-numbers.md 'Format rules' -> 'Historical drift to clean up (sweep targets)': 2000+ services, 2000 services, 500 services, 2500 services (no-plus from the earlier policy), 700+ services, 200+ countries, 100+ countries, 180+ countries. '500+ services' is from the same file's 'Anti-drift rule' table, which records mcp-server src/resources.ts shipping '500+ services'. Added to avoid[] 2026-07-17.",
+      "note": "THESE WERE ALREADY CANON AND ENFORCED NOTHING. brand-numbers.md is authoritative for all digits and this file is supposed to be the machine-readable copy it is generated into, but only 3 of its 8 sweep targets had ever been copied here, and check-positioning.sh hand-enforced a 4th ('500+ services') that was in NEITHER list. Three lists, three different contents, which is the hand-copy defect this file exists to stop, occurring inside the anti-drift files themselves. Verified zero hits across all 6 guarded repos on 2026-07-17, so adding them is a pure gap-close with no copy change. Format note: '2500 services' bans the NO-PLUS form; the canonical string is '2500+ services' and the numeric matcher's not-preceded-by-a-digit guard is what keeps '500 services' from firing on it."
+    },
+    {
+      "entries": [
+        "35 tools"
+      ],
+      "class": "canonical-number-drift",
+      "source": "Decisions/2026-07-17-mcp-server-publish-spec.md section 2h (2026-07-17). Recorded there and banned here because it had ALREADY leaked into this file's own notes.mcpToolsPublished and would otherwise return from any old transcript.",
+      "note": "PHANTOM NUMBER: 35 was NEVER a real tool count on any branch. It was a stale session artifact, an MCP client's tool list loaded at session start before the dist was rebuilt 2026-07-16 22:12, reported once in a session and typed straight into canon. Real state AT THE TIME THIS NOTE WAS WRITTEN (2026-07-17): 18 published, 44 on feature/mcp-tier-a-hardening, then-corrected to 40 shipped by default (was misreported as 41 earlier the same day). CURRENT REAL STATE (2026-07-19): feature/mcp-tier-a-hardening published as npm virtualsms-mcp@1.3.1; 40 is now the published count, see notes.mcpToolsPublished. Banned as the PHRASE '35 tools', NOT the bare digit: 35 is legitimate elsewhere (rgba opacity 0.35 across Design/, faq.json item counts) and a bare-digit ban would be the flatten-a-nuanced-rule-into-a-blanket-ban failure this file exists to prevent (see notes.physicalSIM). KNOWN LIMIT, and it is exactly the point of _guardLimit: the original drift phrasing was 'a branch has 35', which this literal entry does NOT match. The guard cannot catch every phrasing of a wrong number, and it cannot catch a right number going stale. Only re-deriving from the published tools/list can."
+    },
+    {
+      "entries": [
+        "223 proxy countries",
+        "224 countries",
+        "220 countries",
+        "220 proxy countries"
+      ],
+      "class": "canonical-number-drift",
+      "source": "Design/brand-numbers.md 'Format rules' -> sweep targets, corrected 2026-07-20. brand-numbers.md is authoritative for all digits.",
+      "note": "223/224/220 all counted RAW LOCATION ROWS in the proxy catalog, including roughly 32 non-country territories (states, provinces, special administrative regions) that inflate the row count above the real country count. The live catalog holds roughly 192 real countries after stripping those territories; DataImpulse, the underlying pool, advertises 195+ on its own marketing. Canonical proxy countries figure is now 190+, a figure both honest against the stripped catalog and consistent with the upstream 195+ claim within normal rounding. Verified 2026-07-20 against the live catalog. Not a hardware or location leak, this is a plain overcounting bug: the wrong number came from counting rows, not countries."
+    },
+    {
+      "entries": [
+        "em-dash"
+      ],
+      "class": "operator-hard-rule",
+      "source": "Design/brand-numbers.md 'No AI-slop / no em-dashes' (operator hard rule 2026-07-15). Covers en-dash too; ranges use a plain hyphen."
+    }
   ],
   "guard": {
     "_comment": "MACHINE-READABLE ENFORCEMENT SPEC for scripts/check-positioning.sh. This block does NOT create bans. Every rule either lists the avoid[] entries it enforces in covers[], or cites in authority[] the avoidProvenance note that already authorised the expansion. It says HOW an existing ban is machine-checked, never WHAT is banned. Precedence is unchanged: CLAUDE.md wins, this file is DERIVED. Added 2026-07-17 to fix a structural defect: check-positioning.sh HARDCODED every banned string and cited this file only in a comment, so the guard was itself a hand-typed copy of canon that nobody re-derived, which is the exact defect it exists to catch, and adding an entry to avoid[] enforced NOTHING.",
@@ -59,57 +207,840 @@
       "none": "",
       "historicalRecord": ":(glob,exclude)**/CHANGELOG.md"
     },
-    "tokens": { "LOC": "european|eu|us|usa|europe|united states" },
+    "tokens": {
+      "LOC": "european|eu|us|usa|europe|united states"
+    },
     "rules": [
-      { "id": "num-700-services", "type": "numeric", "class": "canonical-number-drift", "label": "700+ services", "reason": "canonical services count is 2500+", "pattern": "700\\+ services", "covers": ["700+ services"], "profiles": ["sdk","mixed-content"], "include": "all", "exclude": "none" },
-      { "id": "num-500p-services", "type": "numeric", "class": "canonical-number-drift", "label": "500+ services", "reason": "canonical services count is 2500+", "pattern": "500\\+ services", "covers": ["500+ services"], "profiles": ["sdk","mixed-content"], "include": "all", "exclude": "none" },
-      { "id": "num-500-services", "type": "numeric", "class": "canonical-number-drift", "label": "500 services", "reason": "canonical services count is 2500+", "pattern": "500 services", "covers": ["500 services"], "profiles": ["sdk","mixed-content"], "include": "all", "exclude": "none" },
-      { "id": "num-2000p-services", "type": "numeric", "class": "canonical-number-drift", "label": "2000+ services", "reason": "canonical services count is 2500+", "pattern": "2000\\+ services", "covers": ["2000+ services"], "profiles": ["sdk","mixed-content"], "include": "all", "exclude": "none" },
-      { "id": "num-2000-services", "type": "numeric", "class": "canonical-number-drift", "label": "2000 services", "reason": "canonical services count is 2500+", "pattern": "2000 services", "covers": ["2000 services"], "profiles": ["sdk","mixed-content"], "include": "all", "exclude": "none" },
-      { "id": "num-2500-services-noplus", "type": "numeric", "class": "canonical-number-drift", "label": "2500 services (no plus)", "reason": "canonical format is '2500+ services', always with the plus sign", "pattern": "2500 services", "covers": ["2500 services"], "profiles": ["sdk","mixed-content"], "include": "all", "exclude": "none" },
-      { "id": "num-200-countries", "type": "numeric", "class": "canonical-number-drift", "label": "200+ countries", "reason": "canonical number countries is 145+", "pattern": "200\\+ countries", "covers": ["200+ countries"], "profiles": ["sdk","mixed-content"], "include": "all", "exclude": "none" },
-      { "id": "num-100-countries", "type": "numeric", "class": "canonical-number-drift", "label": "100+ countries", "reason": "canonical number countries is 145+", "pattern": "100\\+ countries", "covers": ["100+ countries"], "profiles": ["sdk","mixed-content"], "include": "all", "exclude": "none" },
-      { "id": "num-180-countries", "type": "numeric", "class": "canonical-number-drift", "label": "180+ countries", "reason": "canonical number countries is 145+", "pattern": "180\\+ countries", "covers": ["180+ countries"], "profiles": ["sdk","mixed-content"], "include": "all", "exclude": "none" },
-      { "id": "num-30-countries", "type": "numeric", "class": "canonical-number-drift", "label": "30+ countries", "reason": "canonical number countries is 145+", "pattern": "30\\+ countries", "covers": ["30+ countries"], "profiles": ["sdk","mixed-content"], "include": "all", "exclude": "none" },
-      { "id": "num-12-tools", "type": "numeric", "class": "canonical-number-drift", "label": "12 tools", "reason": "canonical published MCP tool count is 18", "pattern": "12 tools", "covers": ["12 tools"], "profiles": ["sdk","mixed-content"], "include": "all", "exclude": "historicalRecord", "excludeReason": "CHANGELOG.md is carved out for THIS RULE ONLY. mcp-server's CHANGELOG records '12 tools across discovery, account, and order-management categories' under '[1.0.0] - 2026-03-15 / Added'. That is TRUE as history: v1.0.0 did ship 12 tools. A Keep-a-Changelog entry is an immutable dated record of what a release contained, and the ban targets CURRENT claims (the failure was '12 tools' surviving on a live 90.8k-star listing, not in a changelog). Banning it here would force falsifying history to get a green check, which is worse than the drift. The carve-out is deliberately the smallest shape that fits the evidence: it does NOT extend to the class. num-35-tools keeps NO carve-out because 35 was never true in any tense, so no changelog can honestly record it." },
-      { "id": "num-35-tools", "type": "numeric", "class": "canonical-number-drift", "label": "35 tools", "reason": "phantom count; it was never a real state of any branch. Published count is 18", "pattern": "35 tools", "covers": ["35 tools"], "profiles": ["sdk","mixed-content"], "include": "all", "exclude": "none", "authority": ["avoidProvenance '35 tools': ban the PHRASE '35 tools', never the bare digit 35, which is legitimate as 0.35 opacity and as item counts. The numeric matcher's not-preceded-by-a-digit guard also stops it firing on '135 tools'."] },
-      { "id": "num-90-voip", "type": "numeric", "class": "canonical-number-drift", "label": "90%+ of VoIP", "reason": "unsupported claim; canonical success framing is 95%+", "pattern": "90%\\+ of VoIP", "covers": ["90%+ of VoIP"], "profiles": ["sdk","mixed-content"], "include": "all", "exclude": "none" },
-      { "id": "num-price-002", "type": "literal", "class": "canonical-number-drift", "label": "$0.02", "reason": "canonical min price per code is $0.05", "pattern": "$0.02", "covers": ["$0.02"], "profiles": ["sdk","mixed-content"], "include": "all", "exclude": "none" },
-      { "id": "num-near-100", "type": "literal", "class": "canonical-number-drift", "label": "near-100", "reason": "canonical success framing is 95%+", "pattern": "near-100", "covers": ["near-100"], "profiles": ["sdk","mixed-content"], "include": "all", "exclude": "none" },
-
-      { "id": "frame-ranked-1", "type": "literal", "class": "canonical-number-drift", "label": "Ranked #1", "reason": "unverifiable ranking claim", "pattern": "Ranked #1", "covers": ["Ranked #1"], "profiles": ["sdk","mixed-content"], "include": "all", "exclude": "none" },
-      { "id": "frame-1-on", "type": "literal", "class": "canonical-number-drift", "label": "#1 on", "reason": "unverifiable ranking claim", "pattern": "#1 on", "covers": [], "profiles": ["sdk","mixed-content"], "include": "all", "exclude": "none", "authority": ["Expansion of avoid[] 'Ranked #1'. The string actually live on npm, server.json and the GitHub About blurb is '#1 on ChatGPT and Perplexity', which the literal 'Ranked #1' does not match. Decisions/2026-07-17-mcp-server-publish-spec.md section 3a."] },
-      { "id": "frame-1-in", "type": "literal", "class": "canonical-number-drift", "label": "#1 in", "reason": "unverifiable ranking claim", "pattern": "#1 in", "covers": [], "profiles": ["sdk","mixed-content"], "include": "all", "exclude": "none", "authority": ["Expansion of avoid[] 'Ranked #1', same shape as frame-1-on."] },
-      { "id": "frame-not-reseller", "type": "literal", "class": "honesty-false-claim", "label": "not a reseller", "reason": "untrue; VirtualSMS is HYBRID (own SIMs plus supplier aggregation)", "pattern": "not a reseller", "covers": ["not a reseller"], "profiles": ["sdk","mixed-content"], "include": "all", "exclude": "none" },
-      { "id": "frame-direct-sourced", "type": "literal", "class": "honesty-false-claim", "label": "direct-sourced", "reason": "untrue; inherits the 'not a reseller' false claim", "pattern": "direct-sourced", "covers": ["direct-sourced"], "profiles": ["sdk","mixed-content"], "include": "all", "exclude": "none" },
-      { "id": "tone-agentic", "type": "literal", "class": "tone", "label": "agentic", "reason": "canonical wording in a published description is 'AI agents', not 'agentic'", "pattern": "agentic", "covers": ["agentic"], "profiles": ["sdk","mixed-content"], "include": "manifests", "exclude": "none", "includeReason": "MANIFESTS ONLY. README.md is deliberately EXCLUDED, narrowed 2026-07-17. The delta from the previous 'customerFacing' scope is exactly ONE path: README.md; every publish manifest stays banned, so no published DESCRIPTION loses cover. AUTHORITY: notes.agentTagline, an operator call of 2026-07-16 on precisely this axis, 'Per-surface agent-first tagline is allowed in dev-repo README BODIES, but package.json/server.json/registry DESCRIPTIONS must lead with entitySentence'. This rule is now the machine form of that sentence: banned in every published description, allowed in dev-repo README bodies and docs. See avoidProvenance 'agentic' for the two supporting grounds (the source decision's own frontmatter scope, and its own deep-docs/blog carve-out). COUNTER-ARGUMENT CONSIDERED AND REJECTED: 'the README is an SEO surface and the ban's stated reason is search/recognition, so it should stay banned there.' The source decision already weighed search/recognition and STILL allowed 'agentic' in the BLOG, which is unambiguously an SEO surface. SEO-ness is therefore not the line that decision drew; customer-facing page copy versus deep docs is, and a developer README sits on the docs side. WHY IT MATTERED, not hypothetical: the old scope named README.md, so writing 'agentic' in a developer README failed CI, which made canon block language the 2026-07-17 expert review recommends leaning into. RESIDUAL GAP, declared rather than hidden: 'manifests' does not reach website/frontend page copy (.tsx), which is where this ban actually bites. The frontend is not currently guarded. If it is ever guarded (profile mixed-content, per guard.profiles), a marketing-page surface MUST be added to guard.surfaces and named here, or this rule will silently enforce nothing on the one surface the source decision was actually written about." },
-
-      { "id": "tone-comms-infra", "type": "literal", "class": "positioning", "label": "communications infrastructure", "reason": "Twilio's category; VirtualSMS solves the narrower account-verification wedge, and 'platform' (not broad 'communications infrastructure') is the customer noun", "pattern": "communications infrastructure", "covers": ["communications infrastructure"], "profiles": ["sdk","mixed-content"], "include": "all", "exclude": "none", "authority": ["Operator + expert review ruling 2026-07-17. BANS THE TWO-WORD PHRASE ONLY. The bare word 'infrastructure' stays APPROVED for the sanctioned 'provides the infrastructure behind ...' and 'Infrastructure for AI agents ...' usages; a literal substring match on the full two-word phrase cannot reach either, and both are pinned in guard.mustNotMatch.allProfiles so REFUSAL 2 proves it at sync time. See avoidProvenance 'communications infrastructure' and notes.platformVsInfrastructure for the platform-vs-infrastructure rule."] },
-
-      { "id": "opsec-physical-sim-infra", "type": "literal", "class": "absolute-opsec", "label": "physical SIM infrastructure", "reason": "infra leak; the SIM is the PRODUCT and is allowed, the infrastructure is not", "pattern": "physical SIM infrastructure", "covers": ["physical SIM infrastructure"], "profiles": ["sdk","mixed-content"], "include": "all", "exclude": "none", "authority": ["Was in avoid[] and enforced by NOTHING before 2026-07-17: the old guard's bare 'modem' ban catches 'physical SIM modems', 'hardware modems' and 'own modem fleet', but the string 'physical SIM infrastructure' contains no 'modem' and slipped through. Zero hits in all 6 repos at time of adding."] },
-      { "id": "opsec-modem", "type": "literal", "class": "absolute-opsec", "label": "modem", "reason": "infra leak; never describe our hardware", "pattern": "modem", "covers": ["physical SIM modems","hardware modems","own modem fleet"], "profiles": ["sdk","mixed-content"], "include": "all", "exclude": "none" },
-      { "id": "opsec-sim-box", "type": "literal", "class": "absolute-opsec", "label": "SIM box", "reason": "infra leak; never describe our hardware", "pattern": "SIM box", "covers": [], "profiles": ["sdk","mixed-content"], "include": "all", "exclude": "none", "authority": ["avoidProvenance absolute-opsec note: 'Also covers modem/SIM box/ports, our fleet/our hardware, any fleet-location statement, any exact SIM/port/modem count.'"] },
-      { "id": "opsec-our-fleet", "type": "literal", "class": "absolute-opsec", "label": "our fleet", "reason": "infra leak; never describe our fleet", "pattern": "our fleet", "covers": [], "profiles": ["sdk","mixed-content"], "include": "all", "exclude": "none", "authority": ["avoidProvenance absolute-opsec note: 'our fleet/our hardware'."] },
-      { "id": "opsec-our-hardware", "type": "literal", "class": "absolute-opsec", "label": "our hardware", "reason": "infra leak; never describe our hardware", "pattern": "our hardware", "covers": [], "profiles": ["sdk","mixed-content"], "include": "all", "exclude": "none", "authority": ["avoidProvenance absolute-opsec note: 'our fleet/our hardware'."] },
-      { "id": "opsec-our-eu", "type": "literal", "class": "absolute-opsec", "label": "our EU", "reason": "infra leak; never reveal where our hardware sits", "pattern": "our EU", "covers": [], "profiles": ["sdk","mixed-content"], "include": "all", "exclude": "none", "authority": ["avoidProvenance absolute-opsec note: 'any fleet-location statement'."] },
-      { "id": "opsec-ports-across", "type": "literal", "class": "absolute-opsec", "label": "ports across", "reason": "infra leak; never reveal port or SIM counts", "pattern": "ports across", "covers": [], "profiles": ["sdk","mixed-content"], "include": "all", "exclude": "none", "authority": ["avoidProvenance absolute-opsec note: 'any exact SIM/port/modem count'."] },
-      { "id": "opsec-sim-cards-in-region", "type": "regex", "class": "absolute-opsec", "label": "SIM cards in <region>", "reason": "infra leak; never say where our SIMs are", "pattern": "sim cards? in (the )?({{LOC}})([^a-zA-Z]|$)", "covers": [], "profiles": ["sdk","mixed-content"], "include": "all", "exclude": "none", "authority": ["avoidProvenance absolute-opsec note: 'any fleet-location statement'. Deliberately narrow. The trailing ([^a-zA-Z]|$) is load-bearing: without it the 'us' alternative fires on the legitimate phrase 'SIM cards in use'. Anchored on a location word next to OUR inventory, never on a bare region word and never on a country or carrier name."] },
-      { "id": "opsec-sims-in-region", "type": "regex", "class": "absolute-opsec", "label": "SIMs in <region>", "reason": "infra leak; never say where our SIMs are", "pattern": "sims? in (the )?({{LOC}})([^a-zA-Z]|$)", "covers": [], "profiles": ["sdk","mixed-content"], "include": "all", "exclude": "none", "authority": ["avoidProvenance absolute-opsec note: 'any fleet-location statement'."] },
-      { "id": "opsec-region-mobile-networks", "type": "regex", "class": "absolute-opsec", "label": "<region> mobile networks", "reason": "infra leak; never say where our SIMs are", "pattern": "({{LOC}}) mobile networks", "covers": [], "profiles": ["sdk","mixed-content"], "include": "all", "exclude": "none", "authority": ["avoidProvenance absolute-opsec note: 'any fleet-location statement'. Carrier NAMES stay allowed: 'a German number runs on Telekom' must pass."] },
-      { "id": "opsec-our-inventory-in-region", "type": "regex", "class": "absolute-opsec", "label": "our <inventory> are in <region>", "reason": "infra leak; never say where our fleet is", "pattern": "our (sims?|numbers|fleet|infrastructure|hardware) (are|is|sit|sits|live|lives) in", "covers": [], "profiles": ["sdk","mixed-content"], "include": "all", "exclude": "none", "authority": ["avoidProvenance absolute-opsec note: 'any fleet-location statement'. This is also the machine-checkable half of the 'we operate' / 'our network' mixed class: it matches the narrow LEAKING shape (stating what or where we operate) without banning the bare words. See unenforceable[]."] },
-
-      { "id": "supplier-our-x-fleet", "type": "regex", "class": "absolute-opsec", "label": "our <supplier> fleet", "reason": "supplier or infra leak; the whole SHAPE is banned, whatever fills the slot", "pattern": "our [a-z0-9._/-]+ fleet", "covers": ["our <supplier> fleet"], "profiles": ["sdk","mixed-content"], "include": "all", "exclude": "none", "authority": ["NAME-FREE, both profiles, per the 2026-07-17 purge ruling. This works without a name because the ENTIRE SHAPE is banned, not just the name-filled version: 'our <anything> fleet' is a fleet claim by construction, so the slot filler is irrelevant and the rule needs no vocabulary of suppliers. It therefore also enforces the older ABSOLUTE infra rule that literal 'our fleet' (rule opsec-our-fleet) could never reach, because an inserted word defeats a substring match. Verified 2026-07-17: catches the historical leak 'our <supplier> fleet', and additionally catches three real infra leaks live in VirtualSMS-local that the previous name-based rule missed entirely ('our German fleet', a fleet-LOCATION leak, and 'our Spotify fleet' x2). Zero hits in all 6 guarded repos. Cannot flag the comparison carve-out: it contains no name, so no bare name can match it."] },
-      { "id": "supplier-our-x-integration", "type": "regex", "class": "absolute-opsec", "label": "our <supplier> integration", "reason": "supplier leak; naming who we integrate with reveals who supplies us", "pattern": "our [a-z0-9._/-]+ integration", "covers": ["our <supplier> integration"], "profiles": ["sdk","mixed-content"], "include": "all", "exclude": "none", "authority": ["NAME-FREE, both profiles, per the 2026-07-17 purge ruling. Same construction as supplier-our-x-fleet: the shape is the ban. Verified 2026-07-17 to catch both historical integration leaks, 'our <supplier> integration' and the longer sentence it actually shipped in, 'live via our <supplier> integration'. Zero hits in the 6 guarded repos. Known true-positive it will fire on if the frontend is ever guarded: an admin settings page reads 'connects directly to the <competitor> API using our custom integration', which states a supply relationship and should be rewritten, not exempted."] },
-      { "id": "supplier-we-source-from", "type": "regex", "class": "absolute-opsec", "label": "we source/buy/resell from", "reason": "supplier leak; states the supply relationship in the active voice", "pattern": "we (source|buy|resell|purchase) (them |these |our |the )?(numbers |inventory |sims )?from", "covers": [], "profiles": ["sdk","mixed-content"], "include": "all", "exclude": "none", "authority": ["Expansion authorised by the avoidProvenance supplier note ('the purge targets the SUPPLY RELATIONSHIP'). Name-free by construction: it bans ADMITTING the relationship regardless of who the counterparty is, which is the active-voice half of the passive 'sourced from <supplier>' shape declared unenforceable below. Zero hits in all 6 guarded repos and in VirtualSMS-local, verified 2026-07-17, so this is a pure gap-close with no copy change."] },
-
-      { "id": "dash-readme", "type": "dash", "class": "operator-hard-rule", "label": "em-dash or en-dash", "reason": "not allowed in README; use a colon, comma or full stop", "pattern": "", "covers": ["em-dash"], "profiles": ["sdk","mixed-content"], "include": "readme", "exclude": "none", "authority": ["The avoid[] entry 'em-dash' is the NAME of a character, not text to grep: a literal grep for the string 'em-dash' would flag this file, positioning.md and every doc that discusses the rule, while matching zero actual em-dashes. It is enforced instead by this dedicated rule type, which matches the U+2014 and U+2013 CODEPOINTS. The interpreter builds both with printf so the script stays pure ASCII and encoding-safe. This is the one avoid[] entry whose enforcement is not a substring of itself."] },
-      { "id": "dash-manifests", "type": "dash", "class": "operator-hard-rule", "label": "em-dash or en-dash", "reason": "not allowed in a package manifest description; use a colon, comma or full stop", "pattern": "", "covers": ["em-dash"], "profiles": ["sdk","mixed-content"], "include": "manifests", "exclude": "none" }
+      {
+        "id": "num-700-services",
+        "type": "numeric",
+        "class": "canonical-number-drift",
+        "label": "700+ services",
+        "reason": "canonical services count is 2500+",
+        "pattern": "\\b700\\+ services",
+        "covers": [
+          "700+ services"
+        ],
+        "profiles": [
+          "sdk",
+          "mixed-content"
+        ],
+        "include": "all",
+        "exclude": "none"
+      },
+      {
+        "id": "num-500p-services",
+        "type": "numeric",
+        "class": "canonical-number-drift",
+        "label": "500+ services",
+        "reason": "canonical services count is 2500+",
+        "pattern": "\\b500\\+ services",
+        "covers": [
+          "500+ services"
+        ],
+        "profiles": [
+          "sdk",
+          "mixed-content"
+        ],
+        "include": "all",
+        "exclude": "none"
+      },
+      {
+        "id": "num-500-services",
+        "type": "numeric",
+        "class": "canonical-number-drift",
+        "label": "500 services",
+        "reason": "canonical services count is 2500+",
+        "pattern": "\\b500 services",
+        "covers": [
+          "500 services"
+        ],
+        "profiles": [
+          "sdk",
+          "mixed-content"
+        ],
+        "include": "all",
+        "exclude": "none"
+      },
+      {
+        "id": "num-2000p-services",
+        "type": "numeric",
+        "class": "canonical-number-drift",
+        "label": "2000+ services",
+        "reason": "canonical services count is 2500+",
+        "pattern": "\\b2000\\+ services",
+        "covers": [
+          "2000+ services"
+        ],
+        "profiles": [
+          "sdk",
+          "mixed-content"
+        ],
+        "include": "all",
+        "exclude": "none"
+      },
+      {
+        "id": "num-2000-services",
+        "type": "numeric",
+        "class": "canonical-number-drift",
+        "label": "2000 services",
+        "reason": "canonical services count is 2500+",
+        "pattern": "\\b2000 services",
+        "covers": [
+          "2000 services"
+        ],
+        "profiles": [
+          "sdk",
+          "mixed-content"
+        ],
+        "include": "all",
+        "exclude": "none"
+      },
+      {
+        "id": "num-2500-services-noplus",
+        "type": "numeric",
+        "class": "canonical-number-drift",
+        "label": "2500 services (no plus)",
+        "reason": "canonical format is '2500+ services', always with the plus sign",
+        "pattern": "\\b2500 services",
+        "covers": [
+          "2500 services"
+        ],
+        "profiles": [
+          "sdk",
+          "mixed-content"
+        ],
+        "include": "all",
+        "exclude": "none"
+      },
+      {
+        "id": "num-200-countries",
+        "type": "numeric",
+        "class": "canonical-number-drift",
+        "label": "200+ countries",
+        "reason": "canonical number countries is 145+",
+        "pattern": "\\b200\\+ countries",
+        "covers": [
+          "200+ countries"
+        ],
+        "profiles": [
+          "sdk",
+          "mixed-content"
+        ],
+        "include": "all",
+        "exclude": "none"
+      },
+      {
+        "id": "num-100-countries",
+        "type": "numeric",
+        "class": "canonical-number-drift",
+        "label": "100+ countries",
+        "reason": "canonical number countries is 145+",
+        "pattern": "\\b100\\+ countries",
+        "covers": [
+          "100+ countries"
+        ],
+        "profiles": [
+          "sdk",
+          "mixed-content"
+        ],
+        "include": "all",
+        "exclude": "none"
+      },
+      {
+        "id": "num-180-countries",
+        "type": "numeric",
+        "class": "canonical-number-drift",
+        "label": "180+ countries",
+        "reason": "canonical number countries is 145+",
+        "pattern": "\\b180\\+ countries",
+        "covers": [
+          "180+ countries"
+        ],
+        "profiles": [
+          "sdk",
+          "mixed-content"
+        ],
+        "include": "all",
+        "exclude": "none"
+      },
+      {
+        "id": "num-30-countries",
+        "type": "numeric",
+        "class": "canonical-number-drift",
+        "label": "30+ countries",
+        "reason": "canonical number countries is 145+",
+        "pattern": "\\b30\\+ countries",
+        "covers": [
+          "30+ countries"
+        ],
+        "profiles": [
+          "sdk",
+          "mixed-content"
+        ],
+        "include": "all",
+        "exclude": "none"
+      },
+      {
+        "id": "num-223-proxy-countries",
+        "type": "numeric",
+        "class": "canonical-number-drift",
+        "label": "223 proxy countries",
+        "reason": "canonical proxy countries count is 190+",
+        "pattern": "\\b223 proxy countries",
+        "covers": [
+          "223 proxy countries"
+        ],
+        "profiles": [
+          "sdk",
+          "mixed-content"
+        ],
+        "include": "all",
+        "exclude": "none"
+      },
+      {
+        "id": "num-224-countries",
+        "type": "numeric",
+        "class": "canonical-number-drift",
+        "label": "224 countries",
+        "reason": "canonical proxy countries count is 190+",
+        "pattern": "\\b224 countries",
+        "covers": [
+          "224 countries"
+        ],
+        "profiles": [
+          "sdk",
+          "mixed-content"
+        ],
+        "include": "all",
+        "exclude": "none"
+      },
+      {
+        "id": "num-220-countries",
+        "type": "numeric",
+        "class": "canonical-number-drift",
+        "label": "220 countries",
+        "reason": "canonical proxy countries count is 190+",
+        "pattern": "\\b220 countries",
+        "covers": [
+          "220 countries"
+        ],
+        "profiles": [
+          "sdk",
+          "mixed-content"
+        ],
+        "include": "all",
+        "exclude": "none"
+      },
+      {
+        "id": "num-220-proxy-countries",
+        "type": "numeric",
+        "class": "canonical-number-drift",
+        "label": "220 proxy countries",
+        "reason": "canonical proxy countries count is 190+",
+        "pattern": "\\b220 proxy countries",
+        "covers": [
+          "220 proxy countries"
+        ],
+        "profiles": [
+          "sdk",
+          "mixed-content"
+        ],
+        "include": "all",
+        "exclude": "none"
+      },
+      {
+        "id": "num-12-tools",
+        "type": "numeric",
+        "class": "canonical-number-drift",
+        "label": "12 tools",
+        "reason": "canonical published MCP tool count is 40",
+        "pattern": "\\b12 tools",
+        "covers": [
+          "12 tools"
+        ],
+        "profiles": [
+          "sdk",
+          "mixed-content"
+        ],
+        "include": "all",
+        "exclude": "historicalRecord",
+        "excludeReason": "CHANGELOG.md is carved out for THIS RULE ONLY. mcp-server's CHANGELOG records '12 tools across discovery, account, and order-management categories' under '[1.0.0] - 2026-03-15 / Added'. That is TRUE as history: v1.0.0 did ship 12 tools. A Keep-a-Changelog entry is an immutable dated record of what a release contained, and the ban targets CURRENT claims (the failure was '12 tools' surviving on a live 90.8k-star listing, not in a changelog). Banning it here would force falsifying history to get a green check, which is worse than the drift. The carve-out is deliberately the smallest shape that fits the evidence: it does NOT extend to the class. num-35-tools keeps NO carve-out because 35 was never true in any tense, so no changelog can honestly record it."
+      },
+      {
+        "id": "num-35-tools",
+        "type": "numeric",
+        "class": "canonical-number-drift",
+        "label": "35 tools",
+        "reason": "phantom count; it was never a real state of any branch. Published count is 40",
+        "pattern": "\\b35 tools",
+        "covers": [
+          "35 tools"
+        ],
+        "profiles": [
+          "sdk",
+          "mixed-content"
+        ],
+        "include": "all",
+        "exclude": "none",
+        "authority": [
+          "avoidProvenance '35 tools': ban the PHRASE '35 tools', never the bare digit 35, which is legitimate as 0.35 opacity and as item counts. The numeric matcher's not-preceded-by-a-digit guard also stops it firing on '135 tools'."
+        ]
+      },
+      {
+        "id": "num-90-voip",
+        "type": "numeric",
+        "class": "canonical-number-drift",
+        "label": "90%+ of VoIP",
+        "reason": "unsupported claim; canonical success framing is 95%+",
+        "pattern": "\\b90%\\+ of VoIP",
+        "covers": [
+          "90%+ of VoIP"
+        ],
+        "profiles": [
+          "sdk",
+          "mixed-content"
+        ],
+        "include": "all",
+        "exclude": "none"
+      },
+      {
+        "id": "num-price-002",
+        "type": "literal",
+        "class": "canonical-number-drift",
+        "label": "$0.02",
+        "reason": "canonical min price per code is $0.05",
+        "pattern": "$0.02",
+        "covers": [
+          "$0.02"
+        ],
+        "profiles": [
+          "sdk",
+          "mixed-content"
+        ],
+        "include": "all",
+        "exclude": "none"
+      },
+      {
+        "id": "num-near-100",
+        "type": "literal",
+        "class": "canonical-number-drift",
+        "label": "near-100",
+        "reason": "canonical success framing is 95%+",
+        "pattern": "near-100",
+        "covers": [
+          "near-100"
+        ],
+        "profiles": [
+          "sdk",
+          "mixed-content"
+        ],
+        "include": "all",
+        "exclude": "none"
+      },
+      {
+        "id": "frame-ranked-1",
+        "type": "literal",
+        "class": "canonical-number-drift",
+        "label": "Ranked #1",
+        "reason": "unverifiable ranking claim",
+        "pattern": "Ranked #1",
+        "covers": [
+          "Ranked #1"
+        ],
+        "profiles": [
+          "sdk",
+          "mixed-content"
+        ],
+        "include": "all",
+        "exclude": "none"
+      },
+      {
+        "id": "frame-1-on",
+        "type": "literal",
+        "class": "canonical-number-drift",
+        "label": "#1 on",
+        "reason": "unverifiable ranking claim",
+        "pattern": "#1 on",
+        "covers": [],
+        "profiles": [
+          "sdk",
+          "mixed-content"
+        ],
+        "include": "all",
+        "exclude": "none",
+        "authority": [
+          "Expansion of avoid[] 'Ranked #1'. The string actually live on npm, server.json and the GitHub About blurb is '#1 on ChatGPT and Perplexity', which the literal 'Ranked #1' does not match. Decisions/2026-07-17-mcp-server-publish-spec.md section 3a."
+        ]
+      },
+      {
+        "id": "frame-1-in",
+        "type": "literal",
+        "class": "canonical-number-drift",
+        "label": "#1 in",
+        "reason": "unverifiable ranking claim",
+        "pattern": "#1 in",
+        "covers": [],
+        "profiles": [
+          "sdk",
+          "mixed-content"
+        ],
+        "include": "all",
+        "exclude": "none",
+        "authority": [
+          "Expansion of avoid[] 'Ranked #1', same shape as frame-1-on."
+        ]
+      },
+      {
+        "id": "frame-not-reseller",
+        "type": "literal",
+        "class": "honesty-false-claim",
+        "label": "not a reseller",
+        "reason": "untrue; VirtualSMS is HYBRID (own SIMs plus supplier aggregation)",
+        "pattern": "not a reseller",
+        "covers": [
+          "not a reseller"
+        ],
+        "profiles": [
+          "sdk",
+          "mixed-content"
+        ],
+        "include": "all",
+        "exclude": "none"
+      },
+      {
+        "id": "frame-direct-sourced",
+        "type": "literal",
+        "class": "honesty-false-claim",
+        "label": "direct-sourced",
+        "reason": "untrue; inherits the 'not a reseller' false claim",
+        "pattern": "direct-sourced",
+        "covers": [
+          "direct-sourced"
+        ],
+        "profiles": [
+          "sdk",
+          "mixed-content"
+        ],
+        "include": "all",
+        "exclude": "none"
+      },
+      {
+        "id": "tone-agentic",
+        "type": "literal",
+        "class": "tone",
+        "label": "agentic",
+        "reason": "canonical wording in a published description is 'AI agents', not 'agentic'",
+        "pattern": "agentic",
+        "covers": [
+          "agentic"
+        ],
+        "profiles": [
+          "sdk",
+          "mixed-content"
+        ],
+        "include": "manifests",
+        "exclude": "none",
+        "includeReason": "MANIFESTS ONLY. README.md is deliberately EXCLUDED, narrowed 2026-07-17. The delta from the previous 'customerFacing' scope is exactly ONE path: README.md; every publish manifest stays banned, so no published DESCRIPTION loses cover. AUTHORITY: notes.agentTagline, an operator call of 2026-07-16 on precisely this axis, 'Per-surface agent-first tagline is allowed in dev-repo README BODIES, but package.json/server.json/registry DESCRIPTIONS must lead with entitySentence'. This rule is now the machine form of that sentence: banned in every published description, allowed in dev-repo README bodies and docs. See avoidProvenance 'agentic' for the two supporting grounds (the source decision's own frontmatter scope, and its own deep-docs/blog carve-out). COUNTER-ARGUMENT CONSIDERED AND REJECTED: 'the README is an SEO surface and the ban's stated reason is search/recognition, so it should stay banned there.' The source decision already weighed search/recognition and STILL allowed 'agentic' in the BLOG, which is unambiguously an SEO surface. SEO-ness is therefore not the line that decision drew; customer-facing page copy versus deep docs is, and a developer README sits on the docs side. WHY IT MATTERED, not hypothetical: the old scope named README.md, so writing 'agentic' in a developer README failed CI, which made canon block language the 2026-07-17 expert review recommends leaning into. RESIDUAL GAP, declared rather than hidden: 'manifests' does not reach website/frontend page copy (.tsx), which is where this ban actually bites. The frontend is not currently guarded. If it is ever guarded (profile mixed-content, per guard.profiles), a marketing-page surface MUST be added to guard.surfaces and named here, or this rule will silently enforce nothing on the one surface the source decision was actually written about."
+      },
+      {
+        "id": "tone-comms-infra",
+        "type": "literal",
+        "class": "positioning",
+        "label": "communications infrastructure",
+        "reason": "Twilio's category; VirtualSMS solves the narrower account-verification wedge, and 'platform' (not broad 'communications infrastructure') is the customer noun",
+        "pattern": "communications infrastructure",
+        "covers": [
+          "communications infrastructure"
+        ],
+        "profiles": [
+          "sdk",
+          "mixed-content"
+        ],
+        "include": "all",
+        "exclude": "none",
+        "authority": [
+          "Operator + expert review ruling 2026-07-17. BANS THE TWO-WORD PHRASE ONLY. The bare word 'infrastructure' stays APPROVED for the sanctioned 'provides the infrastructure behind ...' and 'Infrastructure for AI agents ...' usages; a literal substring match on the full two-word phrase cannot reach either, and both are pinned in guard.mustNotMatch.allProfiles so REFUSAL 2 proves it at sync time. See avoidProvenance 'communications infrastructure' and notes.platformVsInfrastructure for the platform-vs-infrastructure rule."
+        ]
+      },
+      {
+        "id": "opsec-physical-sim-infra",
+        "type": "literal",
+        "class": "absolute-opsec",
+        "label": "physical SIM infrastructure",
+        "reason": "infra leak; the SIM is the PRODUCT and is allowed, the infrastructure is not",
+        "pattern": "physical SIM infrastructure",
+        "covers": [
+          "physical SIM infrastructure"
+        ],
+        "profiles": [
+          "sdk",
+          "mixed-content"
+        ],
+        "include": "all",
+        "exclude": "none",
+        "authority": [
+          "Was in avoid[] and enforced by NOTHING before 2026-07-17: the old guard's bare 'modem' ban catches 'physical SIM modems', 'hardware modems' and 'own modem fleet', but the string 'physical SIM infrastructure' contains no 'modem' and slipped through. Zero hits in all 6 repos at time of adding."
+        ]
+      },
+      {
+        "id": "opsec-modem",
+        "type": "literal",
+        "class": "absolute-opsec",
+        "label": "modem",
+        "reason": "infra leak; never describe our hardware",
+        "pattern": "modem",
+        "covers": [
+          "physical SIM modems",
+          "hardware modems",
+          "own modem fleet"
+        ],
+        "profiles": [
+          "sdk",
+          "mixed-content"
+        ],
+        "include": "all",
+        "exclude": "none"
+      },
+      {
+        "id": "opsec-sim-box",
+        "type": "literal",
+        "class": "absolute-opsec",
+        "label": "SIM box",
+        "reason": "infra leak; never describe our hardware",
+        "pattern": "SIM box",
+        "covers": [],
+        "profiles": [
+          "sdk",
+          "mixed-content"
+        ],
+        "include": "all",
+        "exclude": "none",
+        "authority": [
+          "avoidProvenance absolute-opsec note: 'Also covers modem/SIM box/ports, our fleet/our hardware, any fleet-location statement, any exact SIM/port/modem count.'"
+        ]
+      },
+      {
+        "id": "opsec-our-fleet",
+        "type": "regex",
+        "class": "absolute-opsec",
+        "label": "our fleet",
+        "reason": "infra leak ONLY when it states what our fleet IS, is MADE OF, or WHERE it sits. \"numbers ... in our fleet\" describes the PRODUCT the customer receives and is ALLOWED (operator ruling 2026-08-08; same over-broad pattern as the retracted physical-SIM ban).",
+        "pattern": "our fleet (?:is|are|sits|sit|lives|operates|runs|of|spans)\\b|our fleet in [A-Z]|(?:size|count|number|scale) of our fleet",
+        "covers": [],
+        "profiles": [
+          "sdk",
+          "mixed-content"
+        ],
+        "include": "all",
+        "exclude": "none",
+        "authority": [
+          "avoidProvenance absolute-opsec note: 'our fleet/our hardware'.",
+          "Vault/CLAUDE.md:87 false-positive guard: apply the OUR-vs-PRODUCT test before flagging"
+        ]
+      },
+      {
+        "id": "opsec-our-hardware",
+        "type": "literal",
+        "class": "absolute-opsec",
+        "label": "our hardware",
+        "reason": "infra leak; never describe our hardware",
+        "pattern": "our hardware",
+        "covers": [],
+        "profiles": [
+          "sdk",
+          "mixed-content"
+        ],
+        "include": "all",
+        "exclude": "none",
+        "authority": [
+          "avoidProvenance absolute-opsec note: 'our fleet/our hardware'."
+        ]
+      },
+      {
+        "id": "opsec-our-eu",
+        "type": "literal",
+        "class": "absolute-opsec",
+        "label": "our EU",
+        "reason": "infra leak; never reveal where our hardware sits",
+        "pattern": "our EU",
+        "covers": [],
+        "profiles": [
+          "sdk",
+          "mixed-content"
+        ],
+        "include": "all",
+        "exclude": "none",
+        "authority": [
+          "avoidProvenance absolute-opsec note: 'any fleet-location statement'."
+        ]
+      },
+      {
+        "id": "opsec-ports-across",
+        "type": "literal",
+        "class": "absolute-opsec",
+        "label": "ports across",
+        "reason": "infra leak; never reveal port or SIM counts",
+        "pattern": "ports across",
+        "covers": [],
+        "profiles": [
+          "sdk",
+          "mixed-content"
+        ],
+        "include": "all",
+        "exclude": "none",
+        "authority": [
+          "avoidProvenance absolute-opsec note: 'any exact SIM/port/modem count'."
+        ]
+      },
+      {
+        "id": "opsec-sim-cards-in-region",
+        "type": "regex",
+        "class": "absolute-opsec",
+        "label": "SIM cards in <region>",
+        "reason": "infra leak; never say where our SIMs are",
+        "pattern": "sim cards? in (the )?({{LOC}})([^a-zA-Z]|$)",
+        "covers": [],
+        "profiles": [
+          "sdk",
+          "mixed-content"
+        ],
+        "include": "all",
+        "exclude": "none",
+        "authority": [
+          "avoidProvenance absolute-opsec note: 'any fleet-location statement'. Deliberately narrow. The trailing ([^a-zA-Z]|$) is load-bearing: without it the 'us' alternative fires on the legitimate phrase 'SIM cards in use'. Anchored on a location word next to OUR inventory, never on a bare region word and never on a country or carrier name."
+        ]
+      },
+      {
+        "id": "opsec-sims-in-region",
+        "type": "regex",
+        "class": "absolute-opsec",
+        "label": "SIMs in <region>",
+        "reason": "infra leak; never say where our SIMs are",
+        "pattern": "sims? in (the )?({{LOC}})([^a-zA-Z]|$)",
+        "covers": [],
+        "profiles": [
+          "sdk",
+          "mixed-content"
+        ],
+        "include": "all",
+        "exclude": "none",
+        "authority": [
+          "avoidProvenance absolute-opsec note: 'any fleet-location statement'."
+        ]
+      },
+      {
+        "id": "opsec-region-mobile-networks",
+        "type": "regex",
+        "class": "absolute-opsec",
+        "label": "<region> mobile networks",
+        "reason": "infra leak; never say where our SIMs are",
+        "pattern": "({{LOC}}) mobile networks",
+        "covers": [],
+        "profiles": [
+          "sdk",
+          "mixed-content"
+        ],
+        "include": "all",
+        "exclude": "none",
+        "authority": [
+          "avoidProvenance absolute-opsec note: 'any fleet-location statement'. Carrier NAMES stay allowed: 'a German number runs on Telekom' must pass."
+        ]
+      },
+      {
+        "id": "opsec-our-inventory-in-region",
+        "type": "regex",
+        "class": "absolute-opsec",
+        "label": "our <inventory> are in <region>",
+        "reason": "infra leak; never say where our fleet is",
+        "pattern": "our (sims?|numbers|fleet|infrastructure|hardware) (are|is|sit|sits|live|lives) in",
+        "covers": [],
+        "profiles": [
+          "sdk",
+          "mixed-content"
+        ],
+        "include": "all",
+        "exclude": "none",
+        "authority": [
+          "avoidProvenance absolute-opsec note: 'any fleet-location statement'. This is also the machine-checkable half of the 'we operate' / 'our network' mixed class: it matches the narrow LEAKING shape (stating what or where we operate) without banning the bare words. See unenforceable[]."
+        ]
+      },
+      {
+        "id": "supplier-our-x-fleet",
+        "type": "regex",
+        "class": "absolute-opsec",
+        "label": "our <supplier> fleet",
+        "reason": "supplier or infra leak; the whole SHAPE is banned, whatever fills the slot",
+        "pattern": "our [a-z0-9._/-]+ fleet",
+        "covers": [
+          "our <supplier> fleet"
+        ],
+        "profiles": [
+          "sdk",
+          "mixed-content"
+        ],
+        "include": "all",
+        "exclude": "none",
+        "authority": [
+          "NAME-FREE, both profiles, per the 2026-07-17 purge ruling. This works without a name because the ENTIRE SHAPE is banned, not just the name-filled version: 'our <anything> fleet' is a fleet claim by construction, so the slot filler is irrelevant and the rule needs no vocabulary of suppliers. It therefore also enforces the older ABSOLUTE infra rule that literal 'our fleet' (rule opsec-our-fleet) could never reach, because an inserted word defeats a substring match. Verified 2026-07-17: catches the historical leak 'our <supplier> fleet', and additionally catches three real infra leaks live in VirtualSMS-local that the previous name-based rule missed entirely ('our German fleet', a fleet-LOCATION leak, and 'our Spotify fleet' x2). Zero hits in all 6 guarded repos. Cannot flag the comparison carve-out: it contains no name, so no bare name can match it."
+        ]
+      },
+      {
+        "id": "supplier-our-x-integration",
+        "type": "regex",
+        "class": "absolute-opsec",
+        "label": "our <supplier> integration",
+        "reason": "supplier leak; naming who we integrate with reveals who supplies us",
+        "pattern": "our [a-z0-9._/-]+ integration",
+        "covers": [
+          "our <supplier> integration"
+        ],
+        "profiles": [
+          "sdk",
+          "mixed-content"
+        ],
+        "include": "all",
+        "exclude": "none",
+        "authority": [
+          "NAME-FREE, both profiles, per the 2026-07-17 purge ruling. Same construction as supplier-our-x-fleet: the shape is the ban. Verified 2026-07-17 to catch both historical integration leaks, 'our <supplier> integration' and the longer sentence it actually shipped in, 'live via our <supplier> integration'. Zero hits in the 6 guarded repos. Known true-positive it will fire on if the frontend is ever guarded: an admin settings page reads 'connects directly to the <competitor> API using our custom integration', which states a supply relationship and should be rewritten, not exempted."
+        ]
+      },
+      {
+        "id": "supplier-we-source-from",
+        "type": "regex",
+        "class": "absolute-opsec",
+        "label": "we source/buy/resell from",
+        "reason": "supplier leak; states the supply relationship in the active voice",
+        "pattern": "we (source|buy|resell|purchase) (them |these |our |the )?(numbers |inventory |sims )?from",
+        "covers": [],
+        "profiles": [
+          "sdk",
+          "mixed-content"
+        ],
+        "include": "all",
+        "exclude": "none",
+        "authority": [
+          "Expansion authorised by the avoidProvenance supplier note ('the purge targets the SUPPLY RELATIONSHIP'). Name-free by construction: it bans ADMITTING the relationship regardless of who the counterparty is, which is the active-voice half of the passive 'sourced from <supplier>' shape declared unenforceable below. Zero hits in all 6 guarded repos and in VirtualSMS-local, verified 2026-07-17, so this is a pure gap-close with no copy change."
+        ]
+      },
+      {
+        "id": "dash-readme",
+        "type": "dash",
+        "class": "operator-hard-rule",
+        "label": "em-dash or en-dash",
+        "reason": "not allowed in README; use a colon, comma or full stop",
+        "pattern": "",
+        "covers": [
+          "em-dash"
+        ],
+        "profiles": [
+          "sdk",
+          "mixed-content"
+        ],
+        "include": "readme",
+        "exclude": "none",
+        "authority": [
+          "The avoid[] entry 'em-dash' is the NAME of a character, not text to grep: a literal grep for the string 'em-dash' would flag this file, positioning.md and every doc that discusses the rule, while matching zero actual em-dashes. It is enforced instead by this dedicated rule type, which matches the U+2014 and U+2013 CODEPOINTS. The interpreter builds both with printf so the script stays pure ASCII and encoding-safe. This is the one avoid[] entry whose enforcement is not a substring of itself."
+        ]
+      },
+      {
+        "id": "dash-manifests",
+        "type": "dash",
+        "class": "operator-hard-rule",
+        "label": "em-dash or en-dash",
+        "reason": "not allowed in a package manifest description; use a colon, comma or full stop",
+        "pattern": "",
+        "covers": [
+          "em-dash"
+        ],
+        "profiles": [
+          "sdk",
+          "mixed-content"
+        ],
+        "include": "manifests",
+        "exclude": "none"
+      },
+      {
+        "id": "opsec-sim-batches",
+        "type": "regex",
+        "class": "absolute-opsec",
+        "label": "SIM batches",
+        "reason": "describes PROCUREMENT of supply, not the product the customer receives",
+        "pattern": "SIM batches",
+        "covers": [],
+        "profiles": [
+          "sdk",
+          "mixed-content"
+        ],
+        "include": "all",
+        "exclude": "none",
+        "authority": [
+          "operator ruling 2026-08-08: the real infra leak is procurement/operating language, not the phrase 'our fleet'"
+        ]
+      },
+      {
+        "id": "opsec-sim-rotation",
+        "type": "regex",
+        "class": "absolute-opsec",
+        "label": "SIM rotation",
+        "reason": "describes our operating policy, not the product",
+        "pattern": "SIM rotation",
+        "covers": [],
+        "profiles": [
+          "sdk",
+          "mixed-content"
+        ],
+        "include": "all",
+        "exclude": "none",
+        "authority": [
+          "operator ruling 2026-08-08: the real infra leak is procurement/operating language, not the phrase 'our fleet'"
+        ]
+      },
+      {
+        "id": "opsec-sim-pools",
+        "type": "regex",
+        "class": "absolute-opsec",
+        "label": "SIM pools",
+        "reason": "implies held stock; describes our supply, not the product",
+        "pattern": "SIM pools",
+        "covers": [],
+        "profiles": [
+          "sdk",
+          "mixed-content"
+        ],
+        "include": "all",
+        "exclude": "none",
+        "authority": [
+          "operator ruling 2026-08-08: the real infra leak is procurement/operating language, not the phrase 'our fleet'"
+        ]
+      }
     ],
     "unenforceable": [
-      { "entries": ["sourced from <supplier>"], "reason": "NOT MACHINE-CHECKABLE NAME-FREE, and this was PROVEN, not assumed, before declaring it. The 2026-07-17 purge ruling removed supplier names from this file, so a rule may no longer contain one. Every name-free pattern that catches the historical leak 'numbers sourced from <supplier>' also flags APPROVED copy, which would trip REFUSAL 2 and, worse, would scrub live product copy exactly as the 2026-07-16 incident did. Measured against the real corpus: /sourced from/ destroys 6 approved lines, including 'Real SIM cards sourced from 145+ countries worldwide' and 'US numbers are sourced from real US carrier-issued SIMs' (both live product copy describing the PRODUCT, which the opsec rule expressly allows), plus the comparison-carve-out line 'numbers sourced from SMS-Activate's supplier pool'. Narrowing to /sourced from <word>/ changes nothing: same 6 casualties. Even the brand-shaped-suffix hack /sourced from [a-z0-9-]*(sms|verified|activate)/ still destroys the comparison line, and it is a name ban wearing a disguise, which is precisely what the ruling forbids. The ONLY token distinguishing the banned line from the approved ones IS the supplier's name. A guard forbidden to know the name therefore cannot make this distinction, and no amount of pattern cleverness changes that. COMPENSATING CONTROL, which is the whole point of the architecture: the name is purged from the codebase, so there is no name left to be sourced-from. The active-voice half IS machine-checked by supplier-we-source-from. The passive half is a human review item at copy review. Accepting a declared, visible gap beats shipping a rule that cries wolf, because a guard that cries wolf gets deleted." },
-      { "entries": ["<supplier> name in a browser-visible provider field"], "reason": "NOT MACHINE-CHECKABLE NAME-FREE. Tautological and worth stating plainly: detecting a name requires the name. The banned wire shape is a provider field carrying a supplier's name; the approved shape is the same field carrying the opaque token. The two are structurally identical and differ ONLY in the value, so the pattern that separates them must enumerate either the banned names (forbidden by the 2026-07-17 ruling) or the allowed values (which POSIX ERE cannot express as a negation: git grep -E has no lookahead, and grep -P is banned estate-wide because it errors on locale and falsely reports clean). Expressing it would mean adding a rule TYPE to check-positioning.sh, which is hand-maintained in 6 repos and is not generated: out of scope for a purge, and the wrong trade. COMPENSATING CONTROLS, both verified 2026-07-17: (1) the backend already emits the opaque token, /api/v1/rentals returns \"provider\":\"network\"; (2) the frontend no longer carries a supplier name to send. The residual risk is honest and stated: nothing in the guard will catch a NEW supplier name introduced into a provider field. That is the accepted cost of a name-free guard, and the mitigation is the rule itself, that the name never enters the codebase, not a grep that would have to hold the name to look for it." },
-      { "entries": ["our network","we operate"], "reason": "Class mixed-opsec-tone. avoidProvenance says in terms: 'NOT a blanket ban on the words. Opsec only when the phrase states WHAT or WHERE we operate.' Whether a given use leaks depends on the sentence, and a substring matcher cannot read a sentence. A flat ban would flag 'we operate a REST API' and 'our network of supported services', and a guard that cries wolf gets deleted, which is worse than no guard. The narrow LEAKING shape IS machine-checked by rule opsec-our-inventory-in-region ('our SIMs/fleet/infrastructure are in ...'). The remainder is a human review item at copy review, not a grep." },
-      { "entries": ["identity"], "reason": "Class decision-risk-framing, and a bare common noun. A flat ban is a false-positive machine: verified 2026-07-17 that it matches the MIME type 'application/vnd.groove-identity-message' inside bundled dependency code in mcp-server (.smithery/bundle.cjs, .smithery/shttp/module.js), and it would match 'identity verification' in any competitor description or third-party quote. The actual rule is about FRAMING (copy is about the user's OWN accounts, never someone's identity), which requires reading a sentence's meaning. Not machine-checkable as a substring. Human review item." }
+      {
+        "entries": [
+          "sourced from <supplier>"
+        ],
+        "reason": "NOT MACHINE-CHECKABLE NAME-FREE, and this was PROVEN, not assumed, before declaring it. The 2026-07-17 purge ruling removed supplier names from this file, so a rule may no longer contain one. Every name-free pattern that catches the historical leak 'numbers sourced from <supplier>' also flags APPROVED copy, which would trip REFUSAL 2 and, worse, would scrub live product copy exactly as the 2026-07-16 incident did. Measured against the real corpus: /sourced from/ destroys 6 approved lines, including 'Real SIM cards sourced from 145+ countries worldwide' and 'US numbers are sourced from real US carrier-issued SIMs' (both live product copy describing the PRODUCT, which the opsec rule expressly allows), plus the comparison-carve-out line 'numbers sourced from SMS-Activate's supplier pool'. Narrowing to /sourced from <word>/ changes nothing: same 6 casualties. Even the brand-shaped-suffix hack /sourced from [a-z0-9-]*(sms|verified|activate)/ still destroys the comparison line, and it is a name ban wearing a disguise, which is precisely what the ruling forbids. The ONLY token distinguishing the banned line from the approved ones IS the supplier's name. A guard forbidden to know the name therefore cannot make this distinction, and no amount of pattern cleverness changes that. COMPENSATING CONTROL, which is the whole point of the architecture: the name is purged from the codebase, so there is no name left to be sourced-from. The active-voice half IS machine-checked by supplier-we-source-from. The passive half is a human review item at copy review. Accepting a declared, visible gap beats shipping a rule that cries wolf, because a guard that cries wolf gets deleted."
+      },
+      {
+        "entries": [
+          "<supplier> name in a browser-visible provider field"
+        ],
+        "reason": "NOT MACHINE-CHECKABLE NAME-FREE. Tautological and worth stating plainly: detecting a name requires the name. The banned wire shape is a provider field carrying a supplier's name; the approved shape is the same field carrying the opaque token. The two are structurally identical and differ ONLY in the value, so the pattern that separates them must enumerate either the banned names (forbidden by the 2026-07-17 ruling) or the allowed values (which POSIX ERE cannot express as a negation: git grep -E has no lookahead, and grep -P is banned estate-wide because it errors on locale and falsely reports clean). Expressing it would mean adding a rule TYPE to check-positioning.sh, which is hand-maintained in 6 repos and is not generated: out of scope for a purge, and the wrong trade. COMPENSATING CONTROLS, both verified 2026-07-17: (1) the backend already emits the opaque token, /api/v1/rentals returns \"provider\":\"network\"; (2) the frontend no longer carries a supplier name to send. The residual risk is honest and stated: nothing in the guard will catch a NEW supplier name introduced into a provider field. That is the accepted cost of a name-free guard, and the mitigation is the rule itself, that the name never enters the codebase, not a grep that would have to hold the name to look for it."
+      },
+      {
+        "entries": [
+          "our network",
+          "we operate"
+        ],
+        "reason": "Class mixed-opsec-tone. avoidProvenance says in terms: 'NOT a blanket ban on the words. Opsec only when the phrase states WHAT or WHERE we operate.' Whether a given use leaks depends on the sentence, and a substring matcher cannot read a sentence. A flat ban would flag 'we operate a REST API' and 'our network of supported services', and a guard that cries wolf gets deleted, which is worse than no guard. The narrow LEAKING shape IS machine-checked by rule opsec-our-inventory-in-region ('our SIMs/fleet/infrastructure are in ...'). The remainder is a human review item at copy review, not a grep."
+      },
+      {
+        "entries": [
+          "identity"
+        ],
+        "reason": "Class decision-risk-framing, and a bare common noun. A flat ban is a false-positive machine: verified 2026-07-17 that it matches the MIME type 'application/vnd.groove-identity-message' inside bundled dependency code in mcp-server (.smithery/bundle.cjs, .smithery/shttp/module.js), and it would match 'identity verification' in any competitor description or third-party quote. The actual rule is about FRAMING (copy is about the user's OWN accounts, never someone's identity), which requires reading a sentence's meaning. Not machine-checkable as a substring. Human review item."
+      }
     ],
     "mustNotMatch": {
       "_comment": "APPROVED COPY THAT MUST NEVER MATCH ANY RULE. sync-canonical.js asserts this at generation time and REFUSES to emit on a hit. This is the standing, automated version of the manual control that used to be re-run by hand: it makes the 2026-07-16 incident structurally impossible to repeat, because the ban that would have scrubbed the differentiator cannot be built. allowed[] is appended to allProfiles automatically. Add a line here whenever an operator ruling approves a phrase.",
@@ -123,10 +1054,10 @@
         "a German number runs on Telekom, Vodafone or O2",
         "SIM cards in use across the catalog",
         "we have SIM cards in use right now",
-        "18 tools",
+        "40 tools",
         "from $0.05 per code",
         "95%+ success rate",
-        "223 proxy countries",
+        "190+ proxy countries",
         "145+ countries",
         "2500+ services",
         "use a matching-country number from our global inventory",
@@ -136,7 +1067,7 @@
         "Real SIM cards sourced from 145+ countries worldwide",
         "US numbers are sourced from real US carrier-issued SIMs",
         "Migrating from SMS-Activate?",
-        "VirtualSMS is an account verification platform for individuals, developers, and AI agents. It combines one-time SMS verification, dedicated number rentals, matching-country proxies, and private cloud browser sessions behind one API, one MCP server, and one prepaid balance.",
+        "VirtualSMS is an account verification platform for individuals, businesses, developers, and AI agents. It combines one-time SMS verification, dedicated number rentals, matching-country proxies, and private cloud browser sessions behind one API, one MCP server, and one prepaid balance.",
         "VirtualSMS provides the infrastructure behind reliable account verification workflows.",
         "Infrastructure for AI agents that need real-world phone verification."
       ],
@@ -144,18 +1075,25 @@
       "_mixedNote": "The mixed-content-only block was REMOVED 2026-07-17. It held competitor-context fixtures ('Alternative to <supplier>', '<supplier> alternative', the alternative-to comparison link) whose job was to prove the flat name bans could not reach a repo with comparison content. Two things changed and both point the same way. First, those fixtures SPELLED THE SUPPLIER NAMES OUT, so under the purge ruling they were themselves a leak, and a large one: this file is vendored into 6 repos and 4 published packages. Second, they now test NOTHING: no rule in this file contains a supplier name, so no rule can match a bare supplier name, and the property the fixtures asserted is guaranteed by CONSTRUCTION rather than by assertion. A fixture that cannot fail is not a test. The carve-out itself is UNCHANGED and still absolute: comparison and 'alternative to' content is ALLOWED and SEO-valuable, and must never be scrubbed."
     }
   },
-  "allowed": ["real physical SIM cards","real physical SIMs","real carrier-issued mobile numbers, not VoIP"],
+  "allowed": [
+    "real physical SIM cards",
+    "real physical SIMs",
+    "real carrier-issued mobile numbers, not VoIP"
+  ],
   "notes": {
     "physicalSIM": "ALLOWED product differentiator, operator ruling 2026-07-16. 'physical SIM' was REMOVED from avoid[] on that date: it had drifted into the avoid-list and contradicted the actual opsec rule, causing the differentiator to be scrubbed across 6 repos. The SIM is the PRODUCT (allowed); the modem and where it sits is our INFRASTRUCTURE (banned). Still banned: physical SIM infrastructure, physical SIM modems, hardware modems / modem / SIM box / ports, our fleet / our hardware / own modem fleet, any fleet-location claim, not a reseller / direct-sourced. Do NOT re-add 'physical SIM' to avoid[].",
-    "mcpToolsPublished": "DERIVED VALUE, NEVER TYPED. The tool count equals whatever the PUBLISHED server's tools/list returns. Read it, do not type it. Every wrong count in this file's history came from a human typing a number instead of reading one. PUBLISHED TODAY = 18: npm virtualsms-mcp@1.2.3 + hosted mcp.virtualsms.io tools/list + origin/main, all three cross-checked 2026-07-16. Claim 18. It is what ships. NOT YET PUBLISHED, do not claim: branch feature/mcp-tier-a-hardening is 44 total DEFINED, or 40 shipped by DEFAULT. Default 40 INCLUDES the cloud-browser start tool (ungated, beta). Setting VIRTUALSMS_ENABLE_SESSIONS adds the 3 session tools = 43; release_rental is gated behind VIRTUALSMS_ENABLE_RELEASE; both flags set = 44. Decomposition of the 26 new: 10 rentals + 10 proxy + 3 session (gated behind VIRTUALSMS_ENABLE_SESSIONS) + 3 other. Arithmetic: 18 + 26 = 44 total defined; default 40 = 44 minus 3 session minus 1 release_rental (gated behind VIRTUALSMS_ENABLE_RELEASE). Corrected 2026-07-17/18: the browser start tool ships ungated by default and release_rental joined the gated set, so DEFAULT is 40, not the earlier 41. Nothing from that branch is public (origin/main is still 4a6ac73, 1.2.3, 2026-04-29), so 44/41 are claims about someone's disk, not about the product. Do NOT claim them until pushed, version-bumped, published and re-verified against tools/list. CAUTIONARY, DO NOT REINTRODUCE: this note previously read 'A local unpushed branch has 35 (adds 10 rental + 4 proxy + 3 other)'. BOTH halves were wrong. 35 was a STALE SESSION ARTIFACT (an MCP client's tool list loaded at session start, before the dist was rebuilt 2026-07-16 22:12) and was NEVER a real state of any branch, and the '4 proxy' arithmetic was wrong (there are 10). If you find 35 in an old transcript, that is this artifact resurfacing: it is not evidence. Corrected 2026-07-17 per Decisions/2026-07-17-mcp-server-publish-spec.md section 2h. The lesson is the file's own: a number observed once, written down and never re-derived is a drift vector, and it does not matter that the file it lands in is the anti-drift file.",
+    "mcpToolsPublished": "DERIVED VALUE, NEVER TYPED. The tool count equals whatever the PUBLISHED server's tools/list returns. Read it, do not type it. Every wrong count in this file's history came from a human typing a number instead of reading one. PUBLISHED TODAY = 40: npm virtualsms-mcp@1.3.1 (published 2026-07-18) + hosted mcp.virtualsms.io tools/list, both cross-checked 2026-07-19 by counting unique tool names in the live tools/list response (40 counted). Claim 40. It is what ships. Decomposition, matching the pre-publish forecast exactly: 9 rentals + 10 proxy + 1 cloud-browser session-start tool (ungated by default, beta) + 20 original/other = 40. The 3 gated session tools (behind VIRTUALSMS_ENABLE_SESSIONS, would bring the total to 43) and release_rental (gated behind VIRTUALSMS_ENABLE_RELEASE, would bring the total to 44 with both flags set) are NOT in the default 40 and remain unverified until a live session with those flags set is checked against tools/list. HISTORY, kept for the lesson: this field was 18 from 2026-07-16 (npm virtualsms-mcp@1.2.3) through 2026-07-18, while feature/mcp-tier-a-hardening sat unpublished on someone's disk (44 total defined, 40 shipped by default per the same decomposition above, corrected from an earlier 41 on 2026-07-17/18). That branch published as v1.3.1 sometime between the 2026-07-17/18 session and this 2026-07-19 re-verification. CAUTIONARY, DO NOT REINTRODUCE: this note once read 'A local unpushed branch has 35 (adds 10 rental + 4 proxy + 3 other)'. BOTH halves were wrong. 35 was a STALE SESSION ARTIFACT (an MCP client's tool list loaded at session start, before the dist was rebuilt 2026-07-16 22:12) and was NEVER a real state of any branch, and the '4 proxy' arithmetic was wrong (there are 10). If you find 35 in an old transcript, that is this artifact resurfacing: it is not evidence. See Decisions/2026-07-17-mcp-server-publish-spec.md section 2h. The lesson is the file's own: a number observed once, written down and never re-derived is a drift vector, and it does not matter that the file it lands in is the anti-drift file. NEXT RE-VERIFICATION TRIGGER: any future claim above 40, or any claim that the gated session/release_rental tools are live by default, must re-run tools/list before being written here.",
+    "proxyCountries": "CORRECTED 2026-07-20: 190+, verified against the live proxy catalog (roughly 192 real countries after stripping roughly 32 non-country territories such as states, provinces and special administrative regions) plus DataImpulse's own advertised 195+ on its marketing pages. Prior value 223 (and the related stale figures 224 and 220) counted RAW LOCATION ROWS in the catalog, including those roughly 32 territory rows, rather than real countries, so it overstated coverage. This was a plain overcounting bug, not a hardware or location leak. See avoidProvenance '223 proxy countries' for the sweep-target record and guard.rules num-223-proxy-countries, num-224-countries, num-220-countries and num-220-proxy-countries for the machine enforcement. Historical files that cite 223 from before 2026-07-20 are point-in-time records and are NOT retroactively edited; this field is the live canonical value going forward.",
     "supplierNames": "OPERATOR HARD RULE, 2026-07-17: supplier names appear in NO code, NO config, NO copy, NO identifier and NO comment, in ANY repo. Use opaque tokens ('network'). The ONLY permitted mentions anywhere are (1) COMPETITOR CONTEXT, which is ALLOWED and SEO-valuable and must NEVER be scrubbed (our suppliers are also public competitors; the alternative-to page is the best-performing page, ruled twice, 2026-07-02 and 2026-07-16), and (2) Vault docs and Linear tickets, which are private. Server-side DB values and env vars where a change would be a migration: REPORT, do not change unilaterally. WHY THE RULE IS ARCHITECTURAL AND NOT JUST TIDINESS: a name that exists nowhere cannot leak, cannot drift into a diff, and needs no rule anyone has to remember at 2am. Every previous control here was a grep that had to HOLD the name in order to look for it, which is why this file, the anti-leak file, ended up the single largest concentration of supplier names in the estate and blocked a push on 2026-07-17 for containing the strings it existed to remove. Deleting the names deleted the problem class rather than policing it. WHAT THE GUARD CAN AND CANNOT DO NOW, stated honestly because a green check must never overstate itself (see _guardLimit): it CATCHES the supply-relationship SHAPES that survive without a name ('our <x> fleet', 'our <x> integration', 'we source from'), which is 3 of the 4 known historical leaks, and it catches strictly MORE real infra leaks than the old name-based rules did, because a shape ban does not care what fills the slot. It CANNOT catch a bare name: that is tautological, detecting a name requires the name, and two such shapes are declared in guard.unenforceable[] rather than faked. The compensating control is the rule itself, not a pattern.",
-    "x402": "Do NOT claim live. Endpoints 404 (VSMS-465); the discovery manifest is the artifact that is wrong. Use x402-ready or omit.",
+    "x402": "LIVE and LISTED as of 2026-07-20. x402 pay-per-code SMS verification settles end to end (real BEP20 canary in prod, real number provisioned) and is listed on x402scan (feeds AgentCash's 2000+ agents), x402scout, agent-tools.cloud and the official MCP registry (io.github.virtualsms-io/sms v1.3.1). The VSMS-465 blockers are RESOLVED: pool is wired (paid orders route through the frontend's own CreateOrderInternal engine, same pools/prices) and refunds ride the existing 20-min expire job. Resolves VSMS-535/536/544/545/565/566/568/571; deploy VSMS-542. The old 'endpoints 404 / do NOT claim live' state is retired. NUANCE THAT STAYS: customer-facing MARKETING copy should not lead with or over-claim x402 unless intentional (it is a developer/agent-commerce surface, not a homepage headline); it is simply no longer false to say it is live. Full record + the v2 PAYMENT-REQUIRED header lesson: Decisions/2026-07-20-1946-x402-live-and-listed-plus-v2-header-lesson.md and the discovery canon Decisions/2026-07-16-2300-x402-discovery-canon.md.",
     "agentTagline": "Per-surface agent-first tagline is allowed in dev-repo README BODIES, but package.json/server.json/registry DESCRIPTIONS must lead with entitySentence (operator call 2026-07-16).",
     "entitySentence": "REPLACED AGAIN 2026-07-18 (operator-approved, expert review pass, locked this session). The change from the 2026-07-17/18 version: the tail 'in one workspace for individuals, developers, and AI agents' becomes audience-first 'for individuals, developers, and AI agents' up front, and 'in one workspace' is upgraded to the stronger platform proof 'behind one API, one MCP server, and one prepaid balance'. Reason (expert review): 'one workspace' is soft; 'one API, one MCP server, one prepaid balance' is concrete platform proof that also does AEO work (names the API, the MCP server and the prepaid model in the citable definition). The FOUR capabilities and their order are UNCHANGED (one-time SMS verification / dedicated number rentals / matching-country proxies / private cloud browser sessions); 'individuals' stays (over 'people', to avoid the developers-are-people redundancy the operator caught). OLD, now retired (2026-07-17/18): '...private cloud browser sessions in one workspace for individuals, developers, and AI agents.' OLDER, retired earlier: '...combines real carrier mobile numbers, matching-country proxies and a private cloud browser into one connected workflow.' See capabilities[] for the AEO-citable enumeration, infrastructureLine plus notes.platformVsInfrastructure for the companion framing, and notes.simWording for the SIM vocabulary.",
     "simWording": "USE BOTH, operator ruling 2026-07-18 (expert review): LEAD with 'carrier-issued mobile numbers' (premium/telecom framing), PROVE with 'real physical SIM cards, not VoIP' (the ruled differentiator). Both are approved AND both are searched terms, so neither is dropped for the other. Canonical composite where a single line is wanted: 'carrier-issued mobile numbers, backed by real physical SIM cards, not VoIP.' This is a GUIDANCE note, not a ban: 'physical SIM' remains APPROVED product vocabulary (see notes.physicalSIM and allowed[]) and 'carrier-issued' is its premium-framing companion, not a replacement. Do NOT re-add either phrase to avoid[]. The ONLY banned SIM wording remains our hardware/modems/fleet and where any of it sits (see the absolute-opsec entries).",
     "platformVsInfrastructure": "OPERATOR + EXPERT RULING 2026-07-17. 'platform' = what VirtualSMS IS; 'infrastructure' = what it ENABLES. We are NOT saying VirtualSMS is infrastructure, we are saying it PROVIDES infrastructure. Per-surface: homepage/registry lead with 'account verification platform' (entitySentence); about/dev surfaces may use infrastructureLine ('provides the infrastructure behind reliable account verification workflows'); GitHub/MCP tagline = 'Infrastructure for AI agents that need real-world phone verification.' The two-word phrase 'communications infrastructure' is BANNED (Twilio's category; see avoidProvenance and rule tone-comms-infra); the bare word 'infrastructure' in the sanctioned usages is APPROVED and pinned as mustNotMatch fixtures so the ban cannot flag it.",
     "capabilities": "The four canonical capabilities, in order, live in capabilities[] and are the AEO-citable enumeration: one-time SMS verification, dedicated number rentals, matching-country proxies, private cloud browser sessions (beta). Copy that lists them keeps this order; the entity sentence encodes it. Recorded 2026-07-17/18.",
     "proxyPools": "SOLD (3 pools): datacenter, residential, mobile. NOT SOLD: residential_premium, switched off pending evaluation but still present in code/catalog (that is the VSMS-489 bug; positioning.md's 'THREE proxy pools' matches the 3 sold). GUIDANCE, not a hard ban: prefer generic 'matching-country proxies' in copy over enumerating pool names, since the pool set toggles. No pool-name string is banned. Recorded 2026-07-17/18.",
-    "cloudBrowser": "BETA, invite-only: gated by a server feature-flag plus an allowlist; default accounts get 503/403. Real Steel-backed; the backend lives on an unmerged branch. Honest framing: 'start a country-matched cloud browser and drive it yourself in a live viewer; agent-driven navigation is a separate opt-in.' Beta-access channel: https://t.me/VirtualSMS_io. Do NOT claim it 'returns debug_url'; the API returns viewer_url. Recorded 2026-07-17/18."
+    "cloudBrowser": "BETA, invite-only: gated by a server feature-flag plus an allowlist; default accounts get 503/403. Real Steel-backed; the backend lives on an unmerged branch. Honest framing: 'start a country-matched cloud browser and drive it yourself in a live viewer; agent-driven navigation is a separate opt-in.' Beta-access channel: https://t.me/VirtualSMS_io. Do NOT claim it 'returns debug_url'; the API returns viewer_url. Recorded 2026-07-17/18.",
+    "framing20260718HormoziPass": "DOCUMENTATION NOTE ONLY, does not change entitySentence, capabilities[], avoid[], guard.rules or mustNotMatch. Full record lives in Design/positioning.md, section 'Framing (2026-07-18 Hormozi pass)'. Recorded there: a set of emphasis/prominence rules (lead with the entity sentence not the infrastructure line, state capabilities verb-first with a number, lead SIM wording with carrier-issued and prove with physical SIM, sell the workflow/moat not just SMS, keep AI agents as the WHO distinct from agentic workflows as the use case) plus four reusable blocks verbatim: an ENTITY LEAD, a MOAT line, a SURFACES line, and an EXAMPLE PROMPTS pattern (5 prompts) for skill/integration pages. FLAGGED, UNRESOLVED: the framing-pass ENTITY LEAD wording ('...for developers and AI agents...one API, one MCP server and one prepaid balance.') differs from the entitySentence field above, locked the same date, which includes 'individuals,' and serial commas. entitySentence was NOT changed by this note; do not treat the framing-pass wording as having superseded it. See positioning.md for the full flag and reconcile before either version is used as the sole source. RESOLVED by notes.audienceClauseRule below, see that note.",
+    "audienceClauseRule": "RESOLVES the framing20260718HormoziPass flag above, 2026-07-18. Both audience-clause wordings are canonical at the same time, not drift. The entity sentence has a CORE that never changes (one-time SMS verification, dedicated number rentals, matching-country proxies, private cloud browser sessions behind one API, one MCP server, one prepaid balance) and an AUDIENCE CLAUSE that adapts by surface. Developer and AI surfaces (MCP README, SDK READMEs, skill and rules repos, the /mcp page, platform pages) use 'for developers and AI agents', matching the framing-pass ENTITY LEAD block in positioning.md. Homepage and broad marketing surfaces use 'for individuals, businesses, developers, and AI agents', matching the entitySentence field above. Only the audience clause varies by surface; the core sentence never changes anywhere. Practical effect: the reframed skill and README copy already shipped with 'for developers and AI agents' on dev surfaces is CORRECT as written and needs no rework. Full record: Design/positioning.md, section 'Audience clause rule (2026-07-18, resolves the flag above)'."
   }
 }

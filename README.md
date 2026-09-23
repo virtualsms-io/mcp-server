@@ -27,7 +27,7 @@ Most providers solve one piece of the verification workflow. VirtualSMS combines
 
 VirtualSMS can be used by individuals manually, integrated into applications with SDKs and APIs, or driven by AI agents through MCP. Use the platform through a REST API, official SDKs for Node, Python, PHP, Ruby and .NET, a hosted MCP server, or automation tools like n8n.
 
-This server exposes that platform to any MCP client. Built for AI agents. Designed for agentic workflows. Works with Claude Code, Claude Desktop, Cursor, Windsurf and every MCP-compatible client, with no wrapper code to write.
+This server exposes that platform to any MCP client. Built for AI agents. Designed for AI-agent workflows. Works with Claude Code, Claude Desktop, Cursor, Windsurf and every MCP-compatible client, with no wrapper code to write.
 
 ---
 
