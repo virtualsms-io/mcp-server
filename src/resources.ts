@@ -143,7 +143,7 @@ These countries typically offer the lowest prices:
 - **Ukraine (UA)**: Good prices for EU-facing services
 
 ### 3. Check Stock Before Buying
-A country might be cheap but have 0 stock. Always check the \`count\` field in \`find_cheapest\` results.
+A country might be cheap but out of stock. Always check the \`availability\` field (in_stock / low_stock / out_of_stock) in \`find_cheapest\` results.
 
 ### 4. When to Use Swap
 If you buy a number and it doesn't receive SMS after 2-3 minutes:

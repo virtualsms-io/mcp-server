@@ -58,7 +58,10 @@ export interface CatalogCountry {
   iso: string;
   name: string;
   price_usd: number;
-  count: number;
+  // Authoritative stock signal. Legacy `count` is kept as a fallback for
+  // older backend payloads that don't send it yet; see src/stock.ts.
+  availability?: 'in_stock' | 'low_stock' | 'out_of_stock' | string;
+  count?: number;
 }
 
 export interface Balance {
@@ -666,8 +669,9 @@ export class VirtualSMSClient implements IVirtualSMSClient {
     const res = await this.http.get('/api/v1/catalog/countries', {
       params: { service },
     });
-    // API returns: {countries: [{id:"AT", name:"Austria", price:0.27, count:9240, ...}], success:true}
-    // `count` is the real per-country stock (frontend treats count>0 as in-stock).
+    // API returns: {countries: [{id:"AT", name:"Austria", price:0.27, availability:"in_stock", count:9240, ...}], success:true}
+    // `availability` is the authoritative stock band; `count` is a legacy
+    // fallback the backend is phasing out. See src/stock.ts.
     const raw: Array<Record<string, unknown>> = Array.isArray(res.data?.countries)
       ? (res.data.countries as Array<Record<string, unknown>>)
       : Array.isArray(res.data)
@@ -677,7 +681,8 @@ export class VirtualSMSClient implements IVirtualSMSClient {
       iso: String(c.id ?? c.iso ?? c.country ?? ''),
       name: String(c.name ?? c.country_name ?? ''),
       price_usd: Number(c.price ?? c.our_price ?? c.price_usd ?? 0),
-      count: Number(c.count ?? 0),
+      availability: typeof c.availability === 'string' ? c.availability : undefined,
+      count: c.count === undefined || c.count === null ? undefined : Number(c.count),
     }));
   }
 

@@ -14,6 +14,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `examples/` directory with three runnable, copy-pasteable examples (balance check, end-to-end SMS verification, Claude Desktop config).
 - README sections: CI status badge, Demo / Screenshots, Production / Status, links to `SECURITY.md`, `CHANGELOG.md`, and `examples/`.
 
+## [1.3.3] - 2026-09-23
+
+### Changed
+- `find_cheapest` and price checks read the catalog's stock band (`availability`) and fall back to the legacy count; exact stock numbers are no longer shown in tool output.
+
 ## [1.3.1]
 
 ### Fixed
