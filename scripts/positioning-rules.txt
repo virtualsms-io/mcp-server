@@ -15,24 +15,28 @@
 #   exclude extra git exclude pathspec(s), "-" for none
 #
 # profile: mixed-content
-# rules: 38
+# rules: 45
 # generator-version: 1
-# canonical-sha256: b6bd2b316154ba10d4308765c60e91b639f8e11c9d54e561f0aa01e78208db19
-# rules-sha256: 933bc20111f56b8085d1dbd08bdfca45a8cd75c8b45d5bea1dfa5e20cf2432b1
+# canonical-sha256: 75b92e04787343009247ad8f279de82834e8e5041fb091511e0a32d719eeb474
+# rules-sha256: 512b9983a0b64534dd6f8ce0d438823e1cd291f99517bcf12baeb8aa611fe041
 #RULES
-numeric	700+ services	canonical services count is 2500+	700\+ services	.	-
-numeric	500+ services	canonical services count is 2500+	500\+ services	.	-
-numeric	500 services	canonical services count is 2500+	500 services	.	-
-numeric	2000+ services	canonical services count is 2500+	2000\+ services	.	-
-numeric	2000 services	canonical services count is 2500+	2000 services	.	-
-numeric	2500 services (no plus)	canonical format is '2500+ services', always with the plus sign	2500 services	.	-
-numeric	200+ countries	canonical number countries is 145+	200\+ countries	.	-
-numeric	100+ countries	canonical number countries is 145+	100\+ countries	.	-
-numeric	180+ countries	canonical number countries is 145+	180\+ countries	.	-
-numeric	30+ countries	canonical number countries is 145+	30\+ countries	.	-
-numeric	12 tools	canonical published MCP tool count is 18	12 tools	.	:(glob,exclude)**/CHANGELOG.md
-numeric	35 tools	phantom count; it was never a real state of any branch. Published count is 18	35 tools	.	-
-numeric	90%+ of VoIP	unsupported claim; canonical success framing is 95%+	90%\+ of VoIP	.	-
+numeric	700+ services	canonical services count is 2500+	\b700\+ services	.	-
+numeric	500+ services	canonical services count is 2500+	\b500\+ services	.	-
+numeric	500 services	canonical services count is 2500+	\b500 services	.	-
+numeric	2000+ services	canonical services count is 2500+	\b2000\+ services	.	-
+numeric	2000 services	canonical services count is 2500+	\b2000 services	.	-
+numeric	2500 services (no plus)	canonical format is '2500+ services', always with the plus sign	\b2500 services	.	-
+numeric	200+ countries	canonical number countries is 145+	\b200\+ countries	.	-
+numeric	100+ countries	canonical number countries is 145+	\b100\+ countries	.	-
+numeric	180+ countries	canonical number countries is 145+	\b180\+ countries	.	-
+numeric	30+ countries	canonical number countries is 145+	\b30\+ countries	.	-
+numeric	223 proxy countries	canonical proxy countries count is 190+	\b223 proxy countries	.	-
+numeric	224 countries	canonical proxy countries count is 190+	\b224 countries	.	-
+numeric	220 countries	canonical proxy countries count is 190+	\b220 countries	.	-
+numeric	220 proxy countries	canonical proxy countries count is 190+	\b220 proxy countries	.	-
+numeric	12 tools	canonical published MCP tool count is 40	\b12 tools	.	:(glob,exclude)**/CHANGELOG.md
+numeric	35 tools	phantom count; it was never a real state of any branch. Published count is 40	\b35 tools	.	-
+numeric	90%+ of VoIP	unsupported claim; canonical success framing is 95%+	\b90%\+ of VoIP	.	-
 literal	$0.02	canonical min price per code is $0.05	$0.02	.	-
 literal	near-100	canonical success framing is 95%+	near-100	.	-
 literal	Ranked #1	unverifiable ranking claim	Ranked #1	.	-
@@ -45,7 +49,7 @@ literal	communications infrastructure	Twilio's category; VirtualSMS solves the n
 literal	physical SIM infrastructure	infra leak; the SIM is the PRODUCT and is allowed, the infrastructure is not	physical SIM infrastructure	.	-
 literal	modem	infra leak; never describe our hardware	modem	.	-
 literal	SIM box	infra leak; never describe our hardware	SIM box	.	-
-literal	our fleet	infra leak; never describe our fleet	our fleet	.	-
+regex	our fleet	infra leak ONLY when it states what our fleet IS, is MADE OF, or WHERE it sits. "numbers ... in our fleet" describes the PRODUCT the customer receives and is ALLOWED (operator ruling 2026-08-08; same over-broad pattern as the retracted physical-SIM ban).	our fleet (?:is|are|sits|sit|lives|operates|runs|of|spans)\b|our fleet in [A-Z]|(?:size|count|number|scale) of our fleet	.	-
 literal	our hardware	infra leak; never describe our hardware	our hardware	.	-
 literal	our EU	infra leak; never reveal where our hardware sits	our EU	.	-
 literal	ports across	infra leak; never reveal port or SIM counts	ports across	.	-
@@ -58,3 +62,6 @@ regex	our <supplier> integration	supplier leak; naming who we integrate with rev
 regex	we source/buy/resell from	supplier leak; states the supply relationship in the active voice	we (source|buy|resell|purchase) (them |these |our |the )?(numbers |inventory |sims )?from	.	-
 dash	em-dash or en-dash	not allowed in README; use a colon, comma or full stop	-	*README.md	-
 dash	em-dash or en-dash	not allowed in a package manifest description; use a colon, comma or full stop	-	package.json setup.py pyproject.toml composer.json *.gemspec *.csproj *.nuspec server.json .plugin/plugin.json	-
+regex	SIM batches	describes PROCUREMENT of supply, not the product the customer receives	SIM batches	.	-
+regex	SIM rotation	describes our operating policy, not the product	SIM rotation	.	-
+regex	SIM pools	implies held stock; describes our supply, not the product	SIM pools	.	-

@@ -49,7 +49,7 @@
 
 set -u
 
-TARGET_BRANCH="feature/mcp-tier-a-hardening"
+TARGET_BRANCH="main"
 EXPECTED_NPM_USER="virtualsms"
 PKG_NAME="virtualsms-mcp"
 RULES="scripts/positioning-rules.txt"
