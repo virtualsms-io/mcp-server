@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/virtualsms-io/mcp-server/actions/workflows/ci.yml/badge.svg)](https://github.com/virtualsms-io/mcp-server/actions/workflows/ci.yml)
 [![npm version](https://img.shields.io/npm/v/virtualsms-mcp.svg)](https://www.npmjs.com/package/virtualsms-mcp)
-[![smithery badge](https://smithery.ai/badge/virtualsms/virtualsms-mcp)](https://smithery.ai/servers/virtualsms/virtualsms-mcp)
+[![LightNow capabilities](https://lightnow.ai/badge/io.github.virtualsms-io/sms)](https://lightnow.ai/servers/io.github.virtualsms-io/sms)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 [![GitHub Stars](https://img.shields.io/github/stars/virtualsms-io/mcp-server?style=social)](https://github.com/virtualsms-io/mcp-server)
 
